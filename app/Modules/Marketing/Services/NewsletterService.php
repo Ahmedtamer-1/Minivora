@@ -1,0 +1,3 @@
+<?php
+
+// Subscribe/unsubscribe, consent.

@@ -1,0 +1,3 @@
+<?php
+
+// Sends recovery reminders.

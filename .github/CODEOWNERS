@@ -1,0 +1,22 @@
+# Replace @owner-* with GitHub usernames. One owner per area reviews its PRs.
+/app/Core/                       @owner-core
+/app/Modules/Platform/           @owner-core
+/app/Modules/Accounts/           @owner-core
+/app/Modules/Catalog/            @owner-commerce
+/app/Modules/Cart/               @owner-commerce
+/app/Modules/Checkout/           @owner-commerce
+/app/Modules/Orders/             @owner-orders
+/app/Modules/Notifications/      @owner-orders
+/app/Modules/Builder/            @owner-builder
+/app/Modules/Seo/                @owner-storefront
+/resources/views/storefront/     @owner-storefront
+/app/Modules/Ledger/             @owner-finance
+/app/Modules/Fpa/                @owner-finance
+/app/Modules/Analytics/          @owner-finance
+/app/Modules/Marketing/          @owner-marketing
+/app/Ai/                         @owner-ai
+/resources/js/                   @owner-dashboard
+/design/                         @owner-dashboard
+/app/Importers/Adorna/           @owner-importer
+/database/migrations/            @owner-core
+/.github/                        @owner-core

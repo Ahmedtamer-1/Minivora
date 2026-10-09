@@ -1,0 +1,3 @@
+<?php
+
+// Money math.

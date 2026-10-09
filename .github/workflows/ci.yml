@@ -1,0 +1,10 @@
+# CI: runs on every push and pull request.
+# TODO: replace the placeholder job with: composer install, npm ci, Pint, PHPStan, Pest (with coverage gates),
+#       ESLint, tsc, npm run build, typescript:transform check, Playwright on PRs to main.
+name: CI
+on: [push, pull_request]
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "CI not set up yet"

@@ -1,0 +1,1 @@
+{{-- Shipping update email body. --}}

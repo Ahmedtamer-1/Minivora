@@ -120,18 +120,22 @@ minivora/
 │   └── Importers/Adorna/          # one-way import from Adorna EG for the pilot (§2.7)
 │
 ├── database/
-│   ├── migrations/                # ALL schema changes go here
-│   └── seeders/                   # DemoStoresSeeder: 5 stores × 200 products
+│   ├── migrations/                # ALL schema changes go here (order in PLAN.md)
+│   └── seeders/                   # DemoStoresSeeder (5 stores × 200 products), ChartOfAccountsSeeder
 │
 ├── resources/
-│   ├── views/storefront/          # Blade: layouts/, pages/, sections/ (one file per builder section)
+│   ├── views/storefront/          # Blade: layouts/, partials/, pages/, sections/ (one file per builder section)
+│   ├── views/emails/              # email bodies
 │   ├── js/                        # React + TypeScript dashboard (Inertia)
-│   │   ├── Pages/                 # one folder per dashboard area (SRS §7.1)
-│   │   ├── Components/ui/         # Button, Card, Input, Badge, GlassPanel…
+│   │   ├── pages/                 # one folder per dashboard area (SRS §7.1)
+│   │   ├── components/ui/         # button, card, input, badge, glass-panel…
+│   │   ├── layouts/               # dashboard shell, sidebar, top bar
 │   │   ├── lib/                   # money.ts, i18n.ts
-│   │   ├── types/generated.ts     # GENERATED from Data/ classes; do not edit
-│   │   └── styles/tokens.css      # GENERATED from design/tokens; do not edit
-│   └── lang/ar, lang/en           # every user-facing string
+│   │   └── types/generated.ts     # GENERATED from Data/ classes; do not edit
+│   └── css/tokens.css             # GENERATED from design/tokens; do not edit
+│
+├── lang/ar/, lang/en/             # every user-facing string (+ ar.json, en.json for React)
+├── config/minivora.php            # Minivora settings (domain, AI providers, limits)
 │
 ├── routes/
 │   ├── storefront.php             # shopper pages, resolved by store subdomain
@@ -248,7 +252,7 @@ When a key hits its rate limit, the next key or provider is used automatically (
 ### 4.7 Figma ↔ dashboard: design tokens
 
 ```bash
-npm run tokens   # design/tokens/tokens.json → resources/js/styles/tokens.css
+npm run tokens   # design/tokens/tokens.json → resources/css/tokens.css
 ```
 
 Use `var(--mv-*)` variables. Never hardcode colors, spacing or radii.
@@ -265,11 +269,11 @@ Fill in names and mirror this in `.github/CODEOWNERS`. One owner per area review
 | Catalog, cart, checkout | `Modules/Catalog/`, `Cart/`, `Checkout/` | FR-CAT, FR-CRT, FR-PAY | _TBD_ |
 | Orders, notifications | `Modules/Orders/`, `Notifications/` | FR-ORD, FR-NTF | _TBD_ |
 | Storefront, SEO | `resources/views/storefront/`, `Modules/Seo/` | FR-SEO, NFR-PER | _TBD_ |
-| Builder, themes, media | `Modules/Builder/`, `resources/js/Pages/Builder/` | FR-BLD | _TBD_ |
+| Builder, themes, media | `Modules/Builder/`, `resources/js/pages/builder/` | FR-BLD | _TBD_ |
 | Ledger, FP&A, analytics | `Modules/Ledger/`, `Fpa/`, `Analytics/` | FR-LED, FR-FPA, FR-ANA | _TBD_ |
 | Marketing | `Modules/Marketing/` | FR-MKT, FR-MI | _TBD_ |
 | AI team | `app/Ai/` | FR-AI, FR-PRO, NFR-AIQ | _TBD_ |
-| Dashboard shell, design system | `resources/js/`, `design/` | §7.1, NFR-USE | _TBD_ |
+| Dashboard shell, design system | `resources/js/`, `resources/css/`, `design/` | §7.1, NFR-USE | _TBD_ |
 | Adorna importer | `app/Importers/Adorna/` | §2.7 | _TBD_ |
 
 Shared files (`app/Core/`, `database/migrations/`, `.env.example`, `.github/workflows/`) need **two approvals**.
@@ -277,6 +281,23 @@ Shared files (`app/Core/`, `database/migrations/`, `.env.example`, `.github/work
 ---
 
 ## 6. Run it on your computer
+
+### First-time project setup (once, by the core owner)
+
+The repo starts as Laravel's official React + TypeScript starter kit with this skeleton on top:
+
+```bash
+composer global require laravel/installer
+laravel new minivora               # choose: React starter kit, Pest, MySQL
+cd minivora
+# copy the skeleton folders in, replacing routes/console.php and README.md
+composer require spatie/laravel-data spatie/laravel-typescript-transformer
+git init && git remote add origin https://github.com/Ahmedtamer-1/Minivora.git
+```
+
+Every placeholder file in the skeleton holds only a note saying what goes there. Replace the note with real code as you build.
+
+### Everyone else
 
 **You need:** PHP 8.3+, Composer, Node 20+, MySQL. The easiest way on Windows or macOS is [Laravel Herd](https://herd.laravel.com) (free) or Laragon/XAMPP.
 

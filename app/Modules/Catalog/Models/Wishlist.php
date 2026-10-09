@@ -1,0 +1,3 @@
+<?php
+
+// Shopper wishlist items.

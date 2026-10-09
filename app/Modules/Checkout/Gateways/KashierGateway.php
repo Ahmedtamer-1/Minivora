@@ -1,0 +1,3 @@
+<?php
+
+// Kashier (test mode).

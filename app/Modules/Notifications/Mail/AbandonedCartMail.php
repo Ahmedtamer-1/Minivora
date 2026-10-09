@@ -1,0 +1,3 @@
+<?php
+
+// Cart recovery email.

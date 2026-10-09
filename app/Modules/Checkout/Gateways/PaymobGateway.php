@@ -1,0 +1,3 @@
+<?php
+
+// Paymob (test mode).

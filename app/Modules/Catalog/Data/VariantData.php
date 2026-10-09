@@ -1,0 +1,3 @@
+<?php
+
+// Validated variant input.

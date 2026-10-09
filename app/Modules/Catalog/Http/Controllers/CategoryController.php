@@ -1,0 +1,3 @@
+<?php
+
+// Dashboard: manage categories.

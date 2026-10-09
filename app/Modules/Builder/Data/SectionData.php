@@ -1,0 +1,3 @@
+<?php
+
+// Validated section settings.
