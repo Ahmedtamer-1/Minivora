@@ -1,495 +1,384 @@
 # Minivora
 
-**An AI-native, multi-store e-commerce engine for small Egyptian sellers.**
-A seller describes the business in Arabic or English, an AI team builds the store, the store sells, and the owner runs it with finance-grade answers backed by a double-entry ledger.
+**A multi-store e-commerce platform for small Egyptian sellers, with an AI management team and a real accounting ledger.**
+Sellers create a store in one step and get `theirstore.<domain>` instantly, Shopify-style: one app, one database, many stores.
 
-> The full requirements live in [`docs/SRS.docx`](docs/SRS.docx). Every requirement has an ID (`FR-CAT-01`, `NFR-SEC-05`, …). Reference those IDs in branches, commits, PRs and tests so we can trace every result back to the SRS at the defense.
+| Document | What it covers |
+|---|---|
+| [`docs/SRS.docx`](docs/SRS.docx) | Every requirement, with IDs like `FR-CAT-01` and `NFR-SEC-05` |
+| `docs/Technical-Overview` | Short version of the stack, hosting stages and team setup |
+| This README | How the code is organised, how to run it, how to deploy it |
 
-> **Hosting rule: free cloud services, no credit card, no self-hosted laptops.** The only paid things are what the team already owns: the **Minivora domain** and a **Hostinger web hosting** plan (landing page, mailboxes, cron). If you want to add a service, check section 2 first and get team approval.
+Reference requirement IDs in branches, commits, PRs and tests so every result traces back to the SRS at the defense.
 
 ---
 
-## Table of contents
+## Contents
 
-1. [Architecture at a glance](#1-architecture-at-a-glance)
-2. [The free cloud stack](#2-the-free-cloud-stack)
+1. [The stack](#1-the-stack)
+2. [Hosting stages](#2-hosting-stages)
 3. [Repository structure](#3-repository-structure)
 4. [How the pieces connect](#4-how-the-pieces-connect)
 5. [Who works where](#5-who-works-where)
-6. [Getting started](#6-getting-started)
-7. [Team conventions](#7-team-conventions)
-8. [Testing and requirement traceability](#8-testing-and-requirement-traceability)
-9. [Build order](#9-build-order)
-10. [SRS changes caused by free cloud hosting](#10-srs-changes-caused-by-free-cloud-hosting)
+6. [Run it on your computer](#6-run-it-on-your-computer)
+7. [Deploy to Hostinger](#7-deploy-to-hostinger)
+8. [Team rules](#8-team-rules)
+9. [Testing](#9-testing)
+10. [Build order](#10-build-order)
 
 ---
 
-## 1. Architecture at a glance
+## 1. The stack
 
-```
-                ┌──────────────────── Cloudflare (free: DNS for <domain>, HTTPS, edge cache) ────────────────────┐
- Visitors ─────►│  <domain>, www.<domain>  ──► Hostinger web hosting: landing page                               │
- Shoppers ─────►│  <store>.<domain>        ──► Cloudflare Worker ──► Koyeb: FastAPI backend ──► storefront (SSR)  │
- Owners ───────►│  app.<domain>            ──► Cloudflare Pages: React dashboard ──(/api/* proxy)──► Koyeb       │
-                └─────────────────────────────────────────────────────────────────────────────────────────────────┘
-                                                     │
-          ┌──────────────────────┬───────────────────┼────────────────────┬─────────────────────┐
-          ▼                      ▼                   ▼                    ▼                     ▼
-   Neon Postgres +        Cloudinary            Backblaze B2      Cloud LLMs via LiteLLM      Brevo SMTP
-   pgvector + RLS       (product media,       (receipts, PDFs,    (Groq, Gemini, OpenRouter,   (emails)
-                        WebP/AVIF, srcset)     exports, backups)   keys rotated)
+Everything runs on plain PHP + MySQL hosting, so deploying is as easy as Adorna EG's: no Docker, no root access, no Node or Python on the server.
 
-   Hostinger cron: on-time scheduled jobs (proactive checks, memos, imports) + keeps the backend awake
-   GitHub Actions: CI on every push · nightly backups · backup trigger for scheduled jobs
-   UptimeRobot: uptime monitoring and alerts
-```
+| Layer | Technology | Why |
+|---|---|---|
+| Backend | Laravel (PHP 8.3+) | Runs on any Hostinger or cPanel plan; Adorna's PHP logic ports over directly |
+| Database | MySQL 8 or MariaDB | Included in every hosting plan |
+| Storefront | Blade templates (server-rendered HTML) | Fast pages, full SEO, works without JavaScript |
+| Dashboard | React + TypeScript through Inertia.js | Typed, modern UI with no separate API server to host |
+| Typed data | `spatie/laravel-data` + TypeScript types generated from it | One definition validates input in PHP and types it in React |
+| Background work | Laravel scheduler + database queue, run by one cron line | Shared hosting does not allow always-running processes |
+| AI | Gemini, Groq and OpenRouter free APIs over HTTPS | Free; keys rotate when one hits its limit |
+| Styling | Design tokens exported from Figma (SCRUM-102) | One source for colors, spacing, radius, glass styles |
+| Checks | Pest, PHPStan, Pint, ESLint, `tsc`, Playwright | Run on every push in GitHub Actions |
 
-Four rules shape the whole codebase:
+Five rules shape the codebase:
 
-1. **Multi-tenant.** Every table except `stores` and `users` has a `store_id`, and RLS makes cross-store reads impossible (NFR-SEC-05).
-2. **Money is integer piasters.** 1 EGP = 100 piasters, everywhere: DB, API and TypeScript. Never floats.
-3. **AI never touches the database.** Agents call the same permission-checked service functions the dashboard uses (FR-AI-06). LLMs never produce financial figures; code does (FR-AI-03, FR-FPA-06).
-4. **Every money event posts to the ledger.** Orders, refunds, fees and ad spend create balanced journal entries (FR-LED-02, FR-LED-03).
-
-Plus one rule from the hosting choice:
-
-5. **The backend is stateless and cheap.** No local disk, no long-running background threads, no heavy image processing on the server. Files go to Cloudinary/B2, jobs run as HTTP calls from GitHub Actions, and anything slow is split into small idempotent steps.
+1. **Multi-store from day one.** Every table except `stores` and `users` has a `store_id`, and queries are filtered by it automatically (NFR-SEC-05).
+2. **Money is integer piasters.** 1 EGP = 100 piasters in MySQL, PHP and TypeScript. Never floats.
+3. **AI never touches the database.** Agents call the same permission-checked services the dashboard uses (FR-AI-06). Code computes every number; the AI only explains it (FR-AI-03).
+4. **Every money event posts to the ledger** as a balanced journal entry (FR-LED-02, FR-LED-03).
+5. **Nothing depends on one server.** Settings live in `.env`, files go through Laravel's storage layer, background work through Laravel's queue. That is what lets us move hosts without a rewrite.
 
 ---
 
-## 2. The free cloud stack
+## 2. Hosting stages
 
-All cloud tiers below are free without a credit card, as checked in October 2026; the last two rows are plans the team already owns. Free tiers change: re-check before relying on a limit, and log changes in `docs/adr/`.
+We start on the Hostinger plan we already have and move up only when traffic forces it. The code never changes; only `.env` and the server do.
 
-| Need | Service | Free limits that matter | How we live with them |
+| Stage | Where | Move here when | What changes |
 |---|---|---|---|
-| Backend (API + storefront) | **Koyeb** free instance, Frankfurt | 1 service, 512 MB RAM, very small CPU share; sleeps after **1 hour** without traffic, wakes in seconds | Hostinger cron hits `/healthz` every 10 min; storefront HTML cached at Cloudflare's edge |
-| Backup backend host | **Render** free web service | Sleeps after 15 min, ~1 min to wake | Same Docker image; switch only if Koyeb changes its free tier |
-| Database | **Neon** Postgres, Frankfurt | **0.5 GB storage**, 100 compute-hours per project per month, sleeps after 5 min idle, 10 branches, 6-hour restore window | `/healthz` never touches the DB (so Neon can sleep); media stays out of the DB; old page views pruned; one Neon branch per developer |
-| Dashboard hosting | **Cloudflare Pages** | Unlimited static bandwidth; Pages Functions have a daily request cap | Static build + one tiny function that proxies `/api/*` to Koyeb |
-| DNS, HTTPS, CDN | **Cloudflare** free plan | Free certificate covers `<domain>` and **one** subdomain level | HTTPS + HSTS (NFR-SEC-01), caches storefront pages; stores are always `<store>.<domain>` |
-| Store subdomains → backend | **Cloudflare Worker** (free) | Daily request cap | Wildcard `*.<domain>` → Worker forwards to Koyeb with the original host in `X-Forwarded-Host` |
-| Product images and video | **Cloudinary** free | 25 monthly credits shared across storage, bandwidth and transformations | Cloudinary does WebP/AVIF + resizing (FR-CAT-08), so our tiny server never converts images |
-| Private files and backups | **Backblaze B2** | 10 GB storage | Receipts, invoices, exports, nightly DB dumps; S3-compatible, so the provider is just env vars |
-| AI models | **Groq, Google AI Studio (Gemini), OpenRouter** free keys via LiteLLM | Per-key rate limits | LiteLLM runs **inside** the backend and rotates keys on rate limits (FR-AI-11); several team keys configured |
-| Embeddings (semantic search) | Gemini embeddings free tier | Rate limits | Computed once on product save, stored in pgvector |
-| Email | **Brevo** free | 300 emails/day | Enough for demo stores; recovery emails batched |
-| Scheduled jobs | **Hostinger cron** (primary), GitHub Actions cron (backup) | Shared-hosting cron, fine for `curl` calls | Jobs are short HTTP calls to the backend, never long scripts |
-| CI | **GitHub Actions** | Same minutes pool | Cache dependencies; run Playwright only on PRs to `main` |
-| Uptime monitoring | **UptimeRobot** free | 5-minute checks | Alerts + evidence for NFR-REL-04 |
-| Errors (optional) | **Sentry** free | Monthly event cap | Backend + dashboard |
-| Secrets for the team | **Bitwarden** free organization | — | All keys live here, never in chat or Git |
-| Domain | **Minivora domain** (team-owned) | Renewal price, not promo price, is what matters | Nameservers point to Cloudflare; registrar only renews it |
-| Landing page, mailboxes, cron | **Hostinger web hosting** (team-owned) | Shared hosting: static files + PHP only, no Python/Docker | Landing page at `<domain>`, inboxes like `hello@` and `support@`, cron jobs. **Never** runs app code |
-| Spare test hosting | **Namecheap shared hosting** (team-owned) | Same limits as above | Sandbox for trying landing-page or email changes before Hostinger; nothing depends on it |
+| **1. Build + Adorna pilot** (now) | Hostinger web hosting (shared) | — | Starting point |
+| **2. First real sellers** | Hostinger VPS or DigitalOcean | hPanel shows CPU/memory limits hit, pages slow at busy times, cron jobs time out, or several stores have real traffic | Redis for queue and cache; queue runs as a real worker |
+| **3. Large scale** | AWS or Google Cloud | One server is no longer enough | Several app servers, load balancer, managed MySQL, S3 for media |
 
-**Store addresses.** With the domain, every store gets `<store>.<domain>` (FR-ONB-02). Until the domain is bought and its DNS moved to Cloudflare:
-
-- the dashboard runs on `minivora.pages.dev`;
-- storefronts use **path-based addresses** on the backend: `https://<app>.koyeb.app/s/<store>/ar/...`.
-
-`core/tenancy.py` supports both, so switching is a config change (`STORE_HOST_MODE=subdomain`, `ROOT_DOMAIN=<domain>`), not a rewrite. Because of the one-level certificate limit, never nest stores under another subdomain.
+The domain is registered at **Namecheap**, with DNS and HTTPS on **Cloudflare's free plan** in every stage.
 
 ---
 
 ## 3. Repository structure
 
-This is a **monorepo**: one Git repo, one CI pipeline, auto-deploys from `main`.
+A standard Laravel app, with business code split into one folder per area. Every module has the same shape, so the tenth one looks like the first.
 
 ```
 minivora/
-├── README.md
-├── .env.example                  # every variable documented; real .env is NEVER committed
-├── Makefile                      # make install | dev | test | lint | migrate | seed | api-client | tokens
-├── docker-compose.yml            # OPTIONAL: local Postgres for offline work only (not used in hosting)
-│
-├── .github/
-│   ├── workflows/
-│   │   ├── ci.yml                # ruff, mypy, pytest, eslint, tsc, vitest, playwright
-│   │   ├── jobs.yml              # BACKUP scheduler: same job calls as Hostinger cron, used if it fails
-│   │   ├── backup.yml            # nightly pg_dump → B2, weekly restore test into a Neon branch
-│   │   └── landing.yml           # deploys landing/ to Hostinger on push
-│   ├── CODEOWNERS                # maps folders to owners (see section 5)
-│   ├── PULL_REQUEST_TEMPLATE.md
-│   └── dependabot.yml            # NFR-SEC-11
-│
-├── backend/                      # Python, FastAPI: API + storefront, deployed to Koyeb
-│   ├── pyproject.toml            # ruff, mypy, pytest config
-│   ├── Dockerfile                # the ONLY deploy artifact (same image on Koyeb or Render)
-│   ├── alembic/versions/         # ALL schema changes go here (NFR-MNT-03)
-│   ├── app/
-│   │   ├── main.py               # creates the app, mounts api/v1, storefront, internal jobs, /healthz
-│   │   ├── core/                 # shared plumbing; changes need 2 reviewers
-│   │   │   ├── config.py         # pydantic-settings, reads env vars
-│   │   │   ├── db.py             # async engine (Neon pooled URL), sets app.store_id for RLS
-│   │   │   ├── tenancy.py        # resolves the store from host OR /s/<store>/ path, or from JWT
-│   │   │   ├── security.py       # Argon2id, JWT, CSRF, rate limits
-│   │   │   ├── permissions.py    # role matrix from SRS §7.2
-│   │   │   ├── events.py         # in-process domain event bus
-│   │   │   ├── storage.py        # Cloudinary (public media) + B2 (private files) behind one interface
-│   │   │   ├── email.py          # Brevo SMTP
-│   │   │   ├── money.py          # Piasters type + formatting
-│   │   │   ├── i18n.py           # ar/en, RTL, Cairo time, digit style
-│   │   │   └── activity_log.py   # hash-chained audit log (NFR-SEC-10)
-│   │   │
-│   │   ├── modules/              # one folder per business domain
-│   │   │   ├── platform/         # stores, one-step store creation, platform admin  (FR-ONB, FR-ACC-08)
-│   │   │   ├── accounts/         # users, members, roles, invites, 2FA            (FR-ACC)
-│   │   │   ├── catalog/          # products, variants, categories, search, reviews (FR-CAT)
-│   │   │   ├── cart/             # carts, cart events, merge on login             (FR-CRT)
-│   │   │   ├── checkout/         # checkout, leads, discount codes, risk flags     (FR-PAY)
-│   │   │   │   └── gateways/     # kashier.py, paymob.py, instapay.py, cod.py, fawry.py (all test mode)
-│   │   │   ├── orders/           # statuses, shipping zones, returns, invoices     (FR-ORD)
-│   │   │   ├── builder/          # pages, sections, themes, media, versions        (FR-BLD)
-│   │   │   ├── seo/              # slugs, redirects, sitemaps, robots, JSON-LD, feeds, audit (FR-SEO)
-│   │   │   ├── marketing/        # pixels, CAPI, newsletter, abandoned checkouts, ad spend (FR-MKT)
-│   │   │   ├── marketing_intel/  # Meta import, campaign verdicts, proposals      (FR-MI)
-│   │   │   ├── analytics/        # page views, KPIs, visit log, demand            (FR-ANA)
-│   │   │   ├── ledger/           # chart of accounts, posting rules, statements   (FR-LED)
-│   │   │   ├── fpa/              # budgets, variances, what-if, forecast          (FR-FPA)
-│   │   │   └── notifications/    # emails, in-dashboard alerts                    (FR-NTF)
-│   │   │
-│   │   │   # every module has the SAME shape:
-│   │   │   #   models.py       SQLAlchemy tables (all with store_id)
-│   │   │   #   schemas.py      Pydantic v2 request/response models
-│   │   │   #   service.py      business logic; the ONLY public entry point
-│   │   │   #   router.py       /api/v1/<module> endpoints (thin: validate → service)
-│   │   │   #   events.py       events this module emits / listens to
-│   │   │   #   jobs.py         scheduled work this module needs (optional, see 4.6)
-│   │   │   #   ai_functions.py functions exposed to the AI team (optional)
-│   │   │   #   tests/
-│   │   │
-│   │   ├── storefront/           # server-rendered shop (FR-SEO-09)
-│   │   │   ├── routes.py         # /ar/... and /en/... pages (+ /s/<store>/ prefix without a domain)
-│   │   │   ├── templates/        # Jinja2: layouts, pages, partials
-│   │   │   │   └── sections/     # one template per builder section type (FR-BLD-01)
-│   │   │   └── static/           # < 100 KB JS per page (NFR-PER-03)
-│   │   │
-│   │   ├── ai/                   # AI management team
-│   │   │   ├── llm/              # LiteLLM client + models.yaml, key rotation, PII masking (always on)
-│   │   │   ├── functions/        # registry: collects every module's ai_functions.py + permission check
-│   │   │   ├── understanding/    # question → one function + params (FR-AI-02)
-│   │   │   ├── agents/           # ceo/, cfo/, cmo/, cro/, coo/, cxo/, cto/, chro/, risk/
-│   │   │   ├── coordinator/      # conflict rules between agents (FR-AI-08)
-│   │   │   ├── proactive/        # checks, insight cards, "Today" feed, morning brief (FR-PRO)
-│   │   │   ├── guards/           # number guard (FR-FPA-06)
-│   │   │   └── eval/             # evaluation set + runner (NFR-AIQ)
-│   │   │
-│   │   ├── jobs/                 # /internal/jobs/<name>: registry of every module's jobs.py, secret-protected
-│   │   └── api/v1/router.py      # mounts every module's router under /api/v1
+├── app/
+│   ├── Core/                      # shared plumbing; changes need 2 reviewers
+│   │   ├── Tenancy/               # ResolveStore middleware, CurrentStore, BelongsToStore trait
+│   │   ├── Money/                 # Piasters value object + formatting
+│   │   ├── Permissions/           # role matrix from SRS §7.2
+│   │   └── AuditLog/              # hash-chained activity log (NFR-SEC-10)
 │   │
-│   ├── importers/adorna/         # one-way MySQL → Minivora importer (FR-ONB-09, §2.7), run from GitHub Actions
-│   ├── seeds/                    # 5 demo stores, 200 products each (§2.4)
-│   └── tests/                    # cross-module: RLS isolation, ledger balance, flows
+│   ├── Modules/                   # one folder per business area
+│   │   ├── Platform/              # stores, one-step store creation, platform admin   (FR-ONB)
+│   │   ├── Accounts/              # users, members, roles, invites, 2FA              (FR-ACC)
+│   │   ├── Catalog/               # products, variants, categories, search, reviews  (FR-CAT)
+│   │   ├── Cart/                  # carts, cart events, merge on login               (FR-CRT)
+│   │   ├── Checkout/              # checkout, leads, discounts, risk flags            (FR-PAY)
+│   │   │   └── Gateways/          # Kashier, Paymob, InstaPay, COD, Fawry (test mode)
+│   │   ├── Orders/                # statuses, shipping zones, returns, invoices       (FR-ORD)
+│   │   ├── Builder/               # pages, sections, themes, media, versions          (FR-BLD)
+│   │   ├── Seo/                   # slugs, redirects, sitemaps, JSON-LD, feeds, audit (FR-SEO)
+│   │   ├── Marketing/             # pixels, CAPI, newsletter, abandoned carts, Meta   (FR-MKT, FR-MI)
+│   │   ├── Analytics/             # page views, KPIs, visit log, demand              (FR-ANA)
+│   │   ├── Ledger/                # chart of accounts, posting rules, statements     (FR-LED)
+│   │   ├── Fpa/                   # budgets, variances, what-if, forecast            (FR-FPA)
+│   │   └── Notifications/         # emails, in-dashboard alerts                      (FR-NTF)
+│   │
+│   │   # every module has the SAME folders:
+│   │   #   Models/          Eloquent models (use the BelongsToStore trait)
+│   │   #   Data/            laravel-data objects: validated input + TypeScript types
+│   │   #   Http/            controllers (thin: validate → service → response)
+│   │   #   Services/        business logic; the ONLY thing other modules may call
+│   │   #   Events/, Listeners/
+│   │   #   Jobs/            queued and scheduled work
+│   │   #   AiFunctions/     what the AI team is allowed to call (optional)
+│   │   #   Policies/        permission checks
+│   │
+│   ├── Ai/                        # AI management team
+│   │   ├── Llm/                   # HTTP clients for Gemini/Groq/OpenRouter, key rotation, PII masking
+│   │   ├── Registry/              # collects every module's AiFunctions + permission checks
+│   │   ├── Understanding/         # question → one function + parameters (FR-AI-02)
+│   │   ├── Agents/                # Ceo, Cfo, Cmo, Cro, Coo, Cxo, Cto, Chro, Risk
+│   │   ├── Coordinator/           # rules when agents disagree (FR-AI-08)
+│   │   ├── Proactive/             # checks, insight cards, "Today" feed, morning brief (FR-PRO)
+│   │   ├── Guards/                # number guard (FR-FPA-06)
+│   │   └── Eval/                  # evaluation questions + runner (NFR-AIQ)
+│   │
+│   └── Importers/Adorna/          # one-way import from Adorna EG for the pilot (§2.7)
 │
-├── dashboard/                    # TypeScript, React; deployed to Cloudflare Pages
-│   ├── package.json
-│   ├── functions/api/[[path]].ts # Pages Function: proxies /api/* to Koyeb (same origin, no CORS)
-│   ├── src/
-│   │   ├── app/                  # router, providers, layout shell, auth guard
-│   │   ├── features/             # mirrors SRS §7.1 dashboard areas
-│   │   │   ├── onboarding/  home/  ai-chat/  approvals/  products/  orders/
-│   │   │   ├── customers/  builder/  marketing/  seo/  finance/  settings/
-│   │   │   └── platform-admin/
-│   │   │       # each feature: pages/, components/, hooks/ (data fetching), *.test.tsx
-│   │   ├── components/ui/        # shared design-system components (Button, Card, Input, Badge, GlassPanel…)
-│   │   ├── lib/
-│   │   │   ├── api/schema.ts     # GENERATED from OpenAPI; do not edit by hand
-│   │   │   ├── api/client.ts     # typed fetch wrapper, JWT refresh
-│   │   │   ├── money.ts          # piasters ↔ display
-│   │   │   └── i18n.ts           # ar/en, RTL switch
-│   │   ├── locales/ar.json, en.json
-│   │   └── styles/
-│   │       ├── tokens.css        # GENERATED from design/tokens; do not edit by hand
-│   │       └── tokens.ts         # GENERATED typed token names
-│   └── tests/
+├── database/
+│   ├── migrations/                # ALL schema changes go here
+│   └── seeders/                   # DemoStoresSeeder: 5 stores × 200 products
 │
-├── landing/                      # static marketing site → uploaded to Hostinger (public_html)
-│   └── deploy.md                 # how it's uploaded (Git deploy in hPanel or GitHub Action via FTP)
+├── resources/
+│   ├── views/storefront/          # Blade: layouts/, pages/, sections/ (one file per builder section)
+│   ├── js/                        # React + TypeScript dashboard (Inertia)
+│   │   ├── Pages/                 # one folder per dashboard area (SRS §7.1)
+│   │   ├── Components/ui/         # Button, Card, Input, Badge, GlassPanel…
+│   │   ├── lib/                   # money.ts, i18n.ts
+│   │   ├── types/generated.ts     # GENERATED from Data/ classes; do not edit
+│   │   └── styles/tokens.css      # GENERATED from design/tokens; do not edit
+│   └── lang/ar, lang/en           # every user-facing string
 │
-├── design/
-│   ├── tokens/                   # tokens.json exported from Figma (SCRUM-102)
-│   ├── build-tokens.mjs          # tokens.json → dashboard/src/styles/tokens.{css,ts}
-│   └── README.md                 # Figma file link + how to re-export
+├── routes/
+│   ├── storefront.php             # shopper pages, resolved by store subdomain
+│   ├── dashboard.php              # owner dashboard (Inertia)
+│   ├── api.php                    # /api/v1: storefront calls, webhooks, future apps
+│   └── console.php                # the schedule: every timed job in one place
 │
-├── e2e/                          # Playwright: shopper + owner journeys (SRS §9.3)
-├── load/                         # k6 scripts; small runs only on free tiers
-├── infra/
-│   ├── koyeb/service.yaml        # Koyeb service definition (region, env var names, health check)
-│   ├── render/render.yaml        # fallback host, same image
-│   ├── cloudflare/
-│   │   ├── README.md             # DNS records (section 4.8), cache rules, Pages setup
-│   │   └── store-router/         # the Worker that sends <store>.<domain> to Koyeb
-│   ├── hostinger/cron.md         # the exact cron lines configured in hPanel
-│   └── accounts.md               # every free account we use, who owns it, where its keys live
-│
-└── docs/
-    ├── SRS.docx
-    ├── architecture.md
-    ├── traceability.md           # requirement ID → code → test (generated)
-    └── adr/                      # architecture decision records, one file per decision
+├── tests/
+│   ├── Unit/, Feature/            # per-module tests
+│   └── Isolation/                 # proves no store can read another store's data
+├── e2e/                           # Playwright: shopper + owner journeys
+├── design/tokens/                 # tokens.json from Figma + build script
+├── docs/                          # SRS, technical overview, adr/ (decisions)
+├── .github/
+│   ├── workflows/ci.yml           # tests + linters on every push
+│   ├── workflows/deploy.yml       # build + deploy to Hostinger on push to main
+│   ├── CODEOWNERS
+│   └── PULL_REQUEST_TEMPLATE.md
+├── .env.example                   # every setting, documented; real .env never committed
+├── composer.json, package.json, vite.config.ts, phpstan.neon, pint.json
+└── public/                        # the web root on the server
 ```
 
 ---
 
 ## 4. How the pieces connect
 
-Each connection below is a **contract**. If you respect the contract, your part plugs in at the end without anyone else changing their code.
+Each connection is a rule. Respect it and your part plugs in at the end without anyone changing their code.
 
-### 4.1 Backend ↔ Dashboard: the OpenAPI schema
+### 4.1 Finding the store
 
-FastAPI publishes `/api/v1/openapi.json` automatically from the Pydantic schemas. The dashboard **generates** its types from it:
+```
+adorna.<domain> → Cloudflare wildcard DNS → Hostinger → ResolveStore middleware
+                                                          │ finds the "adorna" row in stores
+                                                          ▼
+                                    CurrentStore is set → every model query adds WHERE store_id = …
+```
+
+- **Storefront:** the store comes from the address (subdomain, or the seller's own domain later).
+- **Dashboard:** the store comes from the logged-in member's selected store.
+- Models get scoping by using the `BelongsToStore` trait. Forgetting it fails the isolation test in CI.
+- Reserved names that can never be store names: `app`, `api`, `www`, `mail`, `admin`, `status`.
+
+### 4.2 Module ↔ module: services and events, never tables
+
+- A module **may** call another module's `Services/`.
+- A module **must not** use another module's `Models/` or query its tables.
+- For "when X happens, Y reacts", fire a Laravel event:
+
+| Event | Fired by | Handled by |
+|---|---|---|
+| `OrderPaid` | Checkout | Ledger (post sale), Notifications, Analytics, Proactive |
+| `OrderShipped` | Orders | Ledger (post cost of goods), Notifications |
+| `OrderCancelled` / `OrderReturned` | Orders | Catalog (restock), Ledger (reverse), Notifications |
+| `RefundIssued` | Orders | Ledger, Notifications, Proactive |
+| `StockBelowReorder` | Catalog | Proactive (COO) |
+| `PaymentFailed` | Checkout | Proactive (CFO, Risk) |
+| `AdSpendRecorded` | Marketing | Ledger (marketing expense) |
+| `PagePublished` | Builder | Seo (sitemap, feeds, IndexNow) |
+| `SlugChanged` | Catalog / Builder | Seo (301 redirect) |
+
+Slow listeners (emails, AI calls) are queued so the shopper never waits for them.
+
+### 4.3 AI team ↔ everything else: the function registry
+
+```
+owner question → Ai/Understanding → picks ONE function → Ai/Registry
+                                                           │ checks the asking user's role
+                                                           ▼
+                                           Modules/<X>/AiFunctions → Services
+```
+
+- Module owners decide what the AI may do in their `AiFunctions/`. Each function declares its permission and whether it **needs owner approval** (FR-AI-07: spending, prices, refunds, publishing, messaging customers).
+- The AI team never writes queries and never formats money itself.
+- Until modules are ready, AI devs register **stub functions** with the same signatures.
+
+### 4.4 Laravel ↔ React: Inertia + generated types
+
+Controllers return `Inertia::render('Orders/Index', $data)`. The props are `laravel-data` objects, and their TypeScript types are generated:
 
 ```bash
-make api-client    # backend running → regenerates dashboard/src/lib/api/schema.ts
+php artisan typescript:transform   # Data/ classes → resources/js/types/generated.ts
 ```
 
-- Backend devs change `schemas.py` → run `make api-client` → commit the regenerated file in the same PR.
-- Frontend devs never hand-write API types. If a field is missing, ask the module owner to add it to the schema.
-- CI fails if `schema.ts` is out of date with the backend.
-- The dashboard calls `/api/*` on its own origin; the Pages Function forwards to Koyeb. Auth is a short-lived JWT access token + refresh token (SRS §7.3).
+Change a `Data` class → regenerate → commit both. CI fails if the generated file is stale.
 
-### 4.2 Module ↔ Module: services and events, never tables
+### 4.5 Scheduled work: one cron line
 
-- A module **may** call another module's `service.py` functions.
-- A module **must not** import another module's `models.py` or query its tables.
-- For "when X happens, Y should react", emit a **domain event** through `core/events.py`:
+`routes/console.php` lists every timed job. On Hostinger, one cron line runs it every minute, and queued jobs are processed in short batches inside it:
 
-| Event | Emitted by | Listened to by |
-|---|---|---|
-| `order.paid` | checkout | ledger (post sale), notifications (email), analytics, proactive |
-| `order.shipped` | orders | ledger (post COGS), notifications |
-| `order.cancelled` / `order.returned` | orders | catalog (restock), ledger (reverse), notifications |
-| `refund.issued` | orders | ledger, notifications, proactive |
-| `stock.below_reorder` | catalog | proactive (COO) |
-| `payment.failed` | checkout | proactive (CFO, Risk) |
-| `ad_spend.recorded` | marketing | ledger (marketing expense) |
-| `page.published` | builder | seo (sitemap, feeds, IndexNow) |
-| `slug.changed` | catalog / builder | seo (301 redirect) |
+| When | Jobs |
+|---|---|
+| Every minute | process the queue (`queue:work --stop-when-empty --max-time=50`) |
+| Hourly | proactive checks: orders, payments, stock (FR-PRO-01) |
+| Daily | sales, traffic, ads and cash checks; Meta import; gateway reconcile; data pruning |
+| 09:00 Cairo | morning brief (FR-PRO-06) |
+| Nightly | Adorna import, FP&A memos (ready by 07:00), backup to Backblaze B2 |
+| Weekly | margin, trend and budget checks; weekly briefing; backup restore test |
 
-Event handlers run **inside the same database transaction** as the action that caused them. There is no separate queue (we have no free worker), so handlers must be fast. Anything slow (emails, AI calls) is written to an `outbox` table and sent by a scheduled job.
+Every job finishes in under a minute (split big work into batches) and is safe to run twice.
 
-### 4.3 AI team ↔ Everything else: the function registry
+### 4.6 AI providers
 
-```
-owner question → ai/understanding → picks ONE function → ai/functions/registry
-                                                            │ checks the asking user's role (SRS §7.2)
-                                                            ▼
-                                            modules/<x>/ai_functions.py → service.py
-```
-
-- Each module owner exposes what the AI may do in their module's `ai_functions.py` (read functions, plus draft/propose functions).
-- Each function declares its **permission** and whether it **needs approval** (FR-AI-07: spending, prices, refunds, publishing, messaging customers).
-- The AI team builds agents against the registry. It never imports models, never writes SQL, never formats money itself.
-- Until the real modules exist, AI devs can register **stub functions** with the same signatures and swap them later.
-
-### 4.4 Storefront ↔ Modules: in-process calls
-
-The storefront lives inside the backend, so its routes call module services directly (no HTTP round-trip). Section templates in `storefront/templates/sections/` must match section types defined in `modules/builder/` one-to-one. Pages send `Cache-Control` headers so Cloudflare can serve repeat visits without waking the backend.
-
-### 4.5 Backend ↔ AI: LiteLLM inside the backend
-
-There is no AI server. `ai/llm/` calls cloud models through LiteLLM as a Python library, configured in `ai/llm/models.yaml`:
+`app/Ai/Llm` calls the providers directly with Laravel's HTTP client:
 
 ```env
-GROQ_API_KEYS=key1,key2
 GEMINI_API_KEYS=key1,key2
+GROQ_API_KEYS=key1,key2
 OPENROUTER_API_KEYS=key1
 ```
 
-- When one key hits its rate limit, the next is used automatically (FR-AI-11).
-- **Personal data is masked before every call**, because every model is now a cloud model (NFR-PRV-03). Only aggregated store figures and masked text leave our backend.
+When a key hits its rate limit, the next key or provider is used automatically (FR-AI-11). Names, phones and addresses are masked before every call (NFR-PRV-03).
 
-### 4.6 Scheduled work: Hostinger cron → `/internal/jobs/*`
-
-There is no always-on worker on any free tier, so a **cron job on the Hostinger plan** calls the backend on a schedule. Hostinger cron runs on time, which matters for the 09:00 morning brief (FR-PRO-06). `.github/workflows/jobs.yml` holds the same calls as a backup. The exact lines live in `infra/hostinger/cron.md`:
-
-```
-POST https://<backend>/internal/jobs/<name>     header: X-Jobs-Secret: $JOBS_SECRET
-```
-
-| Schedule | Jobs |
-|---|---|
-| Every 15 min | send outbox (emails, alerts), event-driven proactive checks |
-| Hourly | proactive checks: orders, payments, stock (FR-PRO-01) |
-| Daily | sales/traffic/ads/cash checks, Meta import, gateway reconcile, morning brief, data pruning |
-| Nightly | Adorna import, FP&A memos (ready by 07:00 Cairo, NFR-PER-07), backups |
-| Weekly | margins/trends/budget checks, weekly briefing, restore test |
-
-Rules: each job **finishes in under 60 seconds** (split big work into batches and call it again), and each job is **idempotent**, because a schedule may fire late or twice (for example when both cron sources run). The backend records each run in a `job_runs` table and skips a job already done for that slot.
-
-### 4.7 Figma ↔ Dashboard: design tokens
+### 4.7 Figma ↔ dashboard: design tokens
 
 ```bash
-make tokens   # design/tokens/tokens.json → dashboard/src/styles/tokens.{css,ts}
+npm run tokens   # design/tokens/tokens.json → resources/js/styles/tokens.css
 ```
 
-Use `var(--mv-*)` variables or the typed `tokens.ts` names. Never hardcode colors, spacing or radii in components.
-
-### 4.8 The whole thing: deploys
-
-| Push to `main` | What happens |
-|---|---|
-| `backend/**` | Koyeb rebuilds the Docker image and deploys; `alembic upgrade head` runs on start |
-| `dashboard/**` | Cloudflare Pages builds and deploys |
-| `landing/**` | GitHub Action uploads the landing site to Hostinger |
-| any | GitHub Actions CI must be green first (branch protection) |
-
-**DNS records on Cloudflare** (the domain's nameservers point to Cloudflare):
-
-| Record | Points to | Proxied | Serves |
-|---|---|---|---|
-| `<domain>`, `www` | Hostinger web hosting IP | Yes | Landing page (`www` redirects to the root) |
-| `app` | Cloudflare Pages project | Yes | Dashboard; `/api/*` forwarded to Koyeb |
-| `api` | Koyeb app | Yes | Webhooks (`/webhooks/*`) and direct API access |
-| `*` (wildcard) | Cloudflare Worker `store-router` → Koyeb | Yes | Every storefront: `<store>.<domain>` |
-| `MX`, mail `TXT` | Hostinger mail servers | No | Team inboxes |
-| Brevo `TXT` (SPF, DKIM, DMARC) | Brevo | No | Store emails sent as `noreply@<domain>` without landing in spam |
-
-Specific records (`app`, `api`, `www`) always win over the wildcard, and reserved names (`app`, `api`, `www`, `mail`, `admin`, `status`) can never be chosen as store names (FR-ONB-02 availability check).
+Use `var(--mv-*)` variables. Never hardcode colors, spacing or radii.
 
 ---
 
 ## 5. Who works where
 
-Fill in names and mirror this table in `.github/CODEOWNERS`. One owner per area; anyone may contribute, but the owner reviews.
+Fill in names and mirror this in `.github/CODEOWNERS`. One owner per area reviews its PRs; anyone may contribute.
 
-| Area | Folders | SRS sections | Owner |
+| Area | Folders | SRS | Owner |
 |---|---|---|---|
-| Platform core, auth, tenancy, CI, cloud accounts | `backend/app/core/`, `modules/platform/`, `modules/accounts/`, `.github/`, `infra/` | FR-ACC, FR-ONB, NFR-SEC | _TBD_ |
-| Catalog, cart, checkout, payments | `modules/catalog/`, `cart/`, `checkout/` | FR-CAT, FR-CRT, FR-PAY | _TBD_ |
-| Orders, shipping, notifications | `modules/orders/`, `notifications/` | FR-ORD, FR-NTF | _TBD_ |
-| Storefront + SEO | `backend/app/storefront/`, `modules/seo/` | FR-SEO, NFR-PER | _TBD_ |
-| Builder, themes, media | `modules/builder/`, `dashboard/src/features/builder/` | FR-BLD | _TBD_ |
-| Ledger, FP&A, analytics | `modules/ledger/`, `fpa/`, `analytics/` | FR-LED, FR-FPA, FR-ANA | _TBD_ |
-| Marketing + marketing intelligence | `modules/marketing/`, `marketing_intel/` | FR-MKT, FR-MI | _TBD_ |
-| AI team | `backend/app/ai/` | FR-AI, FR-PRO, NFR-AIQ | _TBD_ |
-| Dashboard shell + design system | `dashboard/src/app/`, `components/ui/`, `design/` | §7.1, NFR-USE | _TBD_ |
-| Adorna importer + pilot | `backend/importers/adorna/` | §2.7, FR-ONB-09 | _TBD_ |
+| Core, tenancy, CI, deploy | `app/Core/`, `Modules/Platform/`, `Modules/Accounts/`, `.github/` | FR-ACC, FR-ONB, NFR-SEC | _TBD_ |
+| Catalog, cart, checkout | `Modules/Catalog/`, `Cart/`, `Checkout/` | FR-CAT, FR-CRT, FR-PAY | _TBD_ |
+| Orders, notifications | `Modules/Orders/`, `Notifications/` | FR-ORD, FR-NTF | _TBD_ |
+| Storefront, SEO | `resources/views/storefront/`, `Modules/Seo/` | FR-SEO, NFR-PER | _TBD_ |
+| Builder, themes, media | `Modules/Builder/`, `resources/js/Pages/Builder/` | FR-BLD | _TBD_ |
+| Ledger, FP&A, analytics | `Modules/Ledger/`, `Fpa/`, `Analytics/` | FR-LED, FR-FPA, FR-ANA | _TBD_ |
+| Marketing | `Modules/Marketing/` | FR-MKT, FR-MI | _TBD_ |
+| AI team | `app/Ai/` | FR-AI, FR-PRO, NFR-AIQ | _TBD_ |
+| Dashboard shell, design system | `resources/js/`, `design/` | §7.1, NFR-USE | _TBD_ |
+| Adorna importer | `app/Importers/Adorna/` | §2.7 | _TBD_ |
 
-Shared files (`core/`, `alembic/`, `.env.example`, `.github/workflows/`) need **two approvals**.
-
-The platform owner creates all free accounts under a shared team email (a Hostinger mailbox such as `team@<domain>` once the domain is live), records them in `infra/accounts.md`, and stores every key in the team Bitwarden. Nobody uses a personal account for production services.
+Shared files (`app/Core/`, `database/migrations/`, `.env.example`, `.github/workflows/`) need **two approvals**.
 
 ---
 
-## 6. Getting started
+## 6. Run it on your computer
 
-**You need:** Git, Python 3.12+, Node 20+. Docker is optional.
-
-```bash
-git clone <repo-url> minivora && cd minivora
-cp .env.example .env              # fill in from Bitwarden; never commit .env
-make install                      # backend venv + dashboard npm install
-```
-
-**Your database:** ask the platform owner for **your own Neon branch** (`dev-<yourname>`), and put its URL in `DATABASE_URL`. Branches are copies of the dev data, so you can break yours without affecting anyone. (Offline alternative: `docker compose up db` and use the local URL.)
+**You need:** PHP 8.3+, Composer, Node 20+, MySQL. The easiest way on Windows or macOS is [Laravel Herd](https://herd.laravel.com) (free) or Laragon/XAMPP.
 
 ```bash
-make migrate                      # alembic upgrade head on your branch
-make seed                         # 5 demo stores
-make dev                          # backend on :8000 + dashboard on :5173
+git clone https://github.com/Ahmedtamer-1/Minivora.git
+cd Minivora
+composer install
+npm install
+cp .env.example .env              # then fill in DB settings and keys from Bitwarden
+php artisan key:generate
+php artisan migrate --seed        # creates tables + 5 demo stores
+composer run dev                  # starts the app, queue worker and Vite together
 ```
 
-| URL | What |
+| Address | What |
 |---|---|
-| http://localhost:8000/api/v1/docs | Swagger (OpenAPI) |
-| http://localhost:5173 | Dashboard |
-| http://localhost:8000/s/demo/ar/ | A seeded storefront |
+| http://localhost:8000 | Landing / sign up |
+| http://app.localhost:8000 | Owner dashboard |
+| http://demo.localhost:8000 | A seeded storefront |
+| http://localhost:8000/docs/api | API documentation |
 
-Tests use their own throwaway database: in CI a Postgres container, locally `TEST_DATABASE_URL` (a Neon `test-<yourname>` branch or local Docker).
-
----
-
-## 7. Team conventions
-
-**Branches**: `main` is protected (PR + green CI + 1 review) and auto-deploys. Branch from `main` using the Jira key:
-
-```
-feat/SCRUM-102-design-tokens
-fix/SCRUM-131-cod-fee-rounding
-```
-
-**Commits**: start with the Jira key so Jira's Development panel links them: `SCRUM-102 add glass tokens to tokens.json`.
-
-**Pull requests**: one Jira issue per PR, list the SRS requirement IDs it covers, include screenshots for UI changes.
-
-**Python** (backend): `ruff` (lint + format) and `mypy --strict` on `app/`. Every request/response body is a Pydantic v2 model in `schemas.py`; no raw `dict` responses.
-
-**TypeScript** (dashboard): `strict: true`, ESLint + Prettier, no `any`. API types come only from the generated `schema.ts`.
-
-**Database**: every new table has `store_id` + an RLS policy + a line in the RLS isolation test. Money columns are `BIGINT` piasters. Schema changes only via Alembic. Remember the **0.5 GB** limit: no files or base64 blobs in the database, and any log-style table needs a pruning job.
-
-**Free-tier hygiene**: no polling loops, no `sleep`-based background threads, no image or video processing on the server, and every external call has a timeout. If a feature needs more than a free tier gives, write an ADR before building it.
-
-**Secrets**: never in code, Git or zip archives (NFR-SEC-06). Add new variables to `.env.example` with a comment, and the value to Bitwarden.
-
-**Repo hygiene**: no duplicate or "copy" files (`auth (1).php`-style), no dead code (NFR-MNT-04).
-
-**Language**: all user-facing text goes through i18n (`locales/ar.json`, `en.json`, or Jinja `_()`). Layouts must mirror correctly in RTL.
+Browsers send every `*.localhost` address to your own computer, so store subdomains work locally with no setup.
 
 ---
 
-## 8. Testing and requirement traceability
+## 7. Deploy to Hostinger
 
-| Layer | Tool | Lives in |
+A push to `main` deploys automatically once CI is green. `.github/workflows/deploy.yml`:
+
+1. installs PHP and Node, runs the tests;
+2. builds the dashboard (`npm run build`), so the server never needs Node;
+3. copies the app to Hostinger over SSH;
+4. runs `composer install --no-dev`, `php artisan migrate --force`, `php artisan optimize` on the server.
+
+**One-time server setup** (the platform owner does this once):
+
+| Where | Setting | Value |
 |---|---|---|
-| Unit / module | pytest | `backend/app/modules/<x>/tests/` |
-| Cross-module (RLS, ledger, flows) | pytest | `backend/tests/` |
-| Dashboard components | Vitest + Testing Library | next to the component |
-| Browser journeys | Playwright | `e2e/` |
-| Load | k6 (small runs only; free tiers will throttle) | `load/` |
-| AI quality | eval runner (compares the free cloud models) | `backend/app/ai/eval/` |
+| Namecheap | Nameservers | Cloudflare's two nameservers |
+| Cloudflare DNS | `<domain>`, `www`, `*` | Hostinger server IP, proxied |
+| Cloudflare DNS | `MX` + mail records | Hostinger mail, not proxied |
+| Cloudflare SSL | Mode | Full |
+| hPanel | Website | `<domain>`, document root = the app's `public` folder |
+| hPanel | Subdomain `*` | Same folder as the main site |
+| hPanel | Databases | Create the MySQL database and user |
+| hPanel | SSH | Enable, add the deploy key; store it as a GitHub secret |
+| hPanel | Cron (every minute) | `cd ~/minivora && php artisan schedule:run >> /dev/null 2>&1` |
+| Server | `.env` | Production values; never committed |
 
-Tag every test with the requirement it proves:
-
-```python
-@pytest.mark.req("FR-LED-03")
-def test_unbalanced_entry_is_rejected(): ...
-```
-
-```ts
-test("FR-PAY-02 rejects non-Egyptian mobile numbers", ...)
-```
-
-`make traceability` scans these tags and regenerates `docs/traceability.md` for the evaluation chapter.
-
-**Coverage gates in CI:** ledger posting rules and business rules **100%**, overall **≥ 70%** (NFR-MNT-02). A PR that lowers coverage fails.
-
-Tests never call real AI keys, Cloudinary, B2 or Brevo; they use fakes from `backend/tests/fakes/`. This keeps CI free and fast.
+On any other cPanel host the steps are the same: document root, a `*` subdomain, a MySQL database, SSH and one cron line.
 
 ---
 
-## 9. Build order
+## 8. Team rules
 
-Build in vertical slices: each piece is usable end-to-end before the next starts.
-
-1. **Foundation**: buy the domain and move its DNS to Cloudflare, create the free accounts, deploy a "hello world" backend to Koyeb and dashboard to Pages on **day one**; then CI, `core/` (config, db, tenancy + RLS, auth, permissions, events, storage), design tokens, dashboard shell.
-2. **Store creation**: one-step create-your-store flow, dashboard home, seeded demo stores.
-3. **Commerce**: catalog → cart → checkout (COD first, then Kashier test mode) → orders → notifications.
-4. **Storefront + SEO**: SSR pages, bilingual URLs, sitemaps, JSON-LD, feeds, Cloudflare caching.
-5. **Builder**: sections, themes, media, versions.
-6. **Ledger + analytics**: posting rules on events, statements, KPIs, demand view.
-7. **Adorna importer**: import, shadow-run data ready.
-8. **AI team**: function registry over finished modules, question understanding, agents, proactive engine, FP&A, marketing intelligence.
-
-Steps 1 to 7 make up the non-AI core sprint. The AI team can start step 8 early against stub functions (section 4.3).
+| Rule | In practice |
+|---|---|
+| Branch per Jira issue | `feat/SCRUM-102-design-tokens`; `main` is protected: green CI + 1 review |
+| Commits start with the Jira key | `SCRUM-102 add glass tokens` links the commit in Jira |
+| Every table has `store_id` | Model uses `BelongsToStore`, and the isolation test covers it |
+| Money is integer piasters | Never floats, anywhere |
+| Validate with `Data` classes | No raw arrays from requests; TypeScript types come from them |
+| Strict TypeScript | `strict: true`, no `any` |
+| Migrations only | Never change the database by hand |
+| No secrets in Git | Keys go in `.env` and Bitwarden; add new settings to `.env.example` |
+| All text translated | `lang/ar` and `lang/en`; layouts mirror correctly right-to-left |
+| No copies or dead code | No `file (1).php`, no commented-out blocks (NFR-MNT-04) |
 
 ---
 
-## 10. SRS changes caused by free cloud hosting
+## 9. Testing
 
-The SRS was written for two laptops plus a paid Hostinger VPS. Moving to free cloud only changes these parts. Update the SRS and tell the supervisor, so the defense matches what we built.
-
-| SRS part | Was | Now |
+| What | Tool | Where |
 |---|---|---|
-| §2.3 Operating environment, §3 architecture, §7.5 hardware | Laptop A (Ollama) + Laptop B (Docker) → Hostinger VPS | Koyeb + Neon + Cloudflare + free AI keys, in all stages |
-| §2.5 Constraints | "Only planned cost is a Hostinger VPS" | No VPS. Costs are only the domain and the existing Hostinger web plan (landing, email, cron) |
-| §2.3 Hosting note | Hostinger shared hosting serves static files only | Same conclusion: Hostinger hosts the landing page, mailboxes and cron; the app runs on free cloud services |
-| §7.4 External services | Ollama local models, Fin-R1 7B | Cloud models only; FP&A commentary uses a free cloud model under the same number guard |
-| FR-ONB-02 | `storename.minivora.app` | `storename.<domain>` via Cloudflare wildcard + Worker; path-based addresses only until the domain is live |
-| NFR-PER-01, NFR-PER-06 | 500 ms TTFB, 5 s AI answers on the local AI server | Measured with edge caching and keep-alive; cold-start delays are a documented limitation |
-| NFR-PRV-03 | Private data could stay on Laptop A | All AI calls are cloud calls, so masking is mandatory on every call |
-| NFR-AIQ-04 | Compare local vs cloud models | Compare the free cloud providers against each other |
-| NFR-REL-01 | Nightly backup on Laptop B's disk | Nightly `pg_dump` to Backblaze B2 + Neon's 6-hour restore window |
-| NFR-SEC-09 | AI server port reachable only from the app server | Not applicable (no AI server); API keys stay server-side only |
+| Module logic | Pest | `tests/Unit`, `tests/Feature` |
+| Store isolation | Pest | `tests/Isolation` |
+| Dashboard components | Vitest | next to the component |
+| Shopper and owner journeys | Playwright | `e2e/` |
+| AI answer quality | eval runner | `app/Ai/Eval` |
+| Code quality | PHPStan, Pint, ESLint, `tsc` | CI |
+
+Name every test after the requirement it proves, so the traceability table builds itself:
+
+```php
+test('FR-LED-03 rejects an unbalanced journal entry', function () { … });
+```
+
+CI gates: ledger posting rules and business rules **100%** covered, overall **≥ 70%** (NFR-MNT-02). Tests never call real AI, payment or email services; they use fakes.
+
+---
+
+## 10. Build order
+
+Each step works end to end before the next starts.
+
+1. **Foundation:** domain + Cloudflare + Hostinger setup, deploy a "hello world" on day one; then `app/Core` (tenancy, permissions, money, audit log), CI, design tokens, dashboard shell.
+2. **Store creation:** one-step sign-up, store subdomains, demo stores.
+3. **Commerce:** catalog → cart → checkout (COD first, then Kashier test mode) → orders → emails.
+4. **Storefront + SEO:** Blade pages, Arabic and English URLs, sitemaps, JSON-LD, feeds.
+5. **Builder:** sections, themes, media, versions.
+6. **Ledger + analytics:** posting rules on events, statements, KPIs.
+7. **Adorna importer:** pilot data in place.
+8. **AI team:** registry over finished modules, question understanding, agents, proactive checks, FP&A.
+
+Steps 1–7 are the non-AI core sprint. The AI team can start step 8 early against stub functions (section 4.3).
