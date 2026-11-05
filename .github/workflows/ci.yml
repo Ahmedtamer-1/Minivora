@@ -1,10 +1,41 @@
-# CI: runs on every push and pull request.
-# TODO: replace the placeholder job with: composer install, npm ci, Pint, PHPStan, Pest (with coverage gates),
-#       ESLint, tsc, npm run build, typescript:transform check, Playwright on PRs to main.
+# CI: runs on every push and pull request. NFR-MNT-01
+# PHPStan (larastan) joins once its package installs cleanly in our environments; see README §9.
 name: CI
 on: [push, pull_request]
+
 jobs:
-  placeholder:
+  php:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "CI not set up yet"
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo_sqlite, sqlite3
+          coverage: none
+      - uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: cp .env.example .env && php artisan key:generate
+      - name: Pint
+        run: vendor/bin/pint --test
+      - name: Pest (unit, feature, store isolation)
+        run: vendor/bin/pest
+
+  js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Design tokens are up to date
+        run: npm run tokens && git diff --exit-code resources/css/tokens.css
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build

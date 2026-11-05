@@ -1,0 +1,38 @@
+@import './tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+    body {
+        @apply bg-canvas text-ink font-sans antialiased;
+    }
+    h1, h2, h3, h4 {
+        @apply font-display text-ink;
+    }
+    :focus-visible {
+        outline: 2px solid var(--mv-border-focus);
+        outline-offset: 2px;
+    }
+}
+
+@layer components {
+    .glass {
+        background: var(--mv-glass-fill);
+        border: 1px solid var(--mv-glass-stroke);
+        box-shadow: var(--mv-glass-shadow);
+        backdrop-filter: blur(24px) saturate(140%);
+        -webkit-backdrop-filter: blur(24px) saturate(140%);
+    }
+    .aurora {
+        background:
+            radial-gradient(40% 50% at 15% 80%, var(--mv-aurora-1) 0%, transparent 70%),
+            radial-gradient(35% 45% at 55% 10%, var(--mv-aurora-2) 0%, transparent 70%),
+            radial-gradient(40% 50% at 90% 85%, var(--mv-aurora-3) 0%, transparent 70%),
+            var(--mv-bg-canvas);
+    }
+}

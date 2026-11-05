@@ -7,11 +7,11 @@
         "tokens": "node design/build-tokens.mjs",
         "lint": "eslint resources/js",
         "typecheck": "tsc --noEmit",
-        "test:e2e": "playwright test"
+        "test:e2e": "playwright test -c e2e/playwright.config.ts"
     },
     "devDependencies": {
         "@inertiajs/react": "^2.0.0",
-        "@playwright/test": "^1.48.0",
+        "@playwright/test": "1.63.0",
         "@tailwindcss/forms": "^0.5.7",
         "@types/node": "^22.0.0",
         "@types/react": "^18.3.0",
