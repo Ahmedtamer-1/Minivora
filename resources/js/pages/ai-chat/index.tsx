@@ -2,7 +2,7 @@
 // Replies come from POST /ai/chat (store facts + a model when one is configured).
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { ArrowLeft, Mic, MicOff, RotateCcw, SendHorizontal, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, Mic, MicOff, RotateCcw, SendHorizontal, Square, Volume2, VolumeX } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { AiOrb, type OrbState } from '@/components/ai-orb';
 import { AnimatedBackdrop } from '@/components/animated-backdrop';
@@ -10,6 +10,7 @@ import { roundButton } from '@/components/preferences';
 import { cn } from '@/lib/cn';
 import { dayPart, useT } from '@/lib/i18n';
 import { setSmoothScrollPaused } from '@/lib/smooth-scroll';
+import { useSpeechInput, useSpeechOutput } from '@/lib/speech';
 import type { SharedProps } from '@/types';
 
 interface Action {
@@ -32,22 +33,14 @@ interface Props {
     initialQuestion: string | null;
 }
 
-// Minimal Web Speech typings (Chrome/Edge/Safari expose it prefixed).
-interface Recognition {
-    lang: string;
-    interimResults: boolean;
-    onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
-    onend: (() => void) | null;
-    onerror: (() => void) | null;
-    start(): void;
-    stop(): void;
-}
-type RecognitionCtor = new () => Recognition;
+const VOICE_KEY = 'minivora.ai.voice';
 
-function speechRecognition(): RecognitionCtor | null {
-    if (typeof window === 'undefined') return null;
-    const w = window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor };
-    return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+function savedVoice(): boolean {
+    try {
+        return window.localStorage.getItem(VOICE_KEY) === '1';
+    } catch {
+        return false;
+    }
 }
 
 /** Reveal text a few characters per frame so replies read like they're being spoken. */
@@ -95,15 +88,17 @@ export default function AiChat({ connected, initialQuestion }: Props) {
     const [typingId, setTypingId] = useState<number | null>(null);
     const [busy, setBusy] = useState(false);
     const [text, setText] = useState('');
-    const [voice, setVoice] = useState(false);
-    const [listening, setListening] = useState(false);
+    const [voice, setVoice] = useState(savedVoice);
+    const tts = useSpeechOutput(locale);
+    const mic = useSpeechInput(locale);
+    const listening = mic.listening;
+    const canSpeak = tts.supported && tts.hasVoice;
     const nextId = useRef(1);
     const scroller = useRef<HTMLDivElement>(null);
     const input = useRef<HTMLInputElement>(null);
-    const recognition = useRef<Recognition | null>(null);
     const asked = useRef(false);
 
-    const orbState: OrbState = busy ? 'thinking' : typingId !== null ? 'speaking' : 'idle';
+    const orbState: OrbState = busy ? 'thinking' : typingId !== null || tts.speakingId !== null ? 'speaking' : listening ? 'thinking' : 'idle';
     const started = messages.length > 0;
 
     // The page scroll is not used here; the conversation scrolls inside its own panel.
@@ -119,17 +114,16 @@ export default function AiChat({ connected, initialQuestion }: Props) {
 
     useLayoutEffect(() => toBottom(), [messages.length, busy, toBottom]);
 
-    const speak = useCallback(
-        (reply: string) => {
-            if (!voice || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(reply);
-            u.lang = locale === 'ar' ? 'ar-EG' : 'en-US';
-            u.rate = 1.03;
-            window.speechSynthesis.speak(u);
-        },
-        [voice, locale],
-    );
+    const toggleVoice = () => {
+        const on = !voice;
+        if (!on) tts.stop();
+        setVoice(on);
+        try {
+            window.localStorage.setItem(VOICE_KEY, on ? '1' : '0');
+        } catch {
+            // Private mode: the choice just isn't remembered.
+        }
+    };
 
     const send = useCallback(
         async (raw: string) => {
@@ -138,13 +132,14 @@ export default function AiChat({ connected, initialQuestion }: Props) {
             const history = messages.filter((m) => !m.error).slice(-12).map(({ role, content }) => ({ role, content }));
             setMessages((m) => [...m, { id: nextId.current++, role: 'user', content: message }]);
             setText('');
+            tts.stop();
             setBusy(true);
             try {
                 const { data } = await axios.post<{ reply: string; actions: Action[] }>('/ai/chat', { message, history });
                 const id = nextId.current++;
                 setMessages((m) => [...m, { id, role: 'assistant', content: data.reply, actions: data.actions }]);
                 setTypingId(id);
-                speak(data.reply);
+                if (voice && canSpeak) tts.speak(data.reply, id);
             } catch (e) {
                 const serverMessage = axios.isAxiosError(e) && e.response?.status === 429 ? (e.response.data as { message?: string })?.message : null;
                 setMessages((m) => [...m, { id: nextId.current++, role: 'assistant', content: serverMessage ?? t('ai.error'), error: true }]);
@@ -153,7 +148,7 @@ export default function AiChat({ connected, initialQuestion }: Props) {
                 input.current?.focus();
             }
         },
-        [busy, messages, speak, t],
+        [busy, messages, voice, canSpeak, tts, t],
     );
 
     // A question typed on the dashboard ("Ask your store") arrives as ?q= and is sent right away.
@@ -165,9 +160,9 @@ export default function AiChat({ connected, initialQuestion }: Props) {
     }, [initialQuestion, send]);
 
     const close = useCallback(() => {
-        window.speechSynthesis?.cancel();
+        tts.stop();
         router.visit('/dashboard');
-    }, []);
+    }, [tts]);
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -177,33 +172,13 @@ export default function AiChat({ connected, initialQuestion }: Props) {
         return () => window.removeEventListener('keydown', onKey);
     }, [close]);
 
-    useEffect(() => () => window.speechSynthesis?.cancel(), []);
-
-    const Recognition = speechRecognition();
     const toggleMic = () => {
-        if (!Recognition) return;
         if (listening) {
-            recognition.current?.stop();
+            mic.stop();
             return;
         }
-        const r = new Recognition();
-        r.lang = locale === 'ar' ? 'ar-EG' : 'en-US';
-        r.interimResults = true;
-        let finalText = '';
-        r.onresult = (e) => {
-            finalText = Array.from(e.results as ArrayLike<ArrayLike<{ transcript: string }>>)
-                .map((res) => res[0].transcript)
-                .join('');
-            setText(finalText);
-        };
-        r.onend = () => {
-            setListening(false);
-            if (finalText.trim()) void send(finalText);
-        };
-        r.onerror = () => setListening(false);
-        recognition.current = r;
-        setListening(true);
-        r.start();
+        tts.stop();
+        mic.start(setText, (said) => void send(said));
     };
 
     const runAction = (a: Action) => {
@@ -237,7 +212,7 @@ export default function AiChat({ connected, initialQuestion }: Props) {
                             aria-label={t('ai.new_chat')}
                             title={t('ai.new_chat')}
                             onClick={() => {
-                                window.speechSynthesis?.cancel();
+                                tts.stop();
                                 setMessages([]);
                                 setTypingId(null);
                             }}
@@ -245,19 +220,17 @@ export default function AiChat({ connected, initialQuestion }: Props) {
                             <RotateCcw className="h-[18px] w-[18px]" aria-hidden />
                         </button>
                     ) : null}
-                    {'speechSynthesis' in globalThis ? (
+                    {tts.supported ? (
                         <button
                             type="button"
-                            className={cn(roundButton, voice && 'bg-brand-accent text-white')}
-                            aria-pressed={voice}
-                            aria-label={voice ? t('ai.voice_off') : t('ai.voice_on')}
-                            title={voice ? t('ai.voice_off') : t('ai.voice_on')}
-                            onClick={() => {
-                                if (voice) window.speechSynthesis.cancel();
-                                setVoice((v) => !v);
-                            }}
+                            className={cn(roundButton, voice && canSpeak && 'bg-brand-accent text-white', !canSpeak && 'opacity-50')}
+                            aria-pressed={voice && canSpeak}
+                            disabled={!canSpeak}
+                            aria-label={!canSpeak ? t('speech.no_voice') : voice ? t('ai.voice_off') : t('ai.voice_on')}
+                            title={!canSpeak ? t('speech.no_voice') : voice ? t('ai.voice_off') : t('ai.voice_on')}
+                            onClick={toggleVoice}
                         >
-                            {voice ? <Volume2 className="h-[18px] w-[18px]" aria-hidden /> : <VolumeX className="h-[18px] w-[18px]" aria-hidden />}
+                            {voice && canSpeak ? <Volume2 className="h-[18px] w-[18px]" aria-hidden /> : <VolumeX className="h-[18px] w-[18px]" aria-hidden />}
                         </button>
                     ) : null}
                 </div>
@@ -327,6 +300,28 @@ export default function AiChat({ connected, initialQuestion }: Props) {
                                                 ))}
                                             </div>
                                         ) : null}
+                                        {canSpeak && !m.error && typingId !== m.id ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => (tts.speakingId === m.id ? tts.stop() : tts.speak(m.content, m.id))}
+                                                className="mt-1.5 inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 text-caption text-ink-muted transition-colors hover:bg-secondary hover:text-ink"
+                                                aria-label={tts.speakingId === m.id ? t('speech.stop') : t('speech.play')}
+                                            >
+                                                {tts.speakingId === m.id ? (
+                                                    <>
+                                                        <Square className="h-3.5 w-3.5 fill-current" aria-hidden />
+                                                        <span className="mv-dots inline-flex gap-0.5" aria-hidden>
+                                                            <span />
+                                                            <span />
+                                                            <span />
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <Volume2 className="h-4 w-4" aria-hidden />
+                                                )}
+                                                <span>{tts.speakingId === m.id ? t('speech.stop') : t('speech.play')}</span>
+                                            </button>
+                                        ) : null}
                                     </div>
                                 </li>
                             ),
@@ -365,7 +360,7 @@ export default function AiChat({ connected, initialQuestion }: Props) {
                             autoComplete="off"
                             autoFocus
                         />
-                        {Recognition ? (
+                        {mic.supported ? (
                             <button
                                 type="button"
                                 onClick={toggleMic}
@@ -385,7 +380,13 @@ export default function AiChat({ connected, initialQuestion }: Props) {
                             <SendHorizontal className="h-[18px] w-[18px] rtl:-scale-x-100" aria-hidden />
                         </button>
                     </div>
-                    {!connected ? <p className="mt-2 text-center text-caption text-ink-muted">{t('ai.offline_note')}</p> : null}
+                    {mic.error ? (
+                        <p role="alert" className="mt-2 text-center text-caption text-danger">
+                            {t(`speech.error_${mic.error}`)}
+                        </p>
+                    ) : !connected ? (
+                        <p className="mt-2 text-center text-caption text-ink-muted">{t('ai.offline_note')}</p>
+                    ) : null}
                 </form>
             </div>
         </div>

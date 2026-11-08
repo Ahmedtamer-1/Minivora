@@ -538,5 +538,13 @@
   "gov.new_valley": "الوادي الجديد",
   "gov.matrouh": "مطروح",
   "gov.north_sinai": "شمال سيناء",
-  "gov.south_sinai": "جنوب سيناء"
+  "gov.south_sinai": "جنوب سيناء",
+  "speech.play": "اسمع",
+  "speech.stop": "إيقاف",
+  "speech.no_voice": "الجهاز ده مفيهوش صوت للغة دي. نزّل صوت من إعدادات الجهاز.",
+  "speech.error_denied": "المايك مقفول. اسمح بيه من إعدادات المتصفح وجرب تاني.",
+  "speech.error_no_speech": "مسمعتش حاجة. اضغط على المايك وجرب تاني.",
+  "speech.error_no_mic": "مفيش مايك.",
+  "speech.error_network": "الكتابة بالصوت محتاجة إنترنت في المتصفح ده.",
+  "speech.error_failed": "الكتابة بالصوت وقفت. جرب تاني أو اكتب سؤالك."
 }

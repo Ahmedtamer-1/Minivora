@@ -538,5 +538,13 @@
   "gov.new_valley": "New Valley",
   "gov.matrouh": "Matrouh",
   "gov.north_sinai": "North Sinai",
-  "gov.south_sinai": "South Sinai"
+  "gov.south_sinai": "South Sinai",
+  "speech.play": "Listen",
+  "speech.stop": "Stop",
+  "speech.no_voice": "This device has no voice for this language. Install one in your system settings.",
+  "speech.error_denied": "The microphone is blocked. Allow it in your browser settings and try again.",
+  "speech.error_no_speech": "I didn’t hear anything. Tap the mic and try again.",
+  "speech.error_no_mic": "No microphone found.",
+  "speech.error_network": "Voice typing needs an internet connection in this browser.",
+  "speech.error_failed": "Voice typing stopped. Try again, or type your question."
 }
