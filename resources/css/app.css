@@ -48,21 +48,101 @@
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
     }
-    /* Kept for the auth screens. */
+    /* Static aurora for Blade pages (storefront). Circles sized in vmax so they never squash. */
     .aurora {
         background:
-            radial-gradient(40% 50% at 15% 80%, var(--mv-aurora-1) 0%, transparent 70%),
-            radial-gradient(35% 45% at 55% 10%, var(--mv-aurora-2) 0%, transparent 70%),
-            radial-gradient(40% 50% at 90% 85%, var(--mv-aurora-3) 0%, transparent 70%),
+            radial-gradient(circle 38vmax at 15% 85%, var(--mv-aurora-1) 0%, transparent 100%),
+            radial-gradient(circle 32vmax at 55% 0%, var(--mv-aurora-2) 0%, transparent 100%),
+            radial-gradient(circle 38vmax at 90% 90%, var(--mv-aurora-3) 0%, transparent 100%),
             var(--mv-bg-canvas);
     }
-    /* Page backdrop: soft glows, as in Figma "Backdrop / Spheres". */
-    .backdrop-glow {
-        background:
-            radial-gradient(45% 55% at 20% 85%, color-mix(in srgb, var(--mv-aurora-1) 22%, transparent) 0%, transparent 70%),
-            radial-gradient(40% 50% at 70% 5%, color-mix(in srgb, var(--mv-aurora-2) 30%, transparent) 0%, transparent 70%),
-            radial-gradient(45% 50% at 95% 90%, color-mix(in srgb, var(--mv-aurora-3) 30%, transparent) 0%, transparent 70%),
-            var(--mv-bg-canvas);
+    /* Animated backdrop (components/animated-backdrop.tsx). Orbs are true circles sized in vmax,
+       so they never stretch into ovals on wide or tall screens. */
+    .mv-backdrop {
+        background: var(--mv-bg-canvas);
+    }
+    .mv-orb {
+        position: absolute;
+        aspect-ratio: 1;
+        border-radius: 9999px;
+        filter: blur(40px);
+        will-change: transform;
+    }
+    .mv-orb--1 {
+        width: 46vmax;
+        left: -14vmax;
+        bottom: -16vmax;
+        background: radial-gradient(circle, var(--mv-aurora-1) 0%, transparent 68%);
+        animation: mv-drift-a 26s ease-in-out infinite alternate;
+    }
+    .mv-orb--2 {
+        width: 40vmax;
+        left: 28%;
+        top: -22vmax;
+        background: radial-gradient(circle, var(--mv-aurora-2) 0%, transparent 68%);
+        animation: mv-drift-b 32s ease-in-out infinite alternate;
+    }
+    .mv-orb--3 {
+        width: 44vmax;
+        right: -16vmax;
+        bottom: -18vmax;
+        background: radial-gradient(circle, var(--mv-aurora-3) 0%, transparent 68%);
+        animation: mv-drift-c 29s ease-in-out infinite alternate;
+    }
+    .mv-orb--4 {
+        width: 26vmax;
+        right: 8%;
+        top: 6%;
+        opacity: 0.55;
+        background: radial-gradient(circle, var(--mv-brand-accent) 0%, transparent 68%);
+        animation: mv-drift-b 38s ease-in-out -12s infinite alternate-reverse;
+    }
+    .mv-orb--5 {
+        width: 20vmax;
+        left: 18%;
+        top: 38%;
+        opacity: 0.35;
+        background: radial-gradient(circle, var(--mv-brand-highlight) 0%, transparent 68%);
+        animation: mv-drift-a 34s ease-in-out -8s infinite alternate-reverse;
+    }
+    /* Slowly turning light wash over the orbs. */
+    .mv-sheen {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 160vmax;
+        aspect-ratio: 1;
+        margin: -80vmax 0 0 -80vmax;
+        border-radius: 9999px;
+        background: conic-gradient(from 0deg, transparent 0deg, color-mix(in srgb, var(--mv-aurora-2) 22%, transparent) 60deg, transparent 140deg, color-mix(in srgb, var(--mv-aurora-1) 18%, transparent) 220deg, transparent 300deg);
+        opacity: 0.6;
+        filter: blur(60px);
+        animation: mv-spin 80s linear infinite;
+    }
+    /* Fine film grain keeps the gradients from banding. */
+    .mv-grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.05;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    /* Dashboard: same motion, quieter, so content cards stay the focus. */
+    .mv-backdrop--soft .mv-orb {
+        opacity: 0.4;
+    }
+    .mv-backdrop--soft .mv-orb--4,
+    .mv-backdrop--soft .mv-orb--5 {
+        opacity: 0.2;
+    }
+    .mv-backdrop--soft .mv-sheen {
+        opacity: 0.3;
+    }
+    /* Content entrance: rise and fade in. */
+    .mv-rise {
+        animation: mv-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .mv-rise-delay {
+        animation-delay: 0.12s;
     }
     .sphere {
         background: var(--mv-sphere-fill);
@@ -82,6 +162,29 @@
         background: radial-gradient(circle at 35% 30%, #c9f5ea 0%, #7fe0c8 30%, #2a8fb8 70%, #1d6f94 100%);
         box-shadow: 0 18px 40px -12px rgba(29, 122, 160, 0.45), inset 0 -6px 16px rgba(11, 26, 38, 0.18);
     }
+}
+
+@keyframes mv-drift-a {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(9vmax, -7vmax, 0) scale(1.12); }
+    100% { transform: translate3d(16vmax, -3vmax, 0) scale(0.94); }
+}
+@keyframes mv-drift-b {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(-12vmax, 8vmax, 0) scale(0.9); }
+    100% { transform: translate3d(6vmax, 14vmax, 0) scale(1.1); }
+}
+@keyframes mv-drift-c {
+    0% { transform: translate3d(0, 0, 0) scale(1.05); }
+    50% { transform: translate3d(-10vmax, -10vmax, 0) scale(0.92); }
+    100% { transform: translate3d(-18vmax, 2vmax, 0) scale(1.12); }
+}
+@keyframes mv-spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes mv-rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
 }
 
 /* Reduce Transparency: every translucent surface becomes opaque. */

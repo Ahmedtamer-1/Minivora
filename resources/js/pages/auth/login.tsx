@@ -1,7 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { Field, Input } from '@/components/ui/input';
+import { Checkbox, Field, Input } from '@/components/ui/input';
 import { AuthLayout } from '@/layouts/auth-layout';
 import { useT } from '@/lib/i18n';
 
@@ -25,10 +25,7 @@ export default function Login() {
                 <Field label={t('create.password')} htmlFor="password" error={errors.password}>
                     <Input id="password" type="password" dir="ltr" value={data.password} onChange={(e) => setData('password', e.target.value)} autoComplete="current-password" required />
                 </Field>
-                <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={data.remember} onChange={(e) => setData('remember', e.target.checked)} className="rounded border-line text-primary focus:ring-line-focus" />
-                    {t('login.remember')}
-                </label>
+                <Checkbox checked={data.remember} onChange={(e) => setData('remember', e.target.checked)} label={t('login.remember')} />
                 <Button type="submit" size="lg" className="w-full" disabled={processing}>
                     {t('login.submit')}
                 </Button>

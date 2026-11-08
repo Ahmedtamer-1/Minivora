@@ -45,3 +45,27 @@ export function Field({ label, htmlFor, error, hint, children, className }: Fiel
         </div>
     );
 }
+
+/**
+ * Checkbox with a visible tick in both themes: brand-blue fill and a white check when on,
+ * an outlined box when off. The real input stays in the DOM for keyboard and screen readers.
+ */
+export function Checkbox({ label, className, ...props }: Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> & { label: ReactNode }) {
+    return (
+        <label className={cn('group inline-flex cursor-pointer select-none items-center gap-2.5 text-sm text-ink', className)}>
+            <span className="relative inline-flex h-5 w-5 shrink-0">
+                <input type="checkbox" className="peer absolute inset-0 m-0 h-full w-full cursor-pointer appearance-none opacity-0" {...props} />
+                <span className="pointer-events-none absolute inset-0 rounded-md border-[1.5px] border-line-control bg-elevated transition-all duration-200 group-hover:border-line-focus peer-checked:scale-100 peer-checked:border-brand-accent peer-checked:bg-brand-accent peer-focus-visible:ring-2 peer-focus-visible:ring-line-focus peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-canvas peer-active:scale-90" />
+                <svg
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 m-auto h-3.5 w-3.5 scale-50 text-white opacity-0 transition-all duration-200 peer-checked:scale-100 peer-checked:opacity-100"
+                >
+                    <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </span>
+            {label}
+        </label>
+    );
+}

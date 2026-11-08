@@ -14,11 +14,21 @@ export function LogoMark({ className }: { className?: string }) {
     );
 }
 
-export function Logo({ href = '/', withName = true }: { href?: string; withName?: boolean }) {
+/**
+ * Wordmark: the mark stands in for the "M", so it reads M·INIVORA. The mark is sized to the
+ * cap height of the type (0.7em in Outfit) and sits on the baseline, so both are the same height.
+ * Always laid out left-to-right, including in Arabic.
+ */
+export function Logo({ href = '/', withName = true, className }: { href?: string; withName?: boolean; className?: string }) {
     return (
-        <Link href={href} className="inline-flex items-center gap-2.5 font-display text-lg font-semibold tracking-wide text-brand-mark" aria-label="Minivora">
-            <LogoMark className="h-7 w-[34px]" />
-            {withName ? <span className="ltr:uppercase">Minivora</span> : null}
+        <Link
+            href={href}
+            dir="ltr"
+            className={cn('inline-flex items-baseline font-display text-[26px] font-semibold leading-none tracking-[0.06em] text-brand-mark', className)}
+            aria-label="Minivora"
+        >
+            <LogoMark className={cn('h-[0.7em] w-auto shrink-0 self-baseline', withName ? 'me-[0.08em]' : 'h-7')} />
+            {withName ? <span aria-hidden>INIVORA</span> : null}
         </Link>
     );
 }
