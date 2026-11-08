@@ -29,3 +29,27 @@ export function formatDate(iso: string, locale: SharedProps['locale'], withTime 
         timeZone: 'Africa/Cairo',
     }).format(new Date(iso));
 }
+
+/** "Thursday, 7 November" in Cairo time. */
+export function formatToday(locale: SharedProps['locale']): string {
+    const parts = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG-u-nu-latn' : 'en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        timeZone: 'Africa/Cairo',
+    }).formatToParts(new Date());
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+
+    return `${get('weekday')}${locale === 'ar' ? '،' : ','} ${get('day')} ${get('month')}`;
+}
+
+/** Part of the day in Cairo, for the greeting. */
+export function dayPart(): 'morning' | 'afternoon' | 'evening' {
+    const hour = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Africa/Cairo' }).format(new Date()));
+    return hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+}
+
+/** Western-digit number formatting (NFR-USE-05). */
+export function formatNumber(value: number): string {
+    return value.toLocaleString('en-US');
+}

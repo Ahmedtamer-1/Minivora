@@ -9,7 +9,7 @@
         -webkit-text-size-adjust: 100%;
     }
     body {
-        @apply bg-canvas text-ink font-sans antialiased;
+        @apply bg-canvas font-sans text-ink antialiased;
     }
     h1, h2, h3, h4 {
         @apply font-display text-ink;
@@ -18,21 +18,105 @@
         outline: 2px solid var(--mv-border-focus);
         outline-offset: 2px;
     }
+    /* Western digits with tabular figures keep numbers aligned in cards. */
+    .tabular {
+        font-variant-numeric: tabular-nums;
+    }
 }
 
 @layer components {
-    .glass {
+    /* Content card: mostly opaque so text never depends on what glows behind it (HIG pass). */
+    .card {
         background: var(--mv-glass-fill);
         border: 1px solid var(--mv-glass-stroke);
-        box-shadow: var(--mv-glass-shadow);
+        border-radius: var(--mv-radius-2xl);
+        box-shadow: var(--mv-glass-shadow), inset 0 1px 0 var(--mv-glass-highlight);
         backdrop-filter: blur(24px) saturate(140%);
         -webkit-backdrop-filter: blur(24px) saturate(140%);
     }
+    /* Floating controls layer (rail, tab bar, menus): the only real glass. */
+    .glass {
+        background: var(--mv-glass-fill);
+        border: 1px solid var(--mv-glass-stroke);
+        box-shadow: var(--mv-glass-shadow-thick), inset 0 1px 0 var(--mv-glass-highlight);
+        backdrop-filter: blur(48px) saturate(160%);
+        -webkit-backdrop-filter: blur(48px) saturate(160%);
+    }
+    .glass-strong {
+        background: var(--mv-glass-fill-strong);
+        border: 1px solid var(--mv-glass-stroke);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+    }
+    /* Kept for the auth screens. */
     .aurora {
         background:
             radial-gradient(40% 50% at 15% 80%, var(--mv-aurora-1) 0%, transparent 70%),
             radial-gradient(35% 45% at 55% 10%, var(--mv-aurora-2) 0%, transparent 70%),
             radial-gradient(40% 50% at 90% 85%, var(--mv-aurora-3) 0%, transparent 70%),
             var(--mv-bg-canvas);
+    }
+    /* Page backdrop: soft glows, as in Figma "Backdrop / Spheres". */
+    .backdrop-glow {
+        background:
+            radial-gradient(45% 55% at 20% 85%, color-mix(in srgb, var(--mv-aurora-1) 22%, transparent) 0%, transparent 70%),
+            radial-gradient(40% 50% at 70% 5%, color-mix(in srgb, var(--mv-aurora-2) 30%, transparent) 0%, transparent 70%),
+            radial-gradient(45% 50% at 95% 90%, color-mix(in srgb, var(--mv-aurora-3) 30%, transparent) 0%, transparent 70%),
+            var(--mv-bg-canvas);
+    }
+    .sphere {
+        background: var(--mv-sphere-fill);
+        border: 1px solid var(--mv-sphere-stroke);
+        box-shadow: 0 30px 80px -30px rgba(5, 10, 15, 0.18), inset 0 1px 0 var(--mv-glass-highlight);
+        border-radius: 9999px;
+    }
+    /* Sales hero: deep blue so white text stays at 4.8:1 or better. */
+    .hero-sales {
+        background:
+            radial-gradient(60% 60% at 90% 95%, var(--mv-hero-mint) 0%, transparent 70%),
+            radial-gradient(80% 80% at 20% 20%, var(--mv-hero-glow) 0%, transparent 75%),
+            var(--mv-hero-base);
+    }
+    /* Add-product orb (Figma: teal sphere). */
+    .orb {
+        background: radial-gradient(circle at 35% 30%, #c9f5ea 0%, #7fe0c8 30%, #2a8fb8 70%, #1d6f94 100%);
+        box-shadow: 0 18px 40px -12px rgba(29, 122, 160, 0.45), inset 0 -6px 16px rgba(11, 26, 38, 0.18);
+    }
+}
+
+/* Reduce Transparency: every translucent surface becomes opaque. */
+@media (prefers-reduced-transparency: reduce) {
+    .card,
+    .glass,
+    .glass-strong {
+        background: var(--mv-bg-elevated);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+}
+
+/* Increase Contrast: visible borders, secondary text closer to primary, opaque surfaces. */
+@media (prefers-contrast: more) {
+    :root:root:root {
+        --mv-border-default: var(--mv-border-control);
+        --mv-glass-stroke: var(--mv-border-control);
+        --mv-text-muted: color-mix(in srgb, var(--mv-text-primary) 80%, var(--mv-bg-elevated));
+    }
+    .card,
+    .glass,
+    .glass-strong {
+        background: var(--mv-bg-elevated);
+    }
+}
+
+/* Reduce Motion: no transitions or animated progress. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
     }
 }

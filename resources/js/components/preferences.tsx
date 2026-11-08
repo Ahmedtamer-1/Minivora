@@ -1,13 +1,33 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Languages, Moon, Sun } from 'lucide-react';
+import { Globe, Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/cn';
 import { useT } from '@/lib/i18n';
 import type { SharedProps } from '@/types';
 
-/** Language switch (saved on the account) and light/dark toggle (saved in this browser). */
-export function Preferences() {
+// Figma "Round": 44px glass circle with an 18px icon.
+export const roundButton =
+    'glass-strong inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink shadow-sm transition-colors hover:bg-elevated';
+
+/** Switch the dashboard language (saved on the account). */
+export function LanguageButton({ className }: { className?: string }) {
     const t = useT();
     const { locale } = usePage<SharedProps>().props;
+    const other = locale === 'ar' ? 'en' : 'ar';
+    const label = other === 'ar' ? t('common.arabic') : t('common.english');
+
+    return (
+        <Link href={`/locale/${other}`} preserveScroll className={cn(roundButton, className)} aria-label={`${t('common.language')}: ${label}`} title={label}>
+            <Globe className="h-[18px] w-[18px]" aria-hidden />
+        </Link>
+    );
+}
+
+/**
+ * Light/dark override, saved in this browser. The OS setting applies until someone picks one here.
+ */
+export function ThemeButton({ className }: { className?: string }) {
+    const t = useT();
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
     useEffect(() => {
@@ -16,7 +36,7 @@ export function Preferences() {
         setTheme(current === 'dark' || (!current && prefersDark) ? 'dark' : 'light');
     }, []);
 
-    const toggleTheme = () => {
+    const toggle = () => {
         const next = theme === 'dark' ? 'light' : 'dark';
         document.documentElement.dataset.theme = next;
         try {
@@ -27,26 +47,18 @@ export function Preferences() {
         setTheme(next);
     };
 
-    const other = locale === 'ar' ? 'en' : 'ar';
-
     return (
-        <div className="flex items-center gap-1">
-            <Link
-                href={`/locale/${other}`}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm text-ink-muted hover:bg-secondary hover:text-ink"
-                preserveScroll
-            >
-                <Languages className="h-4 w-4" aria-hidden />
-                {other === 'ar' ? t('common.arabic') : t('common.english')}
-            </Link>
-            <button
-                type="button"
-                onClick={toggleTheme}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-ink-muted hover:bg-secondary hover:text-ink"
-                aria-label={theme === 'dark' ? t('common.theme_light') : t('common.theme_dark')}
-            >
-                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
+        <button type="button" onClick={toggle} className={cn(roundButton, className)} aria-label={theme === 'dark' ? t('common.theme_light') : t('common.theme_dark')}>
+            {theme === 'dark' ? <Sun className="h-[18px] w-[18px]" aria-hidden /> : <Moon className="h-[18px] w-[18px]" aria-hidden />}
+        </button>
+    );
+}
+
+export function Preferences() {
+    return (
+        <div className="flex items-center gap-3">
+            <LanguageButton />
+            <ThemeButton />
         </div>
     );
 }

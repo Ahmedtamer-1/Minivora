@@ -1,17 +1,16 @@
-// Dashboard home: onboarding questions (FR-ONB-04), setup checklist (FR-ONB-10), store preview.
-// The AI "Today" feed (FR-PRO-04) and KPIs (FR-ANA-02) arrive here with their modules.
+// Dashboard home (Figma "Home · HIG"): ask bar, sales hero, setup ring, "Needs you", orders, week,
+// best seller, running low, visitors. Cards whose module has not shipped show honest empty states.
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import { Bot, Check, Copy, ExternalLink } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
-import { StoreStatusBadge } from '@/components/status-badge';
+import { AlertTriangle, ArrowUpRight, Check, ChevronRight, FileText, ImageIcon, Package, SendHorizontal, Sparkles } from 'lucide-react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button, ButtonLink } from '@/components/ui/button';
-import { Card, CardBody, CardHeader } from '@/components/ui/card';
-import { GlassPanel } from '@/components/ui/glass-panel';
+import { Card } from '@/components/ui/card';
 import { Field, Input, Select, Textarea } from '@/components/ui/input';
-import { DashboardLayout, PageHeader } from '@/layouts/dashboard-layout';
+import { DashboardLayout } from '@/layouts/dashboard-layout';
+import { StoreLine } from '@/layouts/topbar';
 import { cn } from '@/lib/cn';
-import { useT } from '@/lib/i18n';
+import { dayPart, formatNumber, useT } from '@/lib/i18n';
 import { useCan } from '@/lib/permissions';
 import type { SharedProps } from '@/types';
 
@@ -28,17 +27,471 @@ interface Step {
     route: string | null;
 }
 
+interface LowItem {
+    id: number;
+    name: string;
+    stock: number;
+    status: 'draft' | 'live';
+}
+
+interface Attention {
+    key: string;
+    kind: 'low' | 'sold_out' | 'drafts';
+    product_id: number | null;
+    name: string | null;
+    count: number;
+}
+
 interface Props {
     showOnboarding: boolean;
     profile: Profile;
     checklist: { steps: Step[]; done: number; total: number; next: string | null };
-    previewUrl: string;
+    inventory: {
+        total: number;
+        live: number;
+        drafts: number;
+        running_low: LowItem[];
+        low_count: number;
+        sold_out_count: number;
+        best_seller: { id: number; name: string; cover: string | null; sold: number; price: number } | null;
+    };
+    attention: Attention[];
+    sales: { amount: number; orders: number; change: number | null } | null;
+    toShip: { count: number; needs_call: number } | null;
+    week: { amount: number; change: number | null; days: number[] } | null;
+    visitors: { count: number; conversion: number; change: number | null; sources: Record<string, number> } | null;
 }
 
-const stepHref: Record<string, string> = {
+const routeHref: Record<string, string> = {
     'verification.notice': '/email/verify',
     'settings.general': '/settings',
+    'products.create': '/products/create',
 };
+
+const cardTitle = 'font-display text-base font-normal text-ink';
+
+/* ---------- Ask your store ---------- */
+
+function AskCard() {
+    const t = useT();
+    const can = useCan();
+    const [text, setText] = useState('');
+    const [note, setNote] = useState<string | null>(null);
+    const [busy, setBusy] = useState(false);
+
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        const value = text.trim();
+        if (!value) return;
+        // "add …" becomes a product draft today; everything else waits for the AI team.
+        if (/^(add|please add|أضف|اضف|ضيف)\s+/iu.test(value) && can('products.manage')) {
+            setBusy(true);
+            router.post('/products', { note: value }, { onFinish: () => setBusy(false) });
+            return;
+        }
+        setNote(t('ask.soon'));
+    };
+
+    const suggestions = [
+        can('products.manage') ? { label: t('ask.s_add'), href: '/products/create' } : null,
+        can('products.view') ? { label: t('ask.s_restock'), href: '/products?filter=low' } : null,
+        can('design.manage') ? { label: t('ask.s_publish'), href: '/settings' } : null,
+    ].filter(Boolean) as { label: string; href: string }[];
+
+    return (
+        <Card className="flex flex-col p-6 md:col-span-2 xl:min-h-[272px]">
+            <div className="flex items-center justify-between gap-3">
+                <h2 className={cardTitle}>{t('ask.title')}</h2>
+                <Badge tone="neutral">{t('ask.badge')}</Badge>
+            </div>
+            <p className="mt-3 font-display text-[28px] font-light leading-[31px] tracking-[-0.02em]">{t('ask.question')}</p>
+            <form onSubmit={submit} className="mt-auto pt-6">
+                <label htmlFor="ask" className="sr-only">
+                    {t('ask.title')}
+                </label>
+                <div className="flex h-12 items-center gap-2 rounded-full bg-elevated pe-1 ps-4 shadow-md">
+                    <Sparkles className="h-[18px] w-[18px] shrink-0 text-brand-accent" aria-hidden />
+                    <input
+                        id="ask"
+                        value={text}
+                        onChange={(e) => {
+                            setText(e.target.value);
+                            setNote(null);
+                        }}
+                        placeholder={t('ask.placeholder')}
+                        className="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink placeholder:text-ink-muted focus:ring-0"
+                        maxLength={500}
+                        autoComplete="off"
+                    />
+                    <button type="submit" disabled={busy || !text.trim()} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-fg transition-colors hover:bg-primary-hover disabled:opacity-60" aria-label={t('ask.send')}>
+                        <SendHorizontal className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
+                    </button>
+                </div>
+                <p aria-live="polite" className={cn('text-caption text-ink-muted', note ? 'mt-2' : 'sr-only')}>
+                    {note}
+                </p>
+            </form>
+            {suggestions.length > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                    {suggestions.map((s) => (
+                        <Link key={s.href} href={s.href} className="glass-strong inline-flex h-9 items-center rounded-full px-3.5 text-caption text-ink shadow-sm hover:bg-elevated">
+                            {s.label}
+                        </Link>
+                    ))}
+                </div>
+            ) : null}
+        </Card>
+    );
+}
+
+/* ---------- Sales today (signature card) ---------- */
+
+function SalesCard({ sales }: { sales: Props['sales'] }) {
+    const t = useT();
+    const { locale } = usePage<SharedProps>().props;
+
+    return (
+        <section aria-labelledby="sales-title" className="hero-sales relative flex flex-col overflow-hidden rounded-2xl p-6 text-white shadow-glass xl:min-h-[272px]">
+            <div className="flex items-center justify-between gap-3">
+                <h2 id="sales-title" className="font-display text-base font-normal text-white">
+                    {t('sales.title')}
+                </h2>
+                {sales?.change != null ? (
+                    <span className="inline-flex h-[26px] items-center rounded-full bg-white px-2 text-caption text-[#0B1A26]">{`${sales.change > 0 ? '+' : ''}${sales.change}%`}</span>
+                ) : null}
+            </div>
+            <div className="mt-auto pt-10">
+                <p className="tabular font-display text-numeral">{sales ? formatNumber(Math.round(sales.amount / 100)) : '0'}</p>
+                <p className="mt-2 text-sm text-white">
+                    {locale === 'ar' ? 'ج.م' : 'EGP'} · {sales ? t('sales.orders', { count: sales.orders }) : t('sales.empty')}
+                </p>
+            </div>
+        </section>
+    );
+}
+
+/* ---------- Store setup ring ---------- */
+
+function SetupCard({ checklist }: { checklist: Props['checklist'] }) {
+    const t = useT();
+    const size = 128;
+    const stroke = 8;
+    const r = (size - stroke) / 2;
+    const c = 2 * Math.PI * r;
+    const pct = checklist.total ? checklist.done / checklist.total : 0;
+    const next = checklist.steps.find((s) => s.key === checklist.next);
+    const nextHref = next?.route ? routeHref[next.route] : undefined;
+
+    return (
+        <Card className="flex flex-col items-center p-6 xl:min-h-[272px]">
+            <h2 className={cn(cardTitle, 'self-start')}>{t('setup.title')}</h2>
+            <div className="relative mt-3" role="img" aria-label={t('checklist.progress', { done: checklist.done, total: checklist.total })}>
+                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90 rtl:rotate-90 rtl:-scale-y-100" aria-hidden>
+                    <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--mv-chart-track)" strokeWidth={stroke} />
+                    <circle
+                        cx={size / 2}
+                        cy={size / 2}
+                        r={r}
+                        fill="none"
+                        stroke="var(--mv-brand-accent)"
+                        strokeWidth={stroke}
+                        strokeLinecap="round"
+                        strokeDasharray={c}
+                        strokeDashoffset={c * (1 - pct)}
+                        className="transition-[stroke-dashoffset] duration-700"
+                    />
+                </svg>
+                <span className="tabular absolute inset-0 grid place-items-center font-display text-numeral-sm">
+                    {checklist.done}/{checklist.total}
+                </span>
+            </div>
+            <div className="mt-3 text-center">
+                {next && nextHref ? (
+                    <Link href={nextHref} className="inline-flex items-center gap-1 text-caption text-ink-link hover:underline">
+                        {t('setup.next', { step: t(`checklist.${next.key}`) })}
+                        <ChevronRight className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />
+                    </Link>
+                ) : checklist.done === checklist.total ? (
+                    <p className="text-caption text-success">{t('setup.done')}</p>
+                ) : (
+                    <p className="text-caption text-ink-muted">{t('setup.waiting')}</p>
+                )}
+            </div>
+            <details className="group mt-2 w-full text-caption">
+                <summary className="mx-auto w-fit cursor-pointer list-none rounded-full px-2 py-1 text-ink-muted hover:text-ink">{t('setup.all_steps')}</summary>
+                <ul className="mt-2 space-y-1.5">
+                    {checklist.steps.map((s) => (
+                        <li key={s.key} className="flex items-center gap-2">
+                            <span className={cn('grid h-4 w-4 place-items-center rounded-full border', s.complete ? 'border-success bg-success text-elevated' : 'border-line-control')} aria-hidden>
+                                {s.complete ? <Check className="h-3 w-3" /> : null}
+                            </span>
+                            <span className={cn(s.complete && 'text-ink-muted line-through')}>{t(`checklist.${s.key}`)}</span>
+                            {!s.available ? <span className="ms-auto text-ink-muted">{t('common.soon')}</span> : null}
+                            <span className="sr-only">{s.complete ? t('setup.step_done') : t('setup.step_todo')}</span>
+                        </li>
+                    ))}
+                </ul>
+            </details>
+        </Card>
+    );
+}
+
+/* ---------- Needs you ---------- */
+
+const DISMISS_KEY = 'mv-dismissed';
+
+function readDismissed(): string[] {
+    try {
+        return JSON.parse(localStorage.getItem(DISMISS_KEY) ?? '[]') as string[];
+    } catch {
+        return [];
+    }
+}
+
+function NeedsYouCard({ attention }: { attention: Attention[] }) {
+    const t = useT();
+    const can = useCan();
+    const [dismissed, setDismissed] = useState<string[]>([]);
+    useEffect(() => setDismissed(readDismissed()), []);
+
+    const items = attention.filter((a) => !dismissed.includes(a.key));
+    const dismiss = (key: string) => {
+        const next = [...dismissed, key].slice(-50);
+        setDismissed(next);
+        try {
+            localStorage.setItem(DISMISS_KEY, JSON.stringify(next));
+        } catch {
+            // Storage blocked: hidden for this page view only.
+        }
+    };
+
+    const view = (a: Attention) => {
+        switch (a.kind) {
+            case 'sold_out':
+                return { icon: AlertTriangle, tint: 'bg-danger-subtle text-danger', text: t('needs.sold_out', { name: a.name ?? '' }), action: t('needs.restock'), href: `/products/${a.product_id}/edit` };
+            case 'low':
+                return { icon: Package, tint: 'bg-warning-subtle text-warning', text: t('needs.low', { name: a.name ?? '', count: a.count }), action: t('needs.restock'), href: `/products/${a.product_id}/edit` };
+            default:
+                return { icon: FileText, tint: 'bg-info-subtle text-info', text: t('needs.drafts', { count: a.count }), action: t('needs.review'), href: '/products?filter=draft' };
+        }
+    };
+
+    return (
+        <Card className="flex flex-col p-6 md:col-span-2 xl:min-h-[264px]">
+            <div className="flex items-center justify-between gap-3">
+                <h2 className={cardTitle}>{t('needs.title')}</h2>
+                {items.length > 0 ? (
+                    <Badge tone="highlight" className="min-w-[26px] justify-center">
+                        <span className="sr-only">{t('needs.count', { count: items.length })}</span>
+                        <span aria-hidden>{items.length}</span>
+                    </Badge>
+                ) : null}
+            </div>
+            {items.length === 0 ? (
+                <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6 text-center">
+                    <span className="grid h-10 w-10 place-items-center rounded-full bg-success-subtle text-success">
+                        <Check className="h-5 w-5" aria-hidden />
+                    </span>
+                    <p className="text-sm">{t('needs.empty')}</p>
+                </div>
+            ) : (
+                <ul className="mt-4 space-y-3">
+                    {items.map((a) => {
+                        const v = view(a);
+                        const Icon = v.icon;
+                        return (
+                            <li key={a.key} className="flex flex-wrap items-center gap-3 rounded-2xl bg-elevated py-2 pe-2 ps-2 shadow-sm sm:flex-nowrap">
+                                <span className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full', v.tint)}>
+                                    <Icon className="h-4 w-4" aria-hidden />
+                                </span>
+                                <p className="min-w-0 flex-1 basis-[calc(100%-3rem)] text-sm sm:basis-auto">{v.text}</p>
+                                <div className="ms-auto flex shrink-0 items-center gap-1">
+                                    <Button variant="ghost" size="sm" onClick={() => dismiss(a.key)}>
+                                        {t('needs.not_now')}
+                                    </Button>
+                                    {can('products.manage') || a.kind === 'drafts' ? (
+                                        <ButtonLink href={v.href} size="sm">
+                                            {v.action}
+                                        </ButtonLink>
+                                    ) : null}
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+        </Card>
+    );
+}
+
+/* ---------- To ship ---------- */
+
+function ToShipCard({ toShip }: { toShip: Props['toShip'] }) {
+    const t = useT();
+    return (
+        <Card className="flex flex-col p-6 xl:min-h-[264px]">
+            <div className="flex items-center justify-between gap-3">
+                <h2 className={cardTitle}>{t('ship.title')}</h2>
+                <ArrowUpRight className="h-[18px] w-[18px] text-ink-muted rtl:-scale-x-100" aria-hidden />
+            </div>
+            <div className="mt-auto pt-8">
+                <p className="tabular font-display text-numeral">{toShip?.count ?? 0}</p>
+                <p className={cn('mt-2 text-sm', toShip?.needs_call ? 'text-danger' : 'text-ink-muted')}>
+                    {toShip?.needs_call ? t('ship.needs_call', { count: toShip.needs_call }) : t('ship.empty')}
+                </p>
+            </div>
+        </Card>
+    );
+}
+
+/* ---------- This week ---------- */
+
+function WeekCard({ week }: { week: Props['week'] }) {
+    const t = useT();
+    const { locale } = usePage<SharedProps>().props;
+    const days = week?.days ?? Array.from({ length: 20 }, () => 0);
+    const max = Math.max(1, ...days);
+
+    return (
+        <Card className="flex flex-col p-6 xl:min-h-[264px]">
+            <div className="flex items-center justify-between gap-3">
+                <h2 className={cardTitle}>{t('week.title')}</h2>
+                {week?.change != null ? <Badge tone="highlight">{`${week.change > 0 ? '+' : ''}${week.change}%`}</Badge> : null}
+            </div>
+            <div className="mt-auto pt-6">
+                <p className="tabular font-display text-numeral-sm">{week ? formatNumber(Math.round(week.amount / 100)) : '0'}</p>
+                <p className="mt-1 text-caption text-ink-muted">{t('week.sub', { currency: locale === 'ar' ? 'ج.م' : 'EGP' })}</p>
+                <div className="mt-4 flex h-14 items-end gap-[4px]" aria-hidden>
+                    {days.map((d, i) => (
+                        <span
+                            key={i}
+                            className={cn('flex-1 rounded-full', week && i >= days.length - 4 ? 'bg-brand-accent' : 'bg-chart-track')}
+                            style={{ height: `${Math.max(12, (d / max) * 100)}%` }}
+                        />
+                    ))}
+                </div>
+                {!week ? <p className="mt-2 text-caption text-ink-muted">{t('week.empty')}</p> : null}
+            </div>
+        </Card>
+    );
+}
+
+/* ---------- Best seller ---------- */
+
+function BestSellerCard({ best, total }: { best: Props['inventory']['best_seller']; total: number }) {
+    const t = useT();
+    const can = useCan();
+    return (
+        <Card className="flex flex-col p-6 xl:min-h-[296px]">
+            <h2 className={cardTitle}>{t('best.title')}</h2>
+            <div className="relative mt-4 aspect-[258/140] overflow-hidden rounded-2xl bg-accent-subtle">
+                {best?.cover ? (
+                    <img src={best.cover} alt="" className="h-full w-full object-cover" />
+                ) : (
+                    <div className="grid h-full w-full place-items-center" style={{ background: 'radial-gradient(60% 80% at 35% 70%, color-mix(in srgb, var(--mv-brand-accent) 55%, transparent), transparent 70%), radial-gradient(50% 70% at 85% 20%, color-mix(in srgb, var(--mv-brand-highlight) 60%, transparent), transparent 70%)' }}>
+                        <ImageIcon className="h-7 w-7 text-ink" aria-hidden strokeWidth={1.5} />
+                    </div>
+                )}
+            </div>
+            <div className="mt-auto pt-4">
+                {best ? (
+                    <>
+                        <p className="text-sm font-semibold">{best.name}</p>
+                        <p className="mt-1 text-caption text-ink-muted">{t('best.sold', { count: best.sold })}</p>
+                    </>
+                ) : total === 0 && can('products.manage') ? (
+                    <Link href="/products/create" className="inline-flex items-center gap-1 text-caption text-ink-link hover:underline">
+                        {t('best.add_first')}
+                        <ChevronRight className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />
+                    </Link>
+                ) : (
+                    <p className="text-caption text-ink-muted">{t('best.empty')}</p>
+                )}
+            </div>
+        </Card>
+    );
+}
+
+/* ---------- Running low ---------- */
+
+const toneText = { danger: 'text-danger', warning: 'text-warning', success: 'text-success' } as const;
+const toneBg = { danger: 'bg-danger', warning: 'bg-warning', success: 'bg-success' } as const;
+
+function RunningLowCard({ items }: { items: LowItem[] }) {
+    const t = useT();
+    return (
+        <Card className="flex flex-col p-6 xl:min-h-[296px]">
+            <div className="flex items-center justify-between gap-3">
+                <h2 className={cardTitle}>{t('low.title')}</h2>
+                {items.length > 0 ? (
+                    <Link href="/products?filter=low" className="text-caption text-ink-link hover:underline">
+                        {t('low.see_all')}
+                    </Link>
+                ) : null}
+            </div>
+            {items.length === 0 ? (
+                <p className="mt-4 text-caption text-ink-muted">{t('low.empty')}</p>
+            ) : (
+                <ul className="mt-4 space-y-4">
+                    {items.map((p) => {
+                        const tone: keyof typeof toneText = p.stock === 0 ? 'danger' : p.stock <= 5 ? 'warning' : 'success';
+                        const label = p.stock === 0 ? t('low.sold_out') : p.stock <= 5 ? t('low.left', { count: p.stock }) : t('low.in_stock', { count: p.stock });
+                        const width = p.stock === 0 ? 0 : Math.min(100, Math.max(8, (p.stock / 40) * 100));
+                        return (
+                            <li key={p.id}>
+                                <Link href={`/products/${p.id}/edit`} className="block rounded-md hover:opacity-80">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="truncate text-sm">{p.name || t('products.untitled')}</span>
+                                        <span className={cn('shrink-0 text-caption', toneText[tone])}>{label}</span>
+                                    </div>
+                                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-chart-track" aria-hidden>
+                                        <div className={cn('h-full rounded-full', toneBg[tone])} style={{ width: `${width}%` }} />
+                                    </div>
+                                </Link>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+        </Card>
+    );
+}
+
+/* ---------- Visitors ---------- */
+
+const sources = [
+    { key: 'instagram', color: 'bg-chart-1' },
+    { key: 'facebook', color: 'bg-chart-2' },
+    { key: 'direct', color: 'bg-chart-3' },
+    { key: 'google', color: 'bg-chart-4' },
+] as const;
+
+function VisitorsCard({ visitors }: { visitors: Props['visitors'] }) {
+    const t = useT();
+    return (
+        <Card className="flex flex-col p-6 md:col-span-2 xl:min-h-[296px]">
+            <div className="flex items-center justify-between gap-3">
+                <h2 className={cardTitle}>{t('visitors.title')}</h2>
+                {visitors?.change != null ? <Badge tone="highlight">{`${visitors.change > 0 ? '+' : ''}${visitors.change}%`}</Badge> : null}
+            </div>
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+                <p className="tabular font-display text-numeral">{visitors ? formatNumber(visitors.count) : '0'}</p>
+                <p className="pb-1 text-sm text-ink-muted">{visitors ? t('visitors.bought', { pct: visitors.conversion }) : t('visitors.empty')}</p>
+            </div>
+            <ul className="mt-auto grid grid-cols-2 gap-2 pt-6 sm:grid-cols-4">
+                {sources.map((s) => (
+                    <li key={s.key} className="rounded-2xl bg-elevated p-3 shadow-sm">
+                        <span className={cn('block h-2 w-2 rounded-full', s.color)} aria-hidden />
+                        <p className="tabular mt-3 font-display text-numeral-sm">{visitors ? `${visitors.sources[s.key] ?? 0}%` : '—'}</p>
+                        <p className="mt-1 text-caption text-ink-muted">{t(`visitors.${s.key}`)}</p>
+                    </li>
+                ))}
+            </ul>
+        </Card>
+    );
+}
+
+/* ---------- Onboarding questions (FR-ONB-04) ---------- */
 
 function OnboardingQuestions({ profile }: { profile: Profile }) {
     const t = useT();
@@ -55,164 +508,66 @@ function OnboardingQuestions({ profile }: { profile: Profile }) {
     };
 
     return (
-        <Card>
-            <CardHeader title={t('onboarding.title')} description={t('onboarding.subtitle')} />
-            <CardBody>
-                <form onSubmit={submit} className="space-y-4">
-                    <Field label={t('onboarding.sells')} htmlFor="sells" error={errors.sells}>
-                        <Textarea id="sells" rows={2} value={data.sells} onChange={(e) => setData('sells', e.target.value)} placeholder={t('onboarding.sells_ph')} maxLength={500} />
-                    </Field>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <Field label={t('onboarding.location')} htmlFor="location" error={errors.location}>
-                            <Input id="location" value={data.location} onChange={(e) => setData('location', e.target.value)} placeholder={t('onboarding.location_ph')} maxLength={100} />
-                        </Field>
-                        <Field label={t('onboarding.language')} htmlFor="language" error={errors.language}>
-                            <Select id="language" value={data.language} onChange={(e) => setData('language', e.target.value as 'ar' | 'en')}>
-                                <option value="ar">{t('common.arabic')}</option>
-                                <option value="en">{t('common.english')}</option>
-                            </Select>
-                        </Field>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        <Button type="submit" disabled={processing}>
-                            {t('onboarding.save')}
-                        </Button>
-                        <Button variant="ghost" onClick={() => router.post('/onboarding/skip')} disabled={processing}>
-                            {t('onboarding.skip')}
-                        </Button>
-                    </div>
-                </form>
-            </CardBody>
-        </Card>
-    );
-}
-
-function Checklist({ checklist }: { checklist: Props['checklist'] }) {
-    const t = useT();
-    const pct = Math.round((checklist.done / checklist.total) * 100);
-
-    return (
-        <Card>
-            <CardHeader title={t('checklist.title')} description={t('checklist.progress', { done: checklist.done, total: checklist.total })} />
-            <div className="px-5 pt-4">
-                <div className="h-1.5 overflow-hidden rounded-full bg-surface" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-                </div>
-            </div>
-            <ul className="divide-y divide-line px-5 py-2">
-                {checklist.steps.map((step) => {
-                    const isNext = step.key === checklist.next;
-                    const href = step.route ? stepHref[step.route] : undefined;
-                    return (
-                        <li key={step.key} className="flex items-center gap-3 py-3">
-                            <span
-                                className={cn(
-                                    'grid h-6 w-6 shrink-0 place-items-center rounded-full border',
-                                    step.complete ? 'border-success bg-success text-elevated' : isNext ? 'border-primary' : 'border-line',
-                                )}
-                                aria-hidden
-                            >
-                                {step.complete ? <Check className="h-3.5 w-3.5" /> : null}
-                            </span>
-                            <span className={cn('flex-1 text-sm', step.complete && 'text-ink-muted line-through', !step.available && 'text-ink-muted')}>
-                                {t(`checklist.${step.key}`)}
-                            </span>
-                            {!step.available ? (
-                                <Badge>{t('common.soon')}</Badge>
-                            ) : !step.complete && href ? (
-                                <ButtonLink href={href} variant={isNext ? 'primary' : 'secondary'} size="sm">
-                                    {t('checklist.go')}
-                                </ButtonLink>
-                            ) : null}
-                        </li>
-                    );
-                })}
-            </ul>
-        </Card>
-    );
-}
-
-function StoreCard() {
-    const t = useT();
-    const { store } = usePage<SharedProps>().props;
-    const [copied, setCopied] = useState(false);
-    if (!store) return null;
-
-    const copy = async () => {
-        try {
-            await navigator.clipboard.writeText(store.url);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
-        } catch {
-            // Clipboard blocked; the address is still visible to copy by hand.
-        }
-    };
-
-    return (
-        <div className="aurora overflow-hidden rounded-lg border border-line">
-            <GlassPanel className="m-4 p-5">
-                <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">{t('home.address')}</p>
-                    <StoreStatusBadge status={store.status} />
-                </div>
-                <p className="mt-2 break-all font-display text-lg font-semibold" dir="ltr">
-                    {store.url.replace(/^https?:\/\//, '')}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                    <a href="/preview" target="_blank" rel="noopener" className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-fg hover:bg-primary-hover">
-                        <ExternalLink className="h-4 w-4" aria-hidden />
-                        {t('home.preview')}
-                    </a>
-                    <Button variant="secondary" size="sm" onClick={copy}>
-                        {copied ? <Check className="h-4 w-4" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
-                        {copied ? t('common.copied') : t('common.copy')}
+        <Card className="mb-4 p-6">
+            <h2 className={cardTitle}>{t('onboarding.title')}</h2>
+            <p className="mt-1 text-sm text-ink-muted">{t('onboarding.subtitle')}</p>
+            <form onSubmit={submit} className="mt-5 grid gap-4 lg:grid-cols-[2fr_1fr_1fr_auto] lg:items-end">
+                <Field label={t('onboarding.sells')} htmlFor="sells" error={errors.sells}>
+                    <Textarea id="sells" rows={1} value={data.sells} onChange={(e) => setData('sells', e.target.value)} placeholder={t('onboarding.sells_ph')} maxLength={500} />
+                </Field>
+                <Field label={t('onboarding.location')} htmlFor="location" error={errors.location}>
+                    <Input id="location" value={data.location} onChange={(e) => setData('location', e.target.value)} placeholder={t('onboarding.location_ph')} maxLength={100} />
+                </Field>
+                <Field label={t('onboarding.language')} htmlFor="language" error={errors.language}>
+                    <Select id="language" value={data.language} onChange={(e) => setData('language', e.target.value as 'ar' | 'en')}>
+                        <option value="ar">{t('common.arabic')}</option>
+                        <option value="en">{t('common.english')}</option>
+                    </Select>
+                </Field>
+                <div className="flex gap-2">
+                    <Button type="submit" disabled={processing}>
+                        {t('onboarding.save')}
+                    </Button>
+                    <Button variant="ghost" onClick={() => router.post('/onboarding/skip')} disabled={processing}>
+                        {t('onboarding.skip')}
                     </Button>
                 </div>
-            </GlassPanel>
-        </div>
-    );
-}
-
-function AiTeaser() {
-    const t = useT();
-    return (
-        <Card className="border-dashed">
-            <CardBody className="flex gap-3">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-accent-subtle text-primary">
-                    <Bot className="h-5 w-5" aria-hidden />
-                </span>
-                <div>
-                    <p className="font-medium">{t('home.ai_title')}</p>
-                    <p className="mt-1 text-sm text-ink-muted">{t('home.ai_body')}</p>
-                </div>
-            </CardBody>
+            </form>
         </Card>
     );
 }
 
-export default function Today({ showOnboarding, profile, checklist }: Props) {
+export default function Today(props: Props) {
     const t = useT();
     const can = useCan();
-    const { store } = usePage<SharedProps>().props;
+    const { auth } = usePage<SharedProps>().props;
+    const firstName = (auth.user?.name ?? '').trim().split(/\s+/)[0] ?? '';
+    const part = useMemo(() => dayPart(), []);
+
+    const heading = (
+        <div>
+            <h1 className="text-[26px] font-light leading-tight tracking-[-0.03em] sm:text-greeting">{t(`home.greeting_${part}`, { name: firstName })}</h1>
+            <div className="mt-1.5">
+                <StoreLine />
+            </div>
+        </div>
+    );
 
     return (
-        <DashboardLayout title={t('nav.home')}>
-            <PageHeader title={t('home.greeting', { store: store?.name ?? '' })} description={t('home.subtitle')} />
-            <div className="grid gap-6 lg:grid-cols-5">
-                <div className="space-y-6 lg:col-span-3">
-                    {showOnboarding && can('design.manage') ? <OnboardingQuestions profile={profile} /> : null}
-                    <Checklist checklist={checklist} />
-                </div>
-                <div className="space-y-6 lg:col-span-2">
-                    <StoreCard />
-                    <AiTeaser />
-                    {can('members.manage') ? (
-                        <Link href="/settings/members" className="block text-sm text-ink-link hover:underline">
-                            {t('members.subtitle')}
-                        </Link>
-                    ) : null}
-                </div>
+        <DashboardLayout title={t('nav.home')} heading={heading}>
+            {props.showOnboarding && can('design.manage') ? <OnboardingQuestions profile={props.profile} /> : null}
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <AskCard />
+                <SalesCard sales={props.sales} />
+                <SetupCard checklist={props.checklist} />
+                <NeedsYouCard attention={props.attention} />
+                <ToShipCard toShip={props.toShip} />
+                <WeekCard week={props.week} />
+                <BestSellerCard best={props.inventory.best_seller} total={props.inventory.total} />
+                <RunningLowCard items={props.inventory.running_low} />
+                <VisitorsCard visitors={props.visitors} />
             </div>
         </DashboardLayout>
     );
 }
+

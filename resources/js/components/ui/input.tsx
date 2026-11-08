@@ -2,7 +2,7 @@ import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAt
 import { cn } from '@/lib/cn';
 
 const control =
-    'block w-full rounded-md border-line bg-elevated text-ink placeholder:text-ink-muted shadow-sm focus:border-line-focus focus:ring-1 focus:ring-line-focus disabled:bg-disabled disabled:text-disabled-fg';
+    'block w-full rounded-lg border-line-control bg-elevated text-sm text-ink placeholder:text-ink-muted focus:border-line-focus focus:ring-1 focus:ring-line-focus disabled:bg-disabled disabled:text-disabled-fg';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }>(
     function Input({ className, invalid, ...props }, ref) {
@@ -31,7 +31,7 @@ interface FieldProps {
 export function Field({ label, htmlFor, error, hint, children, className }: FieldProps) {
     return (
         <div className={cn('space-y-1.5', className)}>
-            <label htmlFor={htmlFor} className="block text-sm font-medium text-ink">
+            <label htmlFor={htmlFor} className="block text-caption text-ink">
                 {label}
             </label>
             {children}

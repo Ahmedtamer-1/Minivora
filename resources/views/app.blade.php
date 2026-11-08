@@ -7,7 +7,7 @@
         <title inertia>{{ config('app.name', 'Minivora') }}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&family=Noto+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet">
         <script>
             // Apply the saved theme before paint to avoid a flash.
             try { const t = localStorage.getItem('mv-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}

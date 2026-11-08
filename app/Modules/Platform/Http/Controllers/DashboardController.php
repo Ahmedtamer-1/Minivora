@@ -4,6 +4,7 @@ namespace App\Modules\Platform\Http\Controllers;
 
 use App\Core\Tenancy\CurrentStore;
 use App\Http\Controllers\Controller;
+use App\Modules\Catalog\Services\InventoryService;
 use App\Modules\Platform\Data\StoreProfileData;
 use App\Modules\Platform\Services\SetupChecklistService;
 use App\Modules\Platform\Services\StoreProfileService;
@@ -13,8 +14,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Dashboard home: optional onboarding questions (FR-ONB-04), setup checklist (FR-ONB-10) and the
- * store preview. KPIs and the AI "Today" feed land here later.
+ * Dashboard home: optional onboarding questions (FR-ONB-04), setup checklist (FR-ONB-10), stock
+ * read-outs and the "Needs you" list. Sales, orders and visitor KPIs arrive with their modules.
  */
 class DashboardController extends Controller
 {
@@ -22,6 +23,7 @@ class DashboardController extends Controller
         private readonly CurrentStore $current,
         private readonly SetupChecklistService $checklist,
         private readonly StoreProfileService $profiles,
+        private readonly InventoryService $inventory,
     ) {}
 
     public function home(): Response
@@ -33,6 +35,13 @@ class DashboardController extends Controller
             'profile' => $store->profileData()->toArray(),
             'checklist' => $this->checklist->for($store),
             'previewUrl' => route('store.preview'),
+            'inventory' => $this->inventory->summary(),
+            'attention' => $this->inventory->attention(),
+            // Filled by the Orders, Ledger and Analytics modules when they ship; the cards show empty states until then.
+            'sales' => null,
+            'toShip' => null,
+            'week' => null,
+            'visitors' => null,
         ]);
     }
 

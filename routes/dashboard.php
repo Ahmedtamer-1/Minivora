@@ -9,6 +9,7 @@ use App\Modules\Accounts\Http\Controllers\AuthController;
 use App\Modules\Accounts\Http\Controllers\EmailVerificationController;
 use App\Modules\Accounts\Http\Controllers\InvitationController;
 use App\Modules\Accounts\Http\Controllers\MemberController;
+use App\Modules\Catalog\Http\Controllers\ProductController;
 use App\Modules\Platform\Http\Controllers\ActivityController;
 use App\Modules\Platform\Http\Controllers\DashboardController;
 use App\Modules\Platform\Http\Controllers\LocaleController;
@@ -52,6 +53,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/onboarding', [DashboardController::class, 'saveProfile'])->middleware('store.can:design.manage')->name('onboarding.save');
         Route::post('/onboarding/skip', [DashboardController::class, 'skipProfile'])->name('onboarding.skip');
         Route::get('/preview', [StoreSettingsController::class, 'preview'])->name('store.preview');
+
+        // Catalog. FR-CAT-01
+        Route::get('/products', [ProductController::class, 'index'])->middleware('store.can:products.view')->name('products.index');
+        Route::middleware('store.can:products.manage')->group(function () {
+            Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+            Route::post('/products', [ProductController::class, 'store'])->middleware('throttle:30,1')->name('products.store');
+            Route::post('/products/import', [ProductController::class, 'import'])->middleware('throttle:10,1')->name('products.import');
+            Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->whereNumber('product')->name('products.edit');
+            Route::put('/products/{product}', [ProductController::class, 'update'])->whereNumber('product')->name('products.update');
+            Route::delete('/products/{product}', [ProductController::class, 'destroy'])->whereNumber('product')->name('products.destroy');
+        });
 
         Route::middleware('store.can:settings.manage')->group(function () {
             Route::get('/settings', [StoreSettingsController::class, 'edit'])->name('settings.general');

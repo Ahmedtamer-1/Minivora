@@ -2,6 +2,7 @@
 
 namespace App\Modules\Platform\Services;
 
+use App\Modules\Catalog\Setup\AddProductsStep;
 use App\Modules\Platform\Models\Store;
 use App\Modules\Platform\Setup\PendingModuleStep;
 use App\Modules\Platform\Setup\PublishStep;
@@ -18,7 +19,7 @@ class SetupChecklistService
     {
         return [
             new VerifyEmailStep,
-            new PendingModuleStep('add_products'),    // Catalog module replaces this
+            new AddProductsStep,
             new PendingModuleStep('connect_payment'), // Checkout module replaces this
             new PendingModuleStep('set_shipping'),    // Orders module replaces this
             new PublishStep,
