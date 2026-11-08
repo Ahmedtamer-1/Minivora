@@ -14,11 +14,19 @@ createInertiaApp({
     setup({ el, App, props }) {
         // Inertia swaps pages without reloading <html>, so keep lang/dir in step with the current locale
         // (e.g. signing in from an Arabic sign-in page into an English account).
+        // Switching language redirects back to the same URL, which Inertia treats as a "replace" visit and
+        // does not fire `navigate` for, so sync on every successful visit (and on back/forward via navigate).
         const sync = (p: Record<string, unknown>) => {
-            if (typeof p.locale === 'string') document.documentElement.lang = p.locale;
-            if (p.dir === 'rtl' || p.dir === 'ltr') document.documentElement.dir = p.dir;
+            const html = document.documentElement;
+            if (typeof p.locale === 'string' && p.locale !== html.lang) {
+                html.lang = p.locale;
+                // Pages prefetched on hover were rendered in the old language: drop them.
+                router.flushAll();
+            }
+            if ((p.dir === 'rtl' || p.dir === 'ltr') && p.dir !== html.dir) html.dir = p.dir;
         };
         sync(props.initialPage.props);
+        router.on('success', (event) => sync(event.detail.page.props));
         router.on('navigate', (event) => sync(event.detail.page.props));
 
         createRoot(el).render(<App {...props} />);
