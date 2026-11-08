@@ -99,3 +99,37 @@ test('questions are capped per store per day', function () {
 test('guests cannot use the assistant', function () {
     $this->postJson(route('ai.chat.send'), ['message' => 'hi'])->assertUnauthorized();
 });
+
+test('FR-AI-11 a retired or paid model is swapped for a free one the key can use', function () {
+    config()->set('minivora.ai.providers.groq.keys', []);
+    config()->set('minivora.ai.providers.openrouter.keys', ['or-key']);
+    config()->set('minivora.ai.providers.openrouter.model', 'meta-llama/llama-3.3-70b-instruct');
+    Http::fake([
+        'openrouter.ai/api/v1/models' => Http::response(['data' => [
+            ['id' => 'some/paid-model'],
+            ['id' => 'acme/chat-model:free'],
+        ]]),
+        'openrouter.ai/api/v1/chat/completions' => function ($request) {
+            return $request['model'] === 'acme/chat-model:free'
+                ? Http::response(['choices' => [['message' => ['content' => 'Hi from a free model']]]])
+                : Http::response(['error' => ['message' => 'Insufficient credits for this model']], 402);
+        },
+    ]);
+    signedInMember();
+
+    $this->postJson(route('ai.chat.send'), ['message' => 'hi'])
+        ->assertJsonPath('reply', 'Hi from a free model')
+        ->assertJsonPath('source', 'ai');
+
+    Http::assertNotSent(fn ($request) => ($request['model'] ?? null) === 'some/paid-model');
+});
+
+test('FR-AI-11 a bad key is not treated as a model problem', function () {
+    config()->set('minivora.ai.providers.groq.keys', ['bad']);
+    Http::fake(['api.groq.com/*' => Http::response(['error' => ['message' => 'Invalid API Key']], 401)]);
+    signedInMember();
+
+    $this->postJson(route('ai.chat.send'), ['message' => 'thanks'])->assertJsonPath('source', 'local');
+
+    Http::assertSentCount(1); // No model lookup for a bad key.
+});

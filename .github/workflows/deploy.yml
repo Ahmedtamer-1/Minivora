@@ -9,7 +9,9 @@
 #   DEPLOY_USER      SSH user, e.g. u123456789
 #   DEPLOY_SSH_KEY   private key whose public half is added in hPanel → SSH Access
 #   DEPLOY_PATH      app folder on the server, e.g. /home/u123456789/minivora
-# The server's .env and storage/ folder are created once by hand and never overwritten.
+# Optional AI secrets, written into the server's .env on every deploy (empty ones are skipped):
+#   GROQ_API_KEYS, OPENROUTER_API_KEYS, GEMINI_API_KEYS, and GROQ_MODEL, OPENROUTER_MODEL, GEMINI_MODEL
+# The server's .env and storage/ folder are created once by hand; only the AI lines above change.
 name: Deploy
 
 on:
@@ -65,6 +67,21 @@ jobs:
                     --exclude='e2e/' --exclude='.env' --exclude='storage/' --exclude='public/storage' \
                     --exclude='database/*.sqlite' --exclude='.claude/' \
                     ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+
+            - name: Write AI keys into the server .env
+              env:
+                  GROQ_API_KEYS: ${{ secrets.GROQ_API_KEYS }}
+                  OPENROUTER_API_KEYS: ${{ secrets.OPENROUTER_API_KEYS }}
+                  GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+                  GROQ_MODEL: ${{ secrets.GROQ_MODEL }}
+                  OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+                  GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+              run: |
+                  # Sent as JSON on stdin, never on a command line where other users of the host could see it.
+                  jq -n '{GROQ_API_KEYS: env.GROQ_API_KEYS, OPENROUTER_API_KEYS: env.OPENROUTER_API_KEYS, GEMINI_API_KEYS: env.GEMINI_API_KEYS,
+                          GROQ_MODEL: env.GROQ_MODEL, OPENROUTER_MODEL: env.OPENROUTER_MODEL, GEMINI_MODEL: env.GEMINI_MODEL}' \
+                    | ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+                        "cd '${{ secrets.DEPLOY_PATH }}' && php artisan ai:set-keys"
 
             - name: Migrate and cache
               run: |

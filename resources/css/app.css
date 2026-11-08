@@ -461,6 +461,16 @@
     animation-duration: 0.6s;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
+/* Going to a page without the rail or tab bar (the AI chat): fade them out explicitly. Some
+   Chromium builds otherwise leave the old snapshot painted on screen. */
+::view-transition-old(mv-rail):only-child,
+::view-transition-old(mv-tabbar):only-child {
+    animation: mv-fade-out 0.2s ease-in both;
+}
+::view-transition-new(mv-rail):only-child,
+::view-transition-new(mv-tabbar):only-child {
+    animation: mv-fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 .vt-main { view-transition-name: mv-main; }
 .vt-rail { view-transition-name: mv-rail; }
 .vt-tabbar { view-transition-name: mv-tabbar; }

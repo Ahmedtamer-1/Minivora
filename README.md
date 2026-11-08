@@ -351,6 +351,8 @@ It can also be started by hand from the Actions tab (**Deploy → Run workflow**
 
 **GitHub secrets** (Settings → Secrets and variables → Actions): `DEPLOY_HOST`, `DEPLOY_PORT` (65002 on Hostinger), `DEPLOY_USER`, `DEPLOY_SSH_KEY` (the private key), `DEPLOY_PATH` (e.g. `/home/u123456789/minivora`).
 
+**AI keys** go in the same place, so nobody has to edit the server: `GROQ_API_KEYS`, `OPENROUTER_API_KEYS`, `GEMINI_API_KEYS` (and optionally `GROQ_MODEL`, `OPENROUTER_MODEL`, `GEMINI_MODEL`). Each deploy writes them into the server's `.env` with `php artisan ai:set-keys`; secrets that are not set leave the server's values alone. If a model name is retired or not free, the app asks the provider for a model the key can use (`:free` ones on OpenRouter).
+
 **One-time server setup** (the platform owner does this once):
 
 | Where | Setting | Value |
