@@ -6,6 +6,7 @@ Sellers create a store in one step and get `theirstore.<domain>` instantly, Shop
 | Document | What it covers |
 |---|---|
 | [`docs/SRS.docx`](docs/SRS.docx) | Every requirement, with IDs like `FR-CAT-01` and `NFR-SEC-05` |
+| [`docs/mvp-1-store-creation.md`](docs/mvp-1-store-creation.md) | What is built so far: platform foundation and store creation |
 | `docs/Technical-Overview` | Short version of the stack, hosting stages and team setup |
 | This README | How the code is organised, how to run it, how to deploy it |
 
@@ -34,7 +35,7 @@ Everything runs on plain PHP + MySQL hosting, so deploying is as easy as Adorna 
 
 | Layer | Technology | Why |
 |---|---|---|
-| Backend | Laravel (PHP 8.3+) | Runs on any Hostinger or cPanel plan; Adorna's PHP logic ports over directly |
+| Backend | Laravel 12 (PHP 8.3+) | Runs on any Hostinger or cPanel plan; Adorna's PHP logic ports over directly |
 | Database | MySQL 8 or MariaDB | Included in every hosting plan |
 | Storefront | Blade templates (server-rendered HTML) | Fast pages, full SEO, works without JavaScript |
 | Dashboard | React + TypeScript through Inertia.js | Typed, modern UI with no separate API server to host |
@@ -297,6 +298,20 @@ git init && git remote add origin https://github.com/Ahmedtamer-1/Minivora.git
 
 Every placeholder file in the skeleton holds only a note saying what goes there. Replace the note with real code as you build.
 
+### Quick local run (SQLite, no MySQL)
+
+```bash
+composer install && npm install
+cp .env.example .env && php artisan key:generate
+# in .env: DB_CONNECTION=sqlite, delete the other DB_* lines, MAIL_MAILER=log
+php artisan migrate --seed
+npm run build && php artisan serve
+```
+
+Seeded accounts (password `password`, local only): `admin@minivora.test` (platform admin) and
+`owner0@minivora.test` … `owner4@minivora.test`, one per demo store. Emails, including verification
+links, are written to `storage/logs/laravel.log`; run `php artisan queue:work --stop-when-empty` to send queued ones.
+
 ### Everyone else
 
 **You need:** PHP 8.3+, Composer, Node 20+, MySQL. The easiest way on Windows or macOS is [Laravel Herd](https://herd.laravel.com) (free) or Laragon/XAMPP.
@@ -377,7 +392,7 @@ On any other cPanel host the steps are the same: document root, a `*` subdomain,
 | Dashboard components | Vitest | next to the component |
 | Shopper and owner journeys | Playwright | `e2e/` |
 | AI answer quality | eval runner | `app/Ai/Eval` |
-| Code quality | PHPStan, Pint, ESLint, `tsc` | CI |
+| Code quality | Pint, `tsc` in CI today; PHPStan (larastan) and ESLint to be added | CI |
 
 Name every test after the requirement it proves, so the traceability table builds itself:
 

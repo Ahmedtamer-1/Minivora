@@ -7,14 +7,13 @@
     "require": {
         "php": "^8.3",
         "inertiajs/inertia-laravel": "^2.0",
-        "laravel/framework": "^11.0",
+        "laravel/framework": "^12.69",
         "laravel/tinker": "^2.9",
         "spatie/laravel-data": "^4.0",
         "spatie/laravel-typescript-transformer": "^2.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
-        "larastan/larastan": "^2.9",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",
         "mockery/mockery": "^1.6",
@@ -55,8 +54,7 @@
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names=\"server,queue,vite\""
         ],
         "lint": "pint",
-        "test": "pest",
-        "analyse": "phpstan analyse"
+        "test": "pest"
     },
     "extra": {
         "laravel": {
