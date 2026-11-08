@@ -342,10 +342,14 @@ Browsers send every `*.localhost` address to your own computer, so store subdoma
 
 A push to `main` deploys automatically once CI is green. `.github/workflows/deploy.yml`:
 
-1. installs PHP and Node, runs the tests;
-2. builds the dashboard (`npm run build`), so the server never needs Node;
-3. copies the app to Hostinger over SSH;
-4. runs `composer install --no-dev`, `php artisan migrate --force`, `php artisan optimize` on the server.
+1. waits for CI (tests, types, build) to pass on `main`;
+2. installs the PHP packages (`composer install --no-dev`) and builds the dashboard (`npm run build`) on GitHub, so the server needs neither Composer nor Node;
+3. copies the app to the server over SSH with `rsync` (never touching the server's `.env` or `storage/`);
+4. runs `php artisan migrate --force`, `storage:link` and `optimize` on the server, with the site in maintenance mode for those few seconds.
+
+It can also be started by hand from the Actions tab (**Deploy → Run workflow**).
+
+**GitHub secrets** (Settings → Secrets and variables → Actions): `DEPLOY_HOST`, `DEPLOY_PORT` (65002 on Hostinger), `DEPLOY_USER`, `DEPLOY_SSH_KEY` (the private key), `DEPLOY_PATH` (e.g. `/home/u123456789/minivora`).
 
 **One-time server setup** (the platform owner does this once):
 

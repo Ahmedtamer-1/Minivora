@@ -1,11 +1,87 @@
-# Deploy to Hostinger after CI passes on main.
-# TODO: build the dashboard (npm run build), copy the app over SSH (secrets: HOSTINGER_HOST, HOSTINGER_USER, HOSTINGER_SSH_KEY),
-#       then run: composer install --no-dev, php artisan migrate --force, php artisan optimize.
-# Manual trigger only until it is set up.
+# Deploy to Hostinger (or any cPanel host with SSH) after CI passes on main. README §7.
+#
+# Builds everything here (PHP vendor folder and the dashboard assets), so the server needs neither
+# Composer nor Node, then copies the app over SSH and runs the migrations.
+#
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   DEPLOY_HOST      server address, e.g. 123.45.67.89
+#   DEPLOY_PORT      SSH port (Hostinger uses 65002)
+#   DEPLOY_USER      SSH user, e.g. u123456789
+#   DEPLOY_SSH_KEY   private key whose public half is added in hPanel → SSH Access
+#   DEPLOY_PATH      app folder on the server, e.g. /home/u123456789/minivora
+# The server's .env and storage/ folder are created once by hand and never overwritten.
 name: Deploy
-on: workflow_dispatch
+
+on:
+    workflow_run:
+        workflows: [CI]
+        types: [completed]
+        branches: [main]
+    workflow_dispatch:
+
+concurrency:
+    group: deploy-production
+    cancel-in-progress: false
+
 jobs:
-  placeholder:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Deploy not set up yet"
+    deploy:
+        # Automatic runs only after a green CI on main; manual runs any time.
+        if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+        runs-on: ubuntu-latest
+        environment: production
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.3'
+                  extensions: mbstring, intl, pdo_mysql
+                  coverage: none
+
+            - run: composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: npm
+
+            - run: npm ci
+            - run: npm run build
+
+            - name: Set up SSH
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+                  chmod 600 ~/.ssh/deploy_key
+                  ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+            - name: Copy the app
+              run: |
+                  rsync -az --delete \
+                    -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }}" \
+                    --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --exclude='tests/' \
+                    --exclude='e2e/' --exclude='.env' --exclude='storage/' --exclude='public/storage' \
+                    --exclude='database/*.sqlite' --exclude='.claude/' \
+                    ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+
+            - name: Migrate and cache
+              run: |
+                  ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" bash -se <<'REMOTE'
+                    set -e
+                    cd "${{ secrets.DEPLOY_PATH }}"
+                    mkdir -p storage/app/public storage/framework/{cache,sessions,views} storage/logs bootstrap/cache
+                    php artisan down --retry=15 || true
+                    php artisan migrate --force
+                    php artisan storage:link || true
+                    php artisan optimize
+                    php artisan queue:restart || true
+                    php artisan up
+                  REMOTE
+
+            - name: Bring the site back if a step failed
+              if: failure()
+              run: |
+                  ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+                    "cd '${{ secrets.DEPLOY_PATH }}' && php artisan up" || true
