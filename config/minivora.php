@@ -34,9 +34,28 @@ return [
         'decay_seconds' => 15 * 60,
     ],
 
-    // Owner AI questions per store per day (NFR-SCL-02). Used once the AI team ships.
+    // Owner AI questions per store per day (NFR-SCL-02).
     'ai' => [
         'daily_question_cap' => (int) env('AI_DAILY_QUESTION_CAP', 50),
+
+        // Chat models, tried in order; each takes comma-separated keys rotated on rate limits (FR-AI-11).
+        // With no keys set, the dashboard assistant answers from store data with built-in replies.
+        'providers' => [
+            'groq' => [
+                'keys' => array_filter(array_map('trim', explode(',', (string) env('GROQ_API_KEYS', '')))),
+                'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+                'url' => 'https://api.groq.com/openai/v1/chat/completions',
+            ],
+            'openrouter' => [
+                'keys' => array_filter(array_map('trim', explode(',', (string) env('OPENROUTER_API_KEYS', '')))),
+                'model' => env('OPENROUTER_MODEL', 'meta-llama/llama-3.3-70b-instruct'),
+                'url' => 'https://openrouter.ai/api/v1/chat/completions',
+            ],
+            'gemini' => [
+                'keys' => array_filter(array_map('trim', explode(',', (string) env('GEMINI_API_KEYS', '')))),
+                'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+            ],
+        ],
 
         // Classes whose #[AiFunction] methods the AI team may call (FR-AI-06). Add one per module.
         'functions' => [

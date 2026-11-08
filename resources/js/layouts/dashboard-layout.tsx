@@ -73,7 +73,7 @@ export function DashboardLayout({ title, heading, children }: LayoutProps) {
                 </div>
             ) : null}
 
-            <main id="main" className="px-4 pb-28 pt-6 sm:px-6 lg:pb-10 lg:pe-8 lg:ps-32">
+            <main id="main" className="vt-main px-4 pb-28 pt-6 sm:px-6 lg:pb-10 lg:pe-8 lg:ps-32">
                 {children}
             </main>
 

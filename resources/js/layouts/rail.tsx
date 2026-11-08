@@ -45,7 +45,7 @@ export function Rail() {
     const { t, path, visible } = useNav();
 
     return (
-        <nav aria-label={t('nav.main')} className="glass fixed start-8 top-[136px] z-30 hidden w-[62px] rounded-full p-[8px] lg:block">
+        <nav aria-label={t('nav.main')} className="glass vt-rail fixed start-8 top-[136px] z-30 hidden w-[62px] rounded-full p-[8px] lg:block">
             <ul className="flex flex-col items-center gap-2">
                 {visible.map((item) => {
                     const Icon = item.icon;
@@ -81,6 +81,7 @@ export function Rail() {
                         <li key={item.key}>
                             <Link
                                 href={item.href}
+                                prefetch
                                 aria-label={label}
                                 aria-current={active ? 'page' : undefined}
                                 className={cn(
@@ -105,7 +106,7 @@ export function TabBar() {
     const tabs = visible.filter((i) => i.href);
 
     return (
-        <nav aria-label={t('nav.main')} className="glass fixed inset-x-3 bottom-3 z-30 rounded-full p-1.5 lg:hidden">
+        <nav aria-label={t('nav.main')} className="glass vt-tabbar fixed inset-x-3 bottom-3 z-30 rounded-full p-1.5 lg:hidden">
             <ul className="flex">
                 {tabs.map((item) => {
                     const Icon = item.icon;
@@ -114,6 +115,7 @@ export function TabBar() {
                         <li key={item.key} className="flex-1">
                             <Link
                                 href={item.href!}
+                                prefetch
                                 aria-current={active ? 'page' : undefined}
                                 className={cn(
                                     'flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-medium transition-colors',

@@ -15,7 +15,7 @@ export function AuthLayout({ title, children, aside }: { title: string; children
                 <Logo />
                 <Preferences />
             </header>
-            <main className="mx-auto grid w-full max-w-[1440px] flex-1 items-center gap-12 px-5 pb-16 pt-4 sm:px-8 lg:grid-cols-2 lg:gap-20 lg:px-12 xl:gap-28">
+            <main className="vt-main mx-auto grid w-full max-w-[1440px] flex-1 items-center gap-12 px-5 pb-16 pt-4 sm:px-8 lg:grid-cols-2 lg:gap-20 lg:px-12 xl:gap-28">
                 {aside ? <div className="mv-rise hidden lg:block">{aside}</div> : null}
                 <GlassPanel
                     className={

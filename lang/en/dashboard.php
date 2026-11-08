@@ -40,4 +40,7 @@ return [
         'suspended' => 'Store suspended.',
         'restored' => 'Store restored.',
     ],
+    'ai' => [
+        'daily_cap' => 'You have reached the daily limit of AI questions. It resets tomorrow.',
+    ],
 ];

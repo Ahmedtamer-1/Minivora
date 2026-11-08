@@ -73,21 +73,21 @@
         left: -14vmax;
         bottom: -16vmax;
         background: radial-gradient(circle, var(--mv-aurora-1) 0%, transparent 68%);
-        animation: mv-drift-a 26s ease-in-out infinite alternate;
+        animation: mv-drift-a 26s ease-in-out var(--mv-clock, 0s) infinite alternate;
     }
     .mv-orb--2 {
         width: 40vmax;
         left: 28%;
         top: -22vmax;
         background: radial-gradient(circle, var(--mv-aurora-2) 0%, transparent 68%);
-        animation: mv-drift-b 32s ease-in-out infinite alternate;
+        animation: mv-drift-b 32s ease-in-out var(--mv-clock, 0s) infinite alternate;
     }
     .mv-orb--3 {
         width: 44vmax;
         right: -16vmax;
         bottom: -18vmax;
         background: radial-gradient(circle, var(--mv-aurora-3) 0%, transparent 68%);
-        animation: mv-drift-c 29s ease-in-out infinite alternate;
+        animation: mv-drift-c 29s ease-in-out var(--mv-clock, 0s) infinite alternate;
     }
     .mv-orb--4 {
         width: 26vmax;
@@ -95,7 +95,7 @@
         top: 6%;
         opacity: 0.55;
         background: radial-gradient(circle, var(--mv-brand-accent) 0%, transparent 68%);
-        animation: mv-drift-b 38s ease-in-out -12s infinite alternate-reverse;
+        animation: mv-drift-b 38s ease-in-out calc(var(--mv-clock, 0s) - 12s) infinite alternate-reverse;
     }
     .mv-orb--5 {
         width: 20vmax;
@@ -103,7 +103,7 @@
         top: 38%;
         opacity: 0.35;
         background: radial-gradient(circle, var(--mv-brand-highlight) 0%, transparent 68%);
-        animation: mv-drift-a 34s ease-in-out -8s infinite alternate-reverse;
+        animation: mv-drift-a 34s ease-in-out calc(var(--mv-clock, 0s) - 8s) infinite alternate-reverse;
     }
     /* Slowly turning light wash over the orbs. */
     .mv-sheen {
@@ -117,7 +117,7 @@
         background: conic-gradient(from 0deg, transparent 0deg, color-mix(in srgb, var(--mv-aurora-2) 22%, transparent) 60deg, transparent 140deg, color-mix(in srgb, var(--mv-aurora-1) 18%, transparent) 220deg, transparent 300deg);
         opacity: 0.6;
         filter: blur(60px);
-        animation: mv-spin 80s linear infinite;
+        animation: mv-spin 80s linear var(--mv-clock, 0s) infinite;
     }
     /* Fine film grain keeps the gradients from banding. */
     .mv-grain {
@@ -143,6 +143,177 @@
     }
     .mv-rise-delay {
         animation-delay: 0.12s;
+    }
+
+    /* Dashboard cards: rise in one after another, then lift gently under the pointer.
+       fill-mode "backwards" so the hover transform still applies once the entrance ends. */
+    .mv-stagger > * {
+        animation: mv-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) var(--mv-d, 0ms) backwards;
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+    }
+    .mv-stagger > :nth-child(2) { --mv-d: 60ms; }
+    .mv-stagger > :nth-child(3) { --mv-d: 120ms; }
+    .mv-stagger > :nth-child(4) { --mv-d: 180ms; }
+    .mv-stagger > :nth-child(5) { --mv-d: 240ms; }
+    .mv-stagger > :nth-child(6) { --mv-d: 300ms; }
+    .mv-stagger > :nth-child(7) { --mv-d: 360ms; }
+    .mv-stagger > :nth-child(8) { --mv-d: 420ms; }
+    .mv-stagger > :nth-child(9) { --mv-d: 480ms; }
+    .mv-stagger > :nth-child(n + 10) { --mv-d: 540ms; }
+    @media (hover: hover) {
+        .mv-stagger > :hover {
+            transform: translateY(-3px);
+            box-shadow: var(--mv-glass-shadow-thick), inset 0 1px 0 var(--mv-glass-highlight);
+        }
+    }
+
+    /* Sales hero: two lights wander slowly across the blue. */
+    .mv-hero-lights::before,
+    .mv-hero-lights::after {
+        content: '';
+        position: absolute;
+        aspect-ratio: 1;
+        border-radius: 9999px;
+        pointer-events: none;
+        filter: blur(30px);
+    }
+    .mv-hero-lights::before {
+        width: 70%;
+        right: -20%;
+        bottom: -45%;
+        background: radial-gradient(circle, var(--mv-hero-mint) 0%, transparent 65%);
+        animation: mv-wander 14s ease-in-out infinite alternate;
+    }
+    .mv-hero-lights::after {
+        width: 60%;
+        left: -15%;
+        top: -40%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, transparent 65%);
+        animation: mv-wander 18s ease-in-out -6s infinite alternate-reverse;
+    }
+    /* Light sweep across a surface every few seconds. */
+    .mv-shine {
+        position: relative;
+        overflow: hidden;
+    }
+    .mv-shine::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.16) 50%, transparent 65%);
+        transform: translateX(-120%);
+        animation: mv-sweep 6s ease-in-out 1.2s infinite;
+    }
+    /* Idle wave for empty bar charts, so "no data yet" still breathes. */
+    .mv-wave > * {
+        transform-origin: bottom;
+        animation: mv-wave 2.8s ease-in-out infinite;
+        animation-delay: calc(var(--i, 0) * 90ms);
+    }
+    .mv-float {
+        animation: mv-float 5s ease-in-out infinite;
+    }
+    .mv-twinkle {
+        animation: mv-twinkle 3.2s ease-in-out infinite;
+    }
+    /* "Live" dot: a soft ring that keeps pulsing outwards. */
+    .mv-pulse {
+        position: relative;
+    }
+    .mv-pulse::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: inherit;
+        animation: mv-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    /* AI orb: a glassy sphere with a turning aurora inside. data-state: idle | thinking | speaking. */
+    .mv-ai-orb {
+        position: relative;
+        border-radius: 9999px;
+        isolation: isolate;
+        background: radial-gradient(circle at 32% 28%, #e9fbf6 0%, #8fe6d1 18%, #2a8fb8 52%, #123a63 100%);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18) inset, 0 18px 50px -12px rgba(42, 143, 184, 0.65), 0 0 60px -10px rgba(127, 224, 200, 0.45);
+        animation: mv-breathe 4.5s ease-in-out infinite;
+    }
+    .mv-ai-orb::before {
+        content: '';
+        position: absolute;
+        inset: 8%;
+        border-radius: inherit;
+        background: conic-gradient(from 0deg, rgba(127, 224, 200, 0.9), rgba(42, 143, 184, 0) 30%, rgba(124, 196, 228, 0.85) 55%, rgba(42, 143, 184, 0) 80%, rgba(127, 224, 200, 0.9));
+        filter: blur(6px);
+        mix-blend-mode: screen;
+        animation: mv-spin 7s linear infinite;
+    }
+    .mv-ai-orb::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0) 32%);
+    }
+    .mv-ai-orb[data-state='thinking'] {
+        animation: mv-breathe 1.1s ease-in-out infinite;
+    }
+    .mv-ai-orb[data-state='thinking']::before {
+        animation-duration: 1.6s;
+    }
+    .mv-ai-orb[data-state='speaking'] {
+        animation: mv-speak 0.9s ease-in-out infinite;
+    }
+    .mv-ai-orb[data-state='speaking']::before {
+        animation-duration: 3s;
+    }
+    /* Rings that ripple out of the orb while it is thinking or speaking. */
+    .mv-ai-rings {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+    .mv-ai-rings > span {
+        position: absolute;
+        inset: 0;
+        border-radius: 9999px;
+        border: 1.5px solid rgba(127, 224, 200, 0.55);
+        opacity: 0;
+    }
+    [data-state='thinking'] > .mv-ai-rings > span,
+    [data-state='speaking'] > .mv-ai-rings > span {
+        animation: mv-ring 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+    .mv-ai-rings > span:nth-child(2) { animation-delay: 0.7s !important; }
+    .mv-ai-rings > span:nth-child(3) { animation-delay: 1.4s !important; }
+    /* Thinking dots. */
+    .mv-dots > span {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 9999px;
+        background: currentColor;
+        animation: mv-dot 1.2s ease-in-out infinite;
+    }
+    .mv-dots > span:nth-child(2) { animation-delay: 0.15s; }
+    .mv-dots > span:nth-child(3) { animation-delay: 0.3s; }
+    /* Chat bubbles arrive with a small spring. */
+    .mv-pop {
+        animation: mv-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    }
+    /* AI screen opening: content scales up out of the orb. */
+    .mv-ai-enter {
+        animation: mv-ai-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+    .mv-noscrollbar {
+        scrollbar-width: none;
+    }
+    .mv-noscrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .mv-pan {
+        background-size: 200% 200%;
+        animation: mv-pan 12s ease-in-out infinite alternate;
     }
     .sphere {
         background: var(--mv-sphere-fill);
@@ -182,9 +353,105 @@
 @keyframes mv-spin {
     to { transform: rotate(360deg); }
 }
+@keyframes mv-wander {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-25%, -15%) scale(1.2); }
+}
+@keyframes mv-sweep {
+    0%, 60% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+}
+@keyframes mv-wave {
+    0%, 100% { transform: scaleY(0.55); opacity: 0.6; }
+    50% { transform: scaleY(1.25); opacity: 1; }
+}
+@keyframes mv-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+@keyframes mv-twinkle {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    50% { transform: scale(1.18) rotate(12deg); opacity: 0.75; }
+}
+@keyframes mv-ping {
+    0% { transform: scale(1); opacity: 0.6; }
+    80%, 100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes mv-pan {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+@keyframes mv-fade-out {
+    to { opacity: 0; transform: translateY(-8px) scale(0.99); }
+}
+@keyframes mv-fade-in {
+    from { opacity: 0; transform: translateY(14px) scale(0.99); }
+}
+@keyframes mv-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.045); }
+}
+@keyframes mv-speak {
+    0%, 100% { transform: scale(1); }
+    30% { transform: scale(1.07); }
+    60% { transform: scale(0.98); }
+}
+@keyframes mv-ring {
+    0% { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes mv-dot {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-5px); opacity: 1; }
+}
+@keyframes mv-pop {
+    from { opacity: 0; transform: translateY(10px) scale(0.96); }
+}
+@keyframes mv-ai-enter {
+    from { opacity: 0; transform: scale(0.94); filter: blur(6px); }
+}
 @keyframes mv-rise {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: none; }
+}
+
+/* Page switches (Inertia visits with viewTransition). The rail and tab bar stay put;
+   only the page content fades out and the new page rises in. */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.3s;
+}
+::view-transition-old(mv-main) {
+    animation: mv-fade-out 0.2s ease-in both;
+}
+::view-transition-new(mv-main) {
+    animation: mv-fade-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
+}
+::view-transition-group(mv-ai-orb) {
+    animation-duration: 0.6s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.vt-main { view-transition-name: mv-main; }
+.vt-rail { view-transition-name: mv-rail; }
+.vt-tabbar { view-transition-name: mv-tabbar; }
+.vt-ai-orb { view-transition-name: mv-ai-orb; }
+
+/* The page scrolls with eased, weighted motion (lib/smooth-scroll.ts), so the native bar is hidden. */
+html {
+    scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+    display: none;
+}
+html.lenis,
+html.lenis body {
+    height: auto;
+}
+.lenis.lenis-stopped {
+    overflow: clip;
+}
+.lenis.lenis-smooth iframe {
+    pointer-events: none;
 }
 
 /* Reduce Transparency: every translucent surface becomes opaque. */

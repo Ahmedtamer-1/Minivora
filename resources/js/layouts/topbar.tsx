@@ -1,6 +1,7 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { Bell, Check, ExternalLink, LogOut, Plus, SlidersHorizontal, Users } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
+import { AiOrb, openAi } from '@/components/ai-orb';
 import { LanguageButton, roundButton, ThemeButton } from '@/components/preferences';
 import { StoreStatusBadge } from '@/components/status-badge';
 import { cn } from '@/lib/cn';
@@ -139,13 +140,30 @@ function AccountMenu() {
     );
 }
 
-/** Top-right cluster from Figma: date, notifications, language, theme, account. */
+/** Opens the full-screen AI team; its orb grows into the big one on the AI screen. */
+function AskAiButton() {
+    const t = useT();
+    return (
+        <button
+            type="button"
+            onClick={(e) => openAi(e.currentTarget)}
+            className="glass-strong group inline-flex h-11 shrink-0 items-center gap-2 rounded-full pe-1.5 ps-1.5 text-sm text-ink shadow-sm transition-all hover:-translate-y-0.5 hover:bg-elevated sm:pe-4"
+            aria-label={t('ai.open')}
+        >
+            <AiOrb className="h-8 w-8 transition-transform duration-500 group-hover:scale-110" />
+            <span className="hidden sm:inline">{t('ai.open')}</span>
+        </button>
+    );
+}
+
+/** Top-right cluster from Figma: date, AI, notifications, language, theme, account. */
 export function TopActions() {
     const { locale } = usePage<SharedProps>().props;
 
     return (
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <span className="hidden text-sm text-ink-muted xl:inline">{formatToday(locale)}</span>
+            <AskAiButton />
             <NotificationsButton />
             <LanguageButton />
             <ThemeButton />

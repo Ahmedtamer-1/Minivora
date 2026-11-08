@@ -3,6 +3,7 @@
 // Platform host routes (the root domain and app.<domain>): create-your-store, sign-in, owner
 // dashboard (Inertia) and platform admin. Storefront subdomains are matched first in storefront.php.
 
+use App\Ai\Http\Controllers\ChatController;
 use App\Core\Tenancy\ResolveStoreFromSession;
 use App\Http\Middleware\EnsurePlatformAdmin;
 use App\Modules\Accounts\Http\Controllers\AuthController;
@@ -53,6 +54,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/onboarding', [DashboardController::class, 'saveProfile'])->middleware('store.can:design.manage')->name('onboarding.save');
         Route::post('/onboarding/skip', [DashboardController::class, 'skipProfile'])->name('onboarding.skip');
         Route::get('/preview', [StoreSettingsController::class, 'preview'])->name('store.preview');
+
+        // AI assistant: full-screen chat. Facts are filtered by the member's permissions.
+        Route::get('/ai', [ChatController::class, 'show'])->name('ai.chat');
+        Route::post('/ai/chat', [ChatController::class, 'send'])->middleware('throttle:20,1')->name('ai.chat.send');
 
         // Catalog. FR-CAT-01
         Route::get('/products', [ProductController::class, 'index'])->middleware('store.can:products.view')->name('products.index');
