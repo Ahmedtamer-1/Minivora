@@ -1,7 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { MailWarning } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { AnimatedBackdrop } from '@/components/animated-backdrop';
+import { AnimatedBackdrop, ParallaxLayer } from '@/components/animated-backdrop';
 import { Flash } from '@/components/flash';
 import { LogoMark } from '@/components/logo';
 import { useT } from '@/lib/i18n';
@@ -9,18 +9,20 @@ import type { SharedProps } from '@/types';
 import { Rail, TabBar } from './rail';
 import { StoreLine, TopActions } from './topbar';
 
-/** Figma "Backdrop / Spheres": slowly drifting glows plus large frosted spheres. Decorative only. */
+/** Figma "Backdrop / Spheres": slowly drifting glows plus large frosted spheres, with scroll parallax. Decorative only. */
 function Backdrop() {
     return (
-        <>
-            <AnimatedBackdrop variant="dashboard" />
-            <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-                <div className="sphere absolute -start-[120px] -top-[220px] h-[480px] w-[480px]" />
+        // The frosted spheres sit nearest the viewer, so they move most when scrolling.
+        <AnimatedBackdrop variant="dashboard">
+            <ParallaxLayer depth={0.1}>
                 <div className="sphere absolute -end-[160px] -top-[120px] h-[380px] w-[380px]" />
-                <div className="sphere absolute -bottom-[260px] -start-[200px] h-[480px] w-[480px]" />
                 <div className="sphere absolute -bottom-[300px] -end-[140px] h-[560px] w-[560px]" />
-            </div>
-        </>
+            </ParallaxLayer>
+            <ParallaxLayer depth={0.2}>
+                <div className="sphere absolute -start-[120px] -top-[220px] h-[480px] w-[480px]" />
+                <div className="sphere absolute -bottom-[260px] -start-[200px] h-[480px] w-[480px]" />
+            </ParallaxLayer>
+        </AnimatedBackdrop>
     );
 }
 

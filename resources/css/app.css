@@ -115,6 +115,13 @@
         background: radial-gradient(circle, var(--mv-brand-highlight) 0%, transparent 68%);
         animation: mv-drift-a 34s ease-in-out calc(var(--mv-clock, 0s) - 8s) infinite alternate-reverse;
     }
+    /* Scroll parallax layer (lib/motion.ts useScrollParallax): moves up by scroll × depth. */
+    .mv-par {
+        position: absolute;
+        inset: 0;
+        transform: translate3d(0, calc(var(--mv-scroll, 0) * var(--mv-depth, 0) * -1px), 0);
+        will-change: transform;
+    }
     /* Slowly turning light wash over the orbs. */
     .mv-sheen {
         position: absolute;

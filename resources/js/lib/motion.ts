@@ -83,3 +83,34 @@ export function useTypedPlaceholder(examples: string[], active = true): string {
 
     return text;
 }
+
+/**
+ * Scroll parallax: writes the page's scroll offset to `--mv-scroll` on the element each frame it
+ * changes. Layers inside move by `--mv-scroll × --mv-depth` (see .mv-par in app.css), so deeper
+ * layers drift less than nearer ones. With smooth scrolling on, the offset itself is eased, so the
+ * layers glide. Off for Reduce Motion.
+ */
+export function useScrollParallax<T extends HTMLElement>(ref: React.RefObject<T | null>): void {
+    useEffect(() => {
+        const el = ref.current;
+        if (!el || reduced()) return;
+        let raf = 0;
+        let last = -1;
+        const apply = () => {
+            raf = 0;
+            const y = Math.round(window.scrollY);
+            if (y === last) return;
+            last = y;
+            el.style.setProperty('--mv-scroll', String(y));
+        };
+        const onScroll = () => {
+            if (!raf) raf = requestAnimationFrame(apply);
+        };
+        apply();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            if (raf) cancelAnimationFrame(raf);
+        };
+    }, [ref]);
+}
