@@ -17,11 +17,11 @@ interface NavItem {
 const items: NavItem[] = [
     { key: 'home', icon: House, href: '/dashboard', match: (p) => p === '/dashboard' },
     { key: 'products', icon: Package, href: '/products', permission: 'products.view', match: (p) => p.startsWith('/products') },
-    { key: 'orders', icon: ShoppingBag },
-    { key: 'customers', icon: Users },
+    { key: 'orders', icon: ShoppingBag, href: '/orders', permission: 'orders.view', match: (p) => p.startsWith('/orders') },
+    { key: 'customers', icon: Users, href: '/customers', permission: 'orders.view', match: (p) => p.startsWith('/customers') },
     { key: 'builder', icon: LayoutTemplate },
     { key: 'finance', icon: Wallet },
-    { key: 'settings', icon: SlidersHorizontal, href: '/settings', permission: 'settings.manage', match: (p) => p.startsWith('/settings') },
+    { key: 'settings', icon: SlidersHorizontal, href: '/settings', permission: 'settings.manage', match: (p) => p.startsWith('/settings') && !p.startsWith('/settings/account') },
 ];
 
 const admin: NavItem = { key: 'admin', icon: Shield, href: '/admin/stores', match: (p) => p.startsWith('/admin') };

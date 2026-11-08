@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'needs_items' => 'ضيف منتج واحد على الأقل للطلب.',
+    'product_gone' => 'المنتج ده مبقاش موجود. شيله من الطلب.',
+    'line_needs_name' => 'اكتب اسم للمنتج ده.',
+    'cannot_move' => 'الطلب :from مينفعش يتحول إلى :to.',
+    'created' => 'تم حفظ الطلب رقم :number.',
+    'moved' => 'الطلب رقم :number بقى :status.',
+    'bulk_moved' => '{0} مفيش طلبات اتغيرت.|{1} طلب واحد بقى :status.|[2,*] :count طلبات بقت :status.',
+    'bulk_skipped' => '{1} طلب واحد اتساب لأنه مينفعش يتحول كده.|[2,*] :count طلبات اتسابت لأنها مينفعش تتحول كده.',
+    'courier_saved' => 'تم حفظ بيانات الشحن.',
+    'notes_saved' => 'تم حفظ الملاحظات والوسوم.',
+    'status_pending' => 'في الانتظار',
+    'status_paid' => 'مدفوع',
+    'status_processing' => 'بيتجهز',
+    'status_shipped' => 'اتشحن',
+    'status_delivered' => 'اتسلم',
+    'status_cancelled' => 'ملغي',
+    'status_refunded' => 'مسترد',
+    'status_returned' => 'مرتجع',
+    'history_created_website' => 'اتطلب من الموقع',
+    'history_created_instagram' => 'اتاخد من إنستجرام',
+    'history_created_whatsapp' => 'اتاخد من واتساب',
+    'history_created_phone' => 'اتاخد بالتليفون',
+    'history_created_other' => 'اتضاف يدوي',
+];

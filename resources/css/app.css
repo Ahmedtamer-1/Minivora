@@ -162,6 +162,19 @@
         animation-delay: 0.12s;
     }
 
+    /* Live status dot (pending orders): a soft ring that keeps pulsing outwards. */
+    .mv-pulse-dot {
+        position: relative;
+    }
+    .mv-pulse-dot::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 9999px;
+        background: currentColor;
+        animation: mv-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
     /* Dashboard cards: rise in one after another, then lift gently under the pointer.
        fill-mode "backwards" so the hover transform still applies once the entrance ends. */
     .mv-stagger > * {

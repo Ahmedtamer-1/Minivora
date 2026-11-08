@@ -6,11 +6,14 @@
 use App\Ai\Http\Controllers\ChatController;
 use App\Core\Tenancy\ResolveStoreFromSession;
 use App\Http\Middleware\EnsurePlatformAdmin;
+use App\Modules\Accounts\Http\Controllers\AccountSettingsController;
 use App\Modules\Accounts\Http\Controllers\AuthController;
 use App\Modules\Accounts\Http\Controllers\EmailVerificationController;
 use App\Modules\Accounts\Http\Controllers\InvitationController;
 use App\Modules\Accounts\Http\Controllers\MemberController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
+use App\Modules\Orders\Http\Controllers\CustomerController;
+use App\Modules\Orders\Http\Controllers\OrderController;
 use App\Modules\Platform\Http\Controllers\ActivityController;
 use App\Modules\Platform\Http\Controllers\DashboardController;
 use App\Modules\Platform\Http\Controllers\LocaleController;
@@ -69,6 +72,29 @@ Route::middleware('auth')->group(function () {
             Route::put('/products/{product}', [ProductController::class, 'update'])->whereNumber('product')->name('products.update');
             Route::delete('/products/{product}', [ProductController::class, 'destroy'])->whereNumber('product')->name('products.destroy');
         });
+
+        // Orders and customers. FR-ORD
+        Route::middleware('store.can:orders.view')->group(function () {
+            Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+            Route::get('/orders/export', [OrderController::class, 'export'])->middleware('throttle:10,1')->name('orders.export');
+            Route::get('/orders/{order}', [OrderController::class, 'show'])->whereNumber('order')->name('orders.show');
+            Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+            Route::get('/customers/lookup', [CustomerController::class, 'lookup'])->middleware('throttle:60,1')->name('customers.lookup');
+            Route::get('/customers/{customer}', [CustomerController::class, 'show'])->whereNumber('customer')->name('customers.show');
+        });
+        Route::middleware('store.can:orders.manage')->group(function () {
+            Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
+            Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:30,1')->name('orders.store');
+            Route::post('/orders/bulk-status', [OrderController::class, 'bulkStatus'])->name('orders.bulk');
+            Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->whereNumber('order')->name('orders.status');
+            Route::put('/orders/{order}/fulfilment', [OrderController::class, 'updateFulfilment'])->whereNumber('order')->name('orders.fulfilment');
+            Route::put('/orders/{order}/notes', [OrderController::class, 'updateNotes'])->whereNumber('order')->name('orders.notes');
+        });
+
+        // Your own account, whatever your role.
+        Route::get('/settings/account', [AccountSettingsController::class, 'edit'])->name('account.edit');
+        Route::put('/settings/account', [AccountSettingsController::class, 'updateProfile'])->name('account.update');
+        Route::put('/settings/account/password', [AccountSettingsController::class, 'updatePassword'])->middleware('throttle:6,1')->name('account.password');
 
         Route::middleware('store.can:settings.manage')->group(function () {
             Route::get('/settings', [StoreSettingsController::class, 'edit'])->name('settings.general');

@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'needs_items' => 'Add at least one item to the order.',
+    'product_gone' => 'This product no longer exists. Remove it from the order.',
+    'line_needs_name' => 'Give this item a name.',
+    'cannot_move' => 'An order that is :from cannot be marked :to.',
+    'created' => 'Order #:number is saved.',
+    'moved' => 'Order #:number is now :status.',
+    'bulk_moved' => '{0} No orders changed.|{1} 1 order is now :status.|[2,*] :count orders are now :status.',
+    'bulk_skipped' => '{1} 1 was skipped because it cannot make that move.|[2,*] :count were skipped because they cannot make that move.',
+    'courier_saved' => 'Courier details saved.',
+    'notes_saved' => 'Notes and tags saved.',
+    'status_pending' => 'pending',
+    'status_paid' => 'paid',
+    'status_processing' => 'processing',
+    'status_shipped' => 'shipped',
+    'status_delivered' => 'delivered',
+    'status_cancelled' => 'cancelled',
+    'status_refunded' => 'refunded',
+    'status_returned' => 'returned',
+    'history_created_website' => 'Placed on the website',
+    'history_created_instagram' => 'Taken on Instagram',
+    'history_created_whatsapp' => 'Taken on WhatsApp',
+    'history_created_phone' => 'Taken by phone',
+    'history_created_other' => 'Added by hand',
+];

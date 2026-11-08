@@ -9,4 +9,5 @@ return [
     'publish_needs' => 'أضف اسمًا وسعرًا أكبر من صفر قبل النشر.',
     'invalid_amount' => 'اكتب المبلغ بالجنيه، مثل 1,250 أو 99.50.',
     'csv_needs_name' => 'الصف الأول في ملف CSV يحتاج عمود "name".',
+    'not_enough_stock' => 'متبقي :count فقط من :name في المخزون.',
 ];

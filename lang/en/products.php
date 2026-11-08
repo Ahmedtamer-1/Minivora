@@ -9,4 +9,5 @@ return [
     'publish_needs' => 'Add a name and a price above 0 before publishing.',
     'invalid_amount' => 'Enter an amount in pounds, like 1,250 or 99.50.',
     'csv_needs_name' => 'The first row of the CSV needs a "name" column.',
+    'not_enough_stock' => 'Only :count of :name left in stock.',
 ];

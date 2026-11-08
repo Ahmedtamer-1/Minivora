@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Bell, Check, ExternalLink, LogOut, Plus, SlidersHorizontal, Users } from 'lucide-react';
+import { Bell, Check, ExternalLink, LogOut, Plus, SlidersHorizontal, UserRound, Users } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
 import { AiOrb, openAi } from '@/components/ai-orb';
 import { LanguageButton, roundButton, ThemeButton } from '@/components/preferences';
@@ -119,6 +119,10 @@ function AccountMenu() {
                         {t('nav.view_store')}
                     </a>
                 ) : null}
+                <Link role="menuitem" href="/settings/account" className={menuItem}>
+                    <UserRound className="h-4 w-4" aria-hidden />
+                    {t('nav.your_account')}
+                </Link>
                 {can('members.manage') ? (
                     <Link role="menuitem" href="/settings/members" className={menuItem}>
                         <Users className="h-4 w-4" aria-hidden />

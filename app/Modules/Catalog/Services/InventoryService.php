@@ -4,6 +4,8 @@ namespace App\Modules\Catalog\Services;
 
 use App\Modules\Catalog\Enums\ProductStatus;
 use App\Modules\Catalog\Models\Product;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Stock read-outs for the dashboard and (later) the AI COO: what is running low, what sold out,
@@ -68,5 +70,90 @@ class InventoryService
         }
 
         return array_slice($items, 0, $limit);
+    }
+
+    /**
+     * Products a staff member can add to a manual order: live or draft, best sellers first.
+     *
+     * @return list<array{id: int, name: string, name_ar: string|null, price: int, cost: int|null, stock: int, cover: string|null}>
+     */
+    public function pickable(string $search = '', int $limit = 40): array
+    {
+        $query = Product::query()->where('name', '!=', '')->orderByDesc('sold_count')->orderBy('name');
+        if ($search !== '') {
+            $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $search).'%';
+            $query->where(fn ($q) => $q->where('name', 'like', $like)->orWhere('name_ar', 'like', $like));
+        }
+
+        return $query->limit($limit)->get()->map(fn (Product $p) => [
+            'id' => $p->id,
+            'name' => $p->name,
+            'name_ar' => $p->name_ar,
+            'price' => $p->price,
+            'cost' => $p->cost,
+            'stock' => $p->stock,
+            'cover' => $p->imageUrls()[0] ?? null,
+        ])->values()->all();
+    }
+
+    /**
+     * Snapshot of the given products for order lines, keyed by id.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array{id: int, name: string, price: int, cost: int|null, stock: int}>
+     */
+    public function snapshot(array $ids): array
+    {
+        return Product::query()->whereIn('id', $ids)->get()
+            ->mapWithKeys(fn (Product $p) => [$p->id => [
+                'id' => $p->id,
+                'name' => $p->name !== '' ? $p->name : (string) $p->name_ar,
+                'price' => $p->price,
+                'cost' => $p->cost,
+                'stock' => $p->stock,
+            ]])->all();
+    }
+
+    /**
+     * Take sold items off the shelf and count them as sold. Refuses if any line has too little stock.
+     *
+     * @param  array<int, int>  $quantities  product id => quantity
+     */
+    public function deduct(array $quantities): void
+    {
+        DB::transaction(function () use ($quantities) {
+            $products = Product::query()->whereIn('id', array_keys($quantities))->lockForUpdate()->get()->keyBy('id');
+            foreach ($quantities as $id => $qty) {
+                $product = $products->get($id);
+                if ($product === null) {
+                    continue;
+                }
+                if ($product->stock < $qty) {
+                    throw ValidationException::withMessages([
+                        'items' => __('products.not_enough_stock', ['name' => $product->name, 'count' => $product->stock]),
+                    ]);
+                }
+                $product->stock -= $qty;
+                $product->sold_count += $qty;
+                $product->save();
+            }
+        });
+    }
+
+    /**
+     * Put items back after a cancellation or return. FR-ORD-03
+     *
+     * @param  array<int, int>  $quantities  product id => quantity
+     */
+    public function restock(array $quantities): void
+    {
+        DB::transaction(function () use ($quantities) {
+            foreach (Product::query()->whereIn('id', array_keys($quantities))->lockForUpdate()->get() as $product) {
+                $qty = $quantities[$product->id] ?? 0;
+                $product->stock += $qty;
+                $product->sold_count = max(0, $product->sold_count - $qty);
+                $product->save();
+            }
+        });
     }
 }

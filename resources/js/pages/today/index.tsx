@@ -339,7 +339,7 @@ function ToShipCard({ toShip }: { toShip: Props['toShip'] }) {
     const t = useT();
     const count = useCountUp(toShip?.count ?? 0, 900);
     return (
-        <Card className="group flex flex-col p-6 xl:min-h-[264px]">
+        <Link href="/orders?filter=to_ship" className="card group flex flex-col p-6 transition-transform hover:-translate-y-0.5 focus-visible:-translate-y-0.5 xl:min-h-[264px]">
             <div className="flex items-center justify-between gap-3">
                 <h2 className={cardTitle}>{t('ship.title')}</h2>
                 <ArrowUpRight className="h-[18px] w-[18px] text-ink-muted transition-transform duration-300 group-hover:-translate-y-1 rtl:-scale-x-100" aria-hidden />
@@ -350,7 +350,7 @@ function ToShipCard({ toShip }: { toShip: Props['toShip'] }) {
                     {toShip?.needs_call ? t('ship.needs_call', { count: toShip.needs_call }) : t('ship.empty')}
                 </p>
             </div>
-        </Card>
+        </Link>
     );
 }
 
