@@ -42,6 +42,16 @@
         backdrop-filter: blur(48px) saturate(160%);
         -webkit-backdrop-filter: blur(48px) saturate(160%);
     }
+    /* Things floating over content (tooltips, menus, popovers): a mostly solid tint plus a real blur,
+       so they always read as foreground. The tint carries it where blur can't apply (e.g. a tooltip
+       inside the blurred rail, whose own blur hides the page behind it). */
+    .glass-float {
+        background: color-mix(in srgb, var(--mv-bg-elevated) 86%, transparent);
+        border: 1px solid var(--mv-glass-stroke);
+        box-shadow: var(--mv-glass-shadow-thick), inset 0 1px 0 var(--mv-glass-highlight);
+        backdrop-filter: blur(20px) saturate(170%);
+        -webkit-backdrop-filter: blur(20px) saturate(170%);
+    }
     .glass-strong {
         background: var(--mv-glass-fill-strong);
         border: 1px solid var(--mv-glass-stroke);
@@ -458,7 +468,8 @@ html.lenis body {
 @media (prefers-reduced-transparency: reduce) {
     .card,
     .glass,
-    .glass-strong {
+    .glass-strong,
+    .glass-float {
         background: var(--mv-bg-elevated);
         backdrop-filter: none;
         -webkit-backdrop-filter: none;

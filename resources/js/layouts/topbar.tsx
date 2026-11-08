@@ -31,7 +31,7 @@ function initials(name: string): string {
 function Popover({ open, className, children, label }: { open: boolean; className?: string; children: React.ReactNode; label: string }) {
     if (!open) return null;
     return (
-        <div role="menu" aria-label={label} className={cn('glass absolute end-0 top-full z-50 mt-2 rounded-2xl p-1.5', className)}>
+        <div role="menu" aria-label={label} className={cn('glass-float absolute end-0 top-full z-50 mt-2 rounded-2xl p-1.5', className)}>
             {children}
         </div>
     );

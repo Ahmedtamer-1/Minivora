@@ -54,7 +54,7 @@ export function Rail() {
                     const tip = (
                         <span
                             role="tooltip"
-                            className="glass-strong pointer-events-none absolute start-full top-1/2 z-40 ms-3 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1.5 text-caption text-ink opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                            className="glass-float pointer-events-none absolute start-full top-1/2 z-40 ms-3 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1.5 text-caption text-ink opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
                         >
                             {label}
                             {item.href ? null : <span className="text-ink-muted"> · {t('common.soon')}</span>}
