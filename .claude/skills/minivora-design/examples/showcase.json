@@ -1,0 +1,141 @@
+{
+  "title": "Minivora · Quarter in review",
+  "description": "Every Minivora slide layout, in one deck.",
+  "author": "Minivora team",
+  "date": "Q3 2026",
+  "lang": "en",
+  "theme": "auto",
+  "slides": [
+    {
+      "type": "title",
+      "kicker": "Quarterly review",
+      "title": "Your store, ==calmer== and faster",
+      "subtitle": "What changed this quarter, what it did to sales, and what we build next.",
+      "tags": ["Q3 2026", "Store owners"],
+      "notes": "Open with the one-line story: fewer clicks, more orders."
+    },
+    {
+      "type": "section",
+      "number": 1,
+      "kicker": "Where we are",
+      "title": "Sales grew while work got lighter",
+      "subtitle": "Three numbers tell most of the story."
+    },
+    {
+      "type": "kpis",
+      "kicker": "At a glance",
+      "title": "The quarter in four numbers",
+      "kpis": [
+        { "label": "Sales", "value": 482300, "suffix": " EGP", "delta": "+18%", "note": "vs. Q2" },
+        { "label": "Orders", "value": 3214, "delta": "+12%", "note": "avg. 35 a day" },
+        { "label": "Conversion", "value": "3.4%", "delta": "+0.6", "note": "visitors who bought" },
+        { "label": "Refunds", "value": "1.1%", "delta": "-0.4", "note": "of orders" }
+      ],
+      "footnote": "Figures are illustrative."
+    },
+    {
+      "type": "chart",
+      "kicker": "Momentum",
+      "title": "Sales by month",
+      "chart_title": "Thousand EGP",
+      "kind": "bar",
+      "data": [
+        { "label": "Apr", "value": 92 }, { "label": "May", "value": 118 }, { "label": "Jun", "value": 131 },
+        { "label": "Jul", "value": 149 }, { "label": "Aug", "value": 162 }, { "label": "Sep", "value": 171 }
+      ],
+      "insight": { "label": "What this means", "text": "Growth held every month. **September** was the best yet, driven by repeat buyers." }
+    },
+    {
+      "type": "big-number",
+      "label": "Time saved per week",
+      "value": 6.5,
+      "suffix": " h",
+      "delta": "per store owner",
+      "caption": "Product drafts from a sentence and one-tap restocks took the busywork away."
+    },
+    {
+      "type": "cards",
+      "kicker": "What shipped",
+      "title": "Three things you'll notice",
+      "cards": [
+        { "icon": "sparkles", "title": "Ask your store", "text": "Type a question or *add a product* in plain words. The AI team does the rest.", "tag": "New", "tone": "highlight" },
+        { "icon": "wallet", "title": "Real books", "text": "A double-entry ledger behind every order, so the numbers always balance.", "tag": "Finance", "tone": "info" },
+        { "icon": "zap", "title": "Instant moves", "text": "Pages switch in a quarter of a second. Nothing feels like loading.", "tag": "Speed", "tone": "success" }
+      ]
+    },
+    {
+      "type": "bullets",
+      "kicker": "Lessons",
+      "title": "What we learned",
+      "bullets": [
+        { "title": "Calm wins", "text": "owners stay longer when the screen is quiet." },
+        { "title": "Numbers first", "text": "the sales card is opened more than any other." },
+        { "title": "Arabic matters", "text": "a third of stores run fully in Arabic." }
+      ],
+      "callout": { "label": "Key point", "value": "34%", "text": "of stores use Arabic as their main language." }
+    },
+    {
+      "type": "ring",
+      "kicker": "Setup",
+      "title": "Most stores finish setup",
+      "value": 78,
+      "label": "complete setup",
+      "text": "Stores that finish all steps sell in their first week **twice as often**.",
+      "items": ["Verify email", "Add first product", "Publish the store"]
+    },
+    {
+      "type": "chart",
+      "kicker": "Channels",
+      "title": "Where visitors came from",
+      "kind": "progress",
+      "unit": "%",
+      "max": 100,
+      "data": [
+        { "label": "Instagram", "value": 46 }, { "label": "Direct", "value": 27 },
+        { "label": "Search", "value": 18 }, { "label": "WhatsApp", "value": 9 }
+      ]
+    },
+    {
+      "type": "table",
+      "kicker": "Detail",
+      "title": "Top categories",
+      "columns": ["Category", "Orders", "Sales (EGP)", "Change"],
+      "rows": [
+        ["Skincare", "1,120", "168,400", "+21%"],
+        ["Fragrance", "804", "131,900", "+9%"],
+        ["Hair", "655", "92,300", "+14%"],
+        ["Gifts", "635", "89,700", "+31%"]
+      ]
+    },
+    {
+      "type": "quote",
+      "quote": "I opened the dashboard, asked what to restock, and it was done before my coffee.",
+      "author": "Store owner",
+      "role": "Cairo"
+    },
+    {
+      "type": "two-column",
+      "kicker": "Trade-offs",
+      "title": "Keep and change",
+      "left": { "kicker": "Keep", "title": "What works", "bullets": ["Glass cards over a living backdrop", "One hero number per screen", "Plain words everywhere"] },
+      "right": { "kicker": "Change", "title": "What we fix next", "bullets": ["Faster image uploads", "Clearer refund flow", "Offline-friendly orders"] }
+    },
+    {
+      "type": "timeline",
+      "kicker": "Roadmap",
+      "title": "Next two quarters",
+      "steps": [
+        { "when": "Oct", "title": "Ledger", "text": "Double-entry books live.", "state": "done" },
+        { "when": "Nov", "title": "Marketing", "text": "Campaigns with a verdict.", "state": "now" },
+        { "when": "Jan", "title": "SEO", "text": "Sitemaps, feeds, audits." },
+        { "when": "Mar", "title": "Builder", "text": "Drag-and-drop storefront." }
+      ]
+    },
+    {
+      "type": "closing",
+      "title": "Thank you",
+      "subtitle": "Questions? Ask the AI team, or ask us.",
+      "contact": ["minivora.app", "hello@minivora.app"]
+    }
+  ]
+}
