@@ -17,7 +17,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * One-step "Create your store": account + store together, then straight into the dashboard.
+ * One-step "Create your store": account + store together, then the guided first run (OnboardingFlowController).
  * FR-ONB-01, FR-ONB-02, FR-ONB-03, FR-ONB-08, FR-ACC-07
  */
 class StoreSignupController extends Controller
@@ -70,7 +70,8 @@ class StoreSignupController extends Controller
         $request->session()->regenerate();
         $request->session()->put(ResolveStoreFromSession::SESSION_KEY, $store->id);
 
-        return redirect()->route('dashboard');
+        // Straight into the guided first run; every step can be skipped to the dashboard.
+        return redirect()->route('onboarding.describe');
     }
 
     /** Signed in: "Create another store" from the store switcher. FR-ONB-08 */

@@ -21,6 +21,7 @@ use App\Modules\Orders\Http\Controllers\OrderController;
 use App\Modules\Platform\Http\Controllers\ActivityController;
 use App\Modules\Platform\Http\Controllers\DashboardController;
 use App\Modules\Platform\Http\Controllers\LocaleController;
+use App\Modules\Platform\Http\Controllers\OnboardingFlowController;
 use App\Modules\Platform\Http\Controllers\PlatformAdminController;
 use App\Modules\Platform\Http\Controllers\StoreSettingsController;
 use App\Modules\Platform\Http\Controllers\StoreSignupController;
@@ -60,6 +61,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'home'])->name('dashboard');
         Route::post('/onboarding', [DashboardController::class, 'saveProfile'])->middleware('store.can:design.manage')->name('onboarding.save');
         Route::post('/onboarding/skip', [DashboardController::class, 'skipProfile'])->name('onboarding.skip');
+
+        // Guided first run after sign-up (placeholder: no AI calls yet). FR-ONB-04, FR-ONB-05
+        Route::middleware('store.can:design.manage')->prefix('onboarding')->name('onboarding.')->controller(OnboardingFlowController::class)->group(function () {
+            Route::get('/describe', 'describe')->name('describe');
+            Route::post('/describe', 'saveDescription')->name('describe.save');
+            Route::get('/building', 'building')->name('building');
+            Route::get('/theme', 'theme')->name('theme');
+            Route::post('/theme', 'saveTheme')->name('theme.save');
+            Route::get('/ready', 'ready')->name('ready');
+        });
         Route::get('/preview', [StoreSettingsController::class, 'preview'])->name('store.preview');
 
         // AI assistant: full-screen chat. Facts are filtered by the member's permissions.

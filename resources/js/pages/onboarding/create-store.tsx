@@ -1,10 +1,10 @@
-// One-step "Create your store": store name, address, email, password. FR-ONB-01, FR-ONB-02, FR-ONB-08
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Check, CircleAlert, Loader2, Sparkles, Store, Zap } from 'lucide-react';
+// Onboarding 1 · "Create your store": store name, address, email, password, then the guided first run. FR-ONB-01, FR-ONB-02, FR-ONB-08
+import { Link, useForm, usePage } from '@inertiajs/react';
+import { Check, CircleAlert, Globe, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonClasses } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/input';
-import { AuthLayout } from '@/layouts/auth-layout';
+import { OnboardingLayout } from '@/layouts/onboarding-layout';
 import { DashboardLayout, PageHeader } from '@/layouts/dashboard-layout';
 import { Card, CardBody } from '@/components/ui/card';
 import { cn } from '@/lib/cn';
@@ -214,27 +214,19 @@ function CreateStoreForm({ mode }: { mode: Mode }) {
     );
 }
 
-function Pitch() {
+/** Figma "Onboarding 1": the big promise on the leading side. */
+function Hero() {
     const t = useT();
-    const points = [
-        { icon: Zap, text: t('create.points.one') },
-        { icon: Store, text: t('create.points.two') },
-        { icon: Sparkles, text: t('create.points.three') },
-    ];
-
     return (
-        <div className="max-w-lg">
-            <h1 className="text-4xl font-semibold leading-tight xl:text-5xl">{t('app.tagline')}</h1>
-            <ul className="mt-8 space-y-4">
-                {points.map(({ icon: Icon, text }) => (
-                    <li key={text} className="flex items-start gap-3 text-lg">
-                        <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-elevated text-primary shadow-sm">
-                            <Icon className="h-4 w-4" aria-hidden />
-                        </span>
-                        <span>{text}</span>
-                    </li>
-                ))}
-            </ul>
+        <div className="max-w-xl">
+            <h1 className="font-display text-5xl font-bold leading-[1.02] tracking-[-0.035em] xl:text-7xl">
+                {t('flow.hero_a')}
+                <br />
+                {t('flow.hero_b')}
+                <br />
+                <span className="text-ink-accent">{t('flow.hero_c')}</span>
+            </h1>
+            <p className="mt-6 max-w-sm text-base leading-relaxed text-ink-muted">{t('flow.hero_body')}</p>
         </div>
     );
 }
@@ -256,17 +248,36 @@ export default function CreateStore({ mode }: { mode: Mode }) {
     }
 
     return (
-        <AuthLayout title={t('create.title')} aside={<Pitch />}>
-            <Head title={t('create.title')} />
-            <h2 className="text-2xl font-semibold">{t('create.title')}</h2>
-            <p className="mb-6 mt-1 text-sm text-ink-muted">{t('create.subtitle')}</p>
-            <CreateStoreForm mode={mode} />
-            <p className="mt-6 text-center text-sm text-ink-muted">
-                {t('create.have_account')}{' '}
-                <Link href="/login" className="font-medium text-ink-link hover:underline">
-                    {t('create.sign_in')}
-                </Link>
-            </p>
-        </AuthLayout>
+        <OnboardingLayout title={t('create.title')} step={1} className="max-w-[1200px] justify-center">
+            <div className="grid w-full grid-cols-[minmax(0,1fr)] items-center gap-10 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-16 xl:gap-24">
+                <div className="mv-rise hidden lg:block">
+                    <Hero />
+                </div>
+                <div className="glass-float mv-rise mv-rise-delay mx-auto w-full max-w-[440px] rounded-2xl p-6 shadow-lg sm:p-8">
+                    <h2 className="font-display text-[1.75rem] font-light leading-tight tracking-[-0.02em]">{t('create.title')}</h2>
+                    <p className="mb-6 mt-1 text-caption text-ink-muted">{t('flow.signup_subtitle')}</p>
+                    <CreateStoreForm mode={mode} />
+
+                    <div className="my-5 flex items-center gap-3 text-caption text-ink-muted" aria-hidden>
+                        <span className="h-px flex-1 bg-line" />
+                        {t('flow.or')}
+                        <span className="h-px flex-1 bg-line" />
+                    </div>
+                    {/* Placeholder until Google sign-in ships. */}
+                    <button type="button" disabled title={t('flow.google_soon')} className={buttonClasses('glass', 'lg', 'w-full disabled:bg-secondary disabled:text-ink-muted')}>
+                        <Globe className="h-4 w-4" aria-hidden />
+                        {t('flow.google')}
+                    </button>
+                    <p className="sr-only">{t('flow.google_soon')}</p>
+
+                    <p className="mt-6 text-center text-sm text-ink-muted">
+                        {t('create.have_account')}{' '}
+                        <Link href="/login" className="font-semibold text-ink-link hover:underline">
+                            {t('create.sign_in')}
+                        </Link>
+                    </p>
+                </div>
+            </div>
+        </OnboardingLayout>
     );
 }

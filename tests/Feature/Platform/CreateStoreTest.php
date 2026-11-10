@@ -27,7 +27,7 @@ test('FR-ONB-01 the landing page offers one create-your-store form to guests', f
 
 test('FR-ONB-01 submitting the form creates the account and the store together', function () use ($form) {
     $this->post('http://minivora.test/create-store', $form())
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('onboarding.describe'));
 
     $user = User::query()->where('email', 'owner@example.com')->sole();
     $store = Store::query()->where('subdomain', 'browntote')->sole();
@@ -40,10 +40,10 @@ test('FR-ONB-01 submitting the form creates the account and the store together',
     $this->assertAuthenticatedAs($user);
 });
 
-test('FR-ONB-03 the owner lands inside the new store dashboard right away', function () use ($form) {
+test('FR-ONB-03 the owner lands inside the new store right away, starting the guided first run', function () use ($form) {
     $start = microtime(true);
 
-    $this->post('http://minivora.test/create-store', $form())->assertRedirect(route('dashboard'));
+    $this->post('http://minivora.test/create-store', $form())->assertRedirect(route('onboarding.describe'));
 
     $this->get(route('dashboard'))
         ->assertOk()
