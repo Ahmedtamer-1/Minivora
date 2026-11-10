@@ -1,4 +1,4 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { Children, cloneElement, forwardRef, isValidElement, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 
 const control =
@@ -27,24 +27,45 @@ interface FieldProps {
     className?: string;
 }
 
-/** Label + control + hint or error, wired for screen readers. */
+/**
+ * Label + control + hint or error, wired for screen readers: the control is described by the hint
+ * or error (aria-describedby), and an error also marks it invalid, so the danger border and
+ * aria-invalid never depend on each page remembering to pass `invalid`.
+ */
 export function Field({ label, htmlFor, error, hint, children, className }: FieldProps) {
+    const errorId = `${htmlFor}-error`;
+    const hintId = `${htmlFor}-hint`;
+    const describedBy = error ? errorId : hint ? hintId : undefined;
+
+    const only = Children.count(children) === 1 ? Children.only(children) : null;
+    const control =
+        describedBy && isValidElement<{ 'aria-describedby'?: string; invalid?: boolean; 'aria-invalid'?: boolean }>(only)
+            ? cloneElement(only, {
+                  'aria-describedby': [only.props['aria-describedby'], describedBy].filter(Boolean).join(' '),
+                  ...(error ? (isControl(only.type) ? { invalid: true } : { 'aria-invalid': true }) : {}),
+              })
+            : children;
+
     return (
         <div className={cn('space-y-1.5', className)}>
             <label htmlFor={htmlFor} className="block text-caption text-ink">
                 {label}
             </label>
-            {children}
+            {control}
             {error ? (
-                <p id={`${htmlFor}-error`} role="alert" className="text-sm text-danger">
+                <p id={errorId} role="alert" className="text-sm text-danger">
                     {error}
                 </p>
             ) : hint ? (
-                <p className="text-xs text-ink-muted">{hint}</p>
+                <p id={hintId} className="text-xs text-ink-muted">
+                    {hint}
+                </p>
             ) : null}
         </div>
     );
 }
+
+const isControl = (type: unknown) => type === Input || type === Textarea || type === Select;
 
 /**
  * Checkbox with a visible tick in both themes: brand-blue fill and a white check when on,
