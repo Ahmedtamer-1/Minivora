@@ -105,7 +105,7 @@ export default function ProductsIndex({ products, filter, search, counts }: Prop
                 description={t('products.subtitle', { count: formatNumber(counts.all), live: formatNumber(counts.live) })}
                 action={
                     <>
-                        <label className="glass-strong flex h-11 w-full items-center gap-2 rounded-full px-4 shadow-sm sm:w-[300px]">
+                        <label className="glass-strong flex h-11 min-w-[12rem] flex-1 items-center gap-2 rounded-full px-4 shadow-sm sm:w-[300px] sm:flex-none">
                             <Search className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden />
                             <span className="sr-only">{t('products.search')}</span>
                             <input

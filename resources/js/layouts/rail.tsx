@@ -55,9 +55,9 @@ export function Rail() {
     const { t, groups: navGroups } = useNav();
 
     return (
-        <nav aria-label={t('nav.main')} className="glass vt-rail fixed start-8 top-[128px] z-30 hidden w-[56px] rounded-full p-[8px] lg:block">
+        <nav aria-label={t('nav.main')} className="glass vt-rail fixed start-8 top-[116px] z-30 hidden w-[56px] rounded-full p-[8px] lg:block">
             {navGroups.map((group, gi) => (
-                <ul key={group.key} aria-label={t(`nav.group_${group.key}`)} className={cn('flex flex-col items-center gap-1', gi > 0 && 'mt-2 border-t border-line pt-2')}>
+                <ul key={group.key} aria-label={t(`nav.group_${group.key}`)} className={cn('flex flex-col items-center gap-1', gi > 0 && 'mt-2.5 border-t border-line pt-2.5')}>
                     {group.entries.map((item) => {
                         const Icon = item.icon;
                         const label = t(`nav.${item.key}`);
@@ -106,7 +106,7 @@ export function TabBar() {
 
     return (
         <>
-            <nav aria-label={t('nav.main')} className="glass vt-tabbar fixed inset-x-3 bottom-3 z-30 rounded-full p-1.5 lg:hidden">
+            <nav aria-label={t('nav.main')} className="glass vt-tabbar fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 rounded-full p-1.5 lg:hidden">
                 <ul className="flex">
                     {tabs.map((item) => {
                         const Icon = item.icon;

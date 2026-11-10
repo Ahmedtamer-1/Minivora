@@ -24,10 +24,10 @@ export function Logo({ href = '/', withName = true, className }: { href?: string
         <Link
             href={href}
             dir="ltr"
-            className={cn('inline-flex items-baseline font-display text-[1.625rem] font-semibold leading-none tracking-[0.06em] text-brand-mark', className)}
+            className={cn('inline-flex items-baseline rounded-md font-display transition-opacity hover:opacity-80 text-[1.625rem] font-semibold leading-none tracking-[0.06em] text-brand-mark', className)}
             aria-label="Minivora"
         >
-            <LogoMark className={cn('h-[0.7em] w-auto shrink-0 self-baseline', withName ? 'me-[0.08em]' : 'h-7')} />
+            <LogoMark className={cn('h-[0.7em] w-auto shrink-0 self-baseline', withName ? 'me-[0.14em]' : 'h-7')} />
             {withName ? <span aria-hidden>INIVORA</span> : null}
         </Link>
     );

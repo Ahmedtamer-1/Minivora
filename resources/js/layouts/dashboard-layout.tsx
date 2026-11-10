@@ -50,15 +50,29 @@ export function DashboardLayout({ title, heading, children }: LayoutProps) {
             </a>
             <Backdrop />
 
-            <header className="flex flex-wrap items-start gap-x-4 gap-y-4 px-4 pt-6 sm:px-6 lg:flex-nowrap lg:pe-8 lg:ps-0 lg:pt-10">
-                <Link href="/dashboard" className="mt-1 hidden w-32 shrink-0 justify-center text-brand-mark lg:flex" aria-label={t('nav.home')}>
-                    <LogoMark className="h-[33px] w-10" />
+            {/*
+              Desktop: the mark sits in the rail's column (start-8, 56px wide) so the two share a centre
+              line, and the heading starts at 128px, exactly where the page content starts below it.
+              Phones: mark and actions share the first row, centred on the 44px buttons; heading below.
+            */}
+            <header className="flex flex-wrap items-center gap-x-3 gap-y-5 px-4 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6 sm:pt-6 lg:flex-nowrap lg:items-start lg:gap-0 lg:pe-8 lg:ps-8 lg:pt-10">
+                <Link
+                    href="/dashboard"
+                    className="hidden h-11 w-14 shrink-0 items-center justify-center rounded-full text-brand-mark transition-opacity hover:opacity-80 lg:flex"
+                    aria-label={t('nav.home')}
+                >
+                    <LogoMark className="h-[30px] w-9" />
                 </Link>
-                <Link href="/dashboard" className="me-auto mt-2 shrink-0 text-brand-mark lg:hidden" aria-label={t('nav.home')}>
+                <Link href="/dashboard" className="me-auto flex h-11 shrink-0 items-center text-brand-mark lg:hidden" aria-label={t('nav.home')}>
                     <LogoMark className="h-7 w-[34px]" />
                 </Link>
-                {/* Phones: logo and actions on the first row, heading on its own row below. */}
-                <div className="order-last min-w-0 basis-full lg:order-none lg:flex-1 lg:basis-auto">{heading ?? <div className="lg:pt-3"><StoreLine /></div>}</div>
+                <div className="order-last min-w-0 basis-full lg:order-none lg:ms-10 lg:flex-1 lg:basis-auto lg:pe-6">
+                    {heading ?? (
+                        <div className="lg:flex lg:min-h-11 lg:items-center">
+                            <StoreLine />
+                        </div>
+                    )}
+                </div>
                 <TopActions />
             </header>
 
@@ -76,7 +90,7 @@ export function DashboardLayout({ title, heading, children }: LayoutProps) {
                 </div>
             ) : null}
 
-            <main id="main" className="vt-main px-4 pb-28 pt-6 sm:px-6 lg:pb-10 lg:pe-8 lg:ps-32">
+            <main id="main" className="vt-main px-4 pb-32 pt-6 sm:px-6 lg:pb-12 lg:pe-8 lg:ps-32 lg:pt-8">
                 <SectionNav />
                 {children}
             </main>
@@ -90,13 +104,13 @@ export function DashboardLayout({ title, heading, children }: LayoutProps) {
 /** Page title row: title + subtitle on the leading side, actions on the trailing side. */
 export function PageHeader({ title, description, action, eyebrow }: { title: ReactNode; description?: ReactNode; action?: ReactNode; eyebrow?: ReactNode }) {
     return (
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div className="min-w-0">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-4 lg:mb-8">
+            <div className="min-w-0 max-w-2xl">
                 {eyebrow}
-                <h1 className="text-greeting">{title}</h1>
-                {description ? <p className="mt-1 text-sm text-ink-muted">{description}</p> : null}
+                <h1 className="text-[1.75rem] font-light leading-tight tracking-[-0.03em] sm:text-greeting">{title}</h1>
+                {description ? <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{description}</p> : null}
             </div>
-            {action ? <div className="flex flex-wrap items-center gap-3">{action}</div> : null}
+            {action ? <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">{action}</div> : null}
         </div>
     );
 }

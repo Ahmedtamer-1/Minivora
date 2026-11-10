@@ -166,7 +166,7 @@ export function TopActions() {
 
     return (
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <span className="hidden text-sm text-ink-muted xl:inline">{formatToday(locale)}</span>
+            <span className="hidden pe-1 text-sm text-ink-muted xl:inline">{formatToday(locale)}</span>
             <AskAiButton />
             <NotificationsButton />
             <LanguageButton />
