@@ -220,7 +220,7 @@ export default function EditProduct({ product, maxPhotos, categories }: Props) {
                                         {i === 0 ? <Badge tone="glass" className="absolute start-2 top-2">{t('edit.cover')}</Badge> : null}
                                         <div className="absolute inset-x-2 bottom-2 flex justify-end gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                                             {i > 0 && p.saved ? (
-                                                <button type="button" onClick={() => makeCover(p.key)} className="glass-strong rounded-full px-2 py-1 text-[11px] font-medium">
+                                                <button type="button" onClick={() => makeCover(p.key)} className="glass-strong rounded-full px-2 py-1 text-[0.6875rem] font-medium">
                                                     {t('edit.make_cover')}
                                                 </button>
                                             ) : null}

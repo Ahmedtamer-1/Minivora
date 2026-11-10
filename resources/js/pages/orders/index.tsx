@@ -231,7 +231,7 @@ function OrderLine({ order, manage, checked, onToggle }: { order: OrderRow; mana
                     <ChannelIcon channel={order.channel} />
                     {order.items_count !== null ? t('orders.items', { count: order.items_count }) : null}
                     {order.tags.slice(0, 2).map((tag) => (
-                        <span key={tag} className="rounded-full bg-secondary px-2 py-0.5 text-[11px]">
+                        <span key={tag} className="rounded-full bg-secondary px-2 py-0.5 text-[0.6875rem]">
                             {tag}
                         </span>
                     ))}

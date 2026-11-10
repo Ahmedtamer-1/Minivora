@@ -91,16 +91,54 @@ Route::middleware('auth')->group(function () {
             Route::put('/orders/{order}/notes', [OrderController::class, 'updateNotes'])->whereNumber('order')->name('orders.notes');
         });
 
+        // Previews of areas that are designed but not built yet (Documentation §7.3): each page shows
+        // the final layout with sample data and disabled actions, behind the permission the real
+        // module will use. Swap Route::inertia for a controller when the module ships.
+        Route::inertia('/approvals', 'approvals/index')->middleware('store.can:ai.approve')->name('approvals.index');
+        Route::middleware('store.can:products.view')->group(function () {
+            Route::inertia('/categories', 'categories/index')->name('categories.index');
+            Route::inertia('/inventory', 'products/inventory')->name('inventory.index');
+        });
+        Route::inertia('/returns', 'orders/returns')->middleware('store.can:refunds.view')->name('returns.index');
+        Route::inertia('/analytics', 'analytics/index')->middleware('store.can:orders.view,ledger.view')->name('analytics.index');
+        Route::middleware('store.can:marketing.manage')->prefix('marketing')->name('marketing.')->group(function () {
+            Route::inertia('/', 'marketing/index')->name('index');
+            Route::inertia('/campaigns', 'marketing/campaigns')->name('campaigns');
+            Route::inertia('/discounts', 'marketing/discounts')->name('discounts');
+            Route::inertia('/abandoned', 'marketing/abandoned')->name('abandoned');
+        });
+        Route::inertia('/seo', 'seo/index')->middleware('store.can:marketing.manage,design.manage')->name('seo.index');
+        Route::middleware('store.can:design.manage')->prefix('builder')->name('builder.')->group(function () {
+            Route::inertia('/', 'builder/editor')->name('pages');
+            Route::inertia('/theme', 'builder/theme')->name('theme');
+            Route::inertia('/media', 'builder/media')->name('media');
+        });
+        Route::prefix('finance')->name('finance.')->group(function () {
+            Route::inertia('/', 'finance/index')->middleware('store.can:ledger.view,budgets.view')->name('index');
+            Route::middleware('store.can:ledger.view')->group(function () {
+                Route::inertia('/reports', 'finance/reports')->name('reports');
+                Route::inertia('/expenses', 'finance/expenses')->name('expenses');
+                Route::inertia('/ledger', 'finance/ledger')->name('ledger');
+            });
+            Route::inertia('/budgets', 'finance/budgets')->middleware('store.can:budgets.view')->name('budgets');
+        });
+
         // Your own account, whatever your role.
         Route::get('/settings/account', [AccountSettingsController::class, 'edit'])->name('account.edit');
         Route::put('/settings/account', [AccountSettingsController::class, 'updateProfile'])->name('account.update');
         Route::put('/settings/account/password', [AccountSettingsController::class, 'updatePassword'])->middleware('throttle:6,1')->name('account.password');
+        // Display and accessibility preferences live on the device; notifications are a preview for now.
+        Route::inertia('/settings/accessibility', 'settings/accessibility')->name('settings.accessibility');
+        Route::inertia('/settings/notifications', 'settings/notifications')->name('settings.notifications');
 
         Route::middleware('store.can:settings.manage')->group(function () {
             Route::get('/settings', [StoreSettingsController::class, 'edit'])->name('settings.general');
             Route::put('/settings/general', [StoreSettingsController::class, 'updateGeneral'])->name('settings.general.update');
             Route::put('/settings/storefront-password', [StoreSettingsController::class, 'updateStorefrontPassword'])->name('settings.password.update');
             Route::get('/settings/activity', [ActivityController::class, 'index'])->name('settings.activity');
+            Route::inertia('/settings/payments', 'settings/payments')->name('settings.payments');
+            Route::inertia('/settings/shipping', 'settings/shipping')->name('settings.shipping');
+            Route::inertia('/settings/domain', 'settings/domain')->name('settings.domain');
         });
 
         Route::middleware('store.can:design.manage')->group(function () {

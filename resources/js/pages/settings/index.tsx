@@ -6,7 +6,7 @@ import { StoreStatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Select } from '@/components/ui/input';
-import { DashboardLayout, PageHeader } from '@/layouts/dashboard-layout';
+import { SettingsLayout } from '@/layouts/settings-layout';
 import { useT } from '@/lib/i18n';
 import type { SharedProps } from '@/types';
 
@@ -39,9 +39,7 @@ export default function Settings({ settings }: Props) {
     const live = store?.status === 'live';
 
     return (
-        <DashboardLayout title={t('settings.title')}>
-            <PageHeader title={t('settings.title')} />
-            <div className="space-y-6">
+        <SettingsLayout title={t('settings.title')} description={t('settings.subtitle')}>
                 <Card>
                     <CardHeader title={t('settings.visibility')} action={store ? <StoreStatusBadge status={store.status} /> : null} />
                     <CardBody className="flex flex-wrap items-center justify-between gap-4">
@@ -107,7 +105,6 @@ export default function Settings({ settings }: Props) {
                         </form>
                     </CardBody>
                 </Card>
-            </div>
-        </DashboardLayout>
+        </SettingsLayout>
     );
 }

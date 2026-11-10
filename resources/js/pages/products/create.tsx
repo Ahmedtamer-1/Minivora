@@ -66,7 +66,7 @@ export default function CreateProduct({ maxPhotos }: { maxPhotos: number }) {
 
             <div className="mx-auto mt-4 flex max-w-[550px] flex-col items-center text-center" aria-busy={busy}>
                 <div className="orb h-[72px] w-[72px] rounded-full sm:h-24 sm:w-24" aria-hidden />
-                <h1 className="mt-8 font-display text-[28px] font-light leading-tight tracking-[-0.02em]">{t('create_product.title')}</h1>
+                <h1 className="mt-8 font-display text-[1.75rem] font-light leading-tight tracking-[-0.02em]">{t('create_product.title')}</h1>
                 <p className="mt-2 text-sm text-ink-muted">{t('create_product.subtitle')}</p>
 
                 <button

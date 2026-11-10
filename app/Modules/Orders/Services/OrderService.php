@@ -320,9 +320,9 @@ class OrderService
     }
 
     /**
-     * Today's sales against yesterday, and what is waiting to ship, for the dashboard home.
+     * Today's sales against yesterday, the last two weeks, and what is waiting to ship, for the dashboard home.
      *
-     * @return array{sales: array{amount: int, orders: int, change: int|null}, toShip: array{count: int, needs_call: int}}
+     * @return array{sales: array{amount: int, orders: int, change: int|null}, toShip: array{count: int, needs_call: int}, week: array{amount: int, change: int|null, days: list<int>}|null}
      */
     public function dashboard(): array
     {
@@ -345,6 +345,42 @@ class OrderService
                 // Unconfirmed cash orders: call the shopper before packing.
                 'needs_call' => Order::query()->where('status', OrderStatus::Pending)->where('payment_method', 'cod')->count(),
             ],
+            'week' => $this->week(),
+        ];
+    }
+
+    /**
+     * Sales for the last 7 days against the 7 before, plus one total per day for the last 14, in Cairo
+     * days. Interim source for the home "This week" card: the Ledger module takes over when it ships.
+     *
+     * @return array{amount: int, change: int|null, days: list<int>}|null
+     */
+    private function week(): ?array
+    {
+        $tz = 'Africa/Cairo';
+        $start = Carbon::now($tz)->startOfDay()->subDays(13);
+        $days = array_fill(0, 14, 0);
+
+        Order::query()->countingAsSale()
+            ->where('placed_at', '>=', $start->copy()->setTimezone((string) config('app.timezone')))
+            ->get(['placed_at', 'total'])
+            ->each(function (Order $order) use (&$days, $start, $tz) {
+                $index = (int) $start->diffInDays(Carbon::parse($order->placed_at)->setTimezone($tz)->startOfDay());
+                if ($index >= 0 && $index < 14) {
+                    $days[$index] += (int) $order->total;
+                }
+            });
+
+        $amount = array_sum(array_slice($days, 7));
+        $before = array_sum(array_slice($days, 0, 7));
+        if ($amount === 0 && $before === 0) {
+            return null;
+        }
+
+        return [
+            'amount' => $amount,
+            'change' => $before > 0 ? (int) round(($amount - $before) * 100 / $before) : null,
+            'days' => $days,
         ];
     }
 

@@ -238,7 +238,7 @@ export function StatTile({ label, value, hint, icon: Icon, tone = 'default' }: {
                 </span>
             ) : null}
             <div className="min-w-0">
-                <p className="truncate text-[11px] text-ink-muted sm:text-caption">{label}</p>
+                <p className="truncate text-[0.6875rem] text-ink-muted sm:text-caption">{label}</p>
                 <p className={cn('tabular mt-0.5 truncate font-display text-base sm:text-xl', tone === 'warning' && 'text-warning sm:text-ink', tone === 'danger' && 'text-danger sm:text-ink')}>{value}</p>
                 {hint ? <p className="mt-0.5 hidden truncate text-caption text-ink-muted sm:block">{hint}</p> : null}
             </div>

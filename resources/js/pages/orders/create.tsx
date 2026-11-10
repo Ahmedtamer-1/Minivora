@@ -164,7 +164,7 @@ export default function OrderCreate({ products, rates, governorates, channels, p
             </Link>
             <PageHeader title={t('orders.new_title')} description={t('orders.new_subtitle')} />
 
-            <form onSubmit={submit} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <form onSubmit={submit} className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
                 <div className="mv-stagger space-y-6">
                     <Card>
                         <CardHeader title={t('orders.where_title')} />
@@ -243,7 +243,7 @@ export default function OrderCreate({ products, rates, governorates, channels, p
                                                     <span className="block truncate text-sm font-medium">{locale === 'ar' ? p.name_ar || p.name : p.name}</span>
                                                     <span className="flex items-baseline justify-between gap-2">
                                                         <span className="tabular text-caption">{money(p.price)}</span>
-                                                        <span className={cn('text-[11px]', p.stock === 0 ? 'text-danger' : p.stock <= 5 ? 'text-warning' : 'text-ink-muted')}>
+                                                        <span className={cn('text-[0.6875rem]', p.stock === 0 ? 'text-danger' : p.stock <= 5 ? 'text-warning' : 'text-ink-muted')}>
                                                             {p.stock === 0 ? t('low.sold_out') : t('low.left', { count: p.stock })}
                                                         </span>
                                                     </span>

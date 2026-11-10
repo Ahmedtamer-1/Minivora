@@ -3,6 +3,7 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
+import { prefersReducedMotion } from './lib/display-prefs';
 import { startSmoothScroll } from './lib/smooth-scroll';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Minivora';
@@ -36,7 +37,7 @@ createInertiaApp({
         // Page changes inside the app cross-fade with the View Transitions API (see app.css) instead of
         // swapping abruptly. Browsers without it, and Reduce Motion, get the plain swap.
         visitOptions: (_href, options) => ({
-            viewTransition: (options.method ?? 'get') === 'get' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+            viewTransition: (options.method ?? 'get') === 'get' && !prefersReducedMotion(),
         }),
     },
     progress: { color: '#1D7AA0' },

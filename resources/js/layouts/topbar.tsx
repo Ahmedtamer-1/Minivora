@@ -79,7 +79,7 @@ function AccountMenu() {
                 ref={trigger}
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="grid h-11 w-11 place-items-center rounded-full bg-brand-highlight font-display text-[11px] font-semibold tracking-[0.12em] text-[#0B1A26] shadow-sm"
+                className="grid h-11 w-11 place-items-center rounded-full bg-brand-highlight font-display text-[0.6875rem] font-semibold tracking-[0.12em] text-[#0B1A26] shadow-sm"
                 aria-label={t('nav.account', { name })}
                 aria-expanded={open}
                 aria-haspopup="menu"

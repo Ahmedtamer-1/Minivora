@@ -46,7 +46,7 @@ function Tile({ product }: { product: ProductCard }) {
     const name = (locale === 'ar' ? product.name_ar || product.name : product.name || product.name_ar) || t('products.untitled');
     const body = (
         <>
-            <div className="relative aspect-square overflow-hidden rounded-[20px] bg-accent-subtle">
+            <div className="relative aspect-[5/4] overflow-hidden rounded-[20px] bg-accent-subtle">
                 {product.cover ? (
                     <img src={product.cover} alt="" className="h-full w-full object-cover" loading="lazy" />
                 ) : (
@@ -147,11 +147,11 @@ export default function ProductsIndex({ products, filter, search, counts }: Prop
                 })}
             </div>
 
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                 {can('products.manage') && products.current_page === 1 ? (
                     <Link
                         href="/products/create"
-                        className="card col-span-2 flex min-h-[220px] flex-col items-center justify-center gap-3 border-2 border-dashed !border-line-control p-6 text-center md:col-span-1"
+                        className="card col-span-2 flex min-h-[12rem] flex-col items-center justify-center gap-3 border-2 border-dashed !border-line-control p-6 text-center md:col-span-1"
                     >
                         <span className="grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-fg shadow-md">
                             <Plus className="h-6 w-6" aria-hidden />

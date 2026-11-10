@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { Globe, Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
+import { PREFS_EVENT, readPrefs, savePrefs } from '@/lib/display-prefs';
 import { useT } from '@/lib/i18n';
 import type { SharedProps } from '@/types';
 
@@ -24,28 +25,25 @@ export function LanguageButton({ className }: { className?: string }) {
 }
 
 /**
- * Light/dark override, saved in this browser. The OS setting applies until someone picks one here.
+ * Light/dark override, saved on this device. The OS setting applies until someone picks one here or
+ * in Settings › Accessibility; both stay in step through the display-prefs change event.
  */
 export function ThemeButton({ className }: { className?: string }) {
     const t = useT();
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
     useEffect(() => {
-        const current = document.documentElement.dataset.theme;
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        setTheme(current === 'dark' || (!current && prefersDark) ? 'dark' : 'light');
+        const sync = () => {
+            const current = document.documentElement.dataset.theme;
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            setTheme(current === 'dark' || (!current && prefersDark) ? 'dark' : 'light');
+        };
+        sync();
+        window.addEventListener(PREFS_EVENT, sync);
+        return () => window.removeEventListener(PREFS_EVENT, sync);
     }, []);
 
-    const toggle = () => {
-        const next = theme === 'dark' ? 'light' : 'dark';
-        document.documentElement.dataset.theme = next;
-        try {
-            localStorage.setItem('mv-theme', next);
-        } catch {
-            // Storage blocked: the theme still applies for this page view.
-        }
-        setTheme(next);
-    };
+    const toggle = () => savePrefs({ ...readPrefs(), theme: theme === 'dark' ? 'light' : 'dark' });
 
     return (
         <button type="button" onClick={toggle} className={cn(roundButton, className)} aria-label={theme === 'dark' ? t('common.theme_light') : t('common.theme_dark')}>

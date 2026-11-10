@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { DashboardLayout, PageHeader } from '@/layouts/dashboard-layout';
 import { formatDate, useT } from '@/lib/i18n';
 import type { Paginated, SharedProps, StoreStatus } from '@/types';
-import { Pagination } from '../settings/activity';
+import { Pagination } from '@/components/commerce';
 
 interface AdminStore {
     id: number;

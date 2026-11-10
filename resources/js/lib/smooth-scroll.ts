@@ -1,5 +1,6 @@
 import Lenis from 'lenis';
 import { router } from '@inertiajs/react';
+import { prefersReducedMotion } from './display-prefs';
 
 let lenis: Lenis | null = null;
 
@@ -9,7 +10,7 @@ let lenis: Lenis | null = null;
  * Inner scroll areas opt out with `data-lenis-prevent`.
  */
 export function startSmoothScroll(): void {
-    if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (typeof window === 'undefined' || prefersReducedMotion()) return;
 
     lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9, smoothWheel: true });
     const raf = (time: number) => {
@@ -25,6 +26,12 @@ export function startSmoothScroll(): void {
             lenis?.scrollTo(window.scrollY, { immediate: true, force: true });
         });
     });
+}
+
+/** Turn smooth scrolling off for good (Reduce Motion switched on in Settings). */
+export function stopSmoothScroll(): void {
+    lenis?.destroy();
+    lenis = null;
 }
 
 /** Pause page scrolling (e.g. while a full-screen view owns the wheel). */

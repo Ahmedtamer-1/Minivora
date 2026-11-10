@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Select } from '@/components/ui/input';
-import { DashboardLayout, PageHeader } from '@/layouts/dashboard-layout';
+import { SettingsLayout } from '@/layouts/settings-layout';
 import { useT } from '@/lib/i18n';
 
 interface Props {
@@ -29,9 +29,7 @@ export default function AccountSettings({ account }: Props) {
     };
 
     return (
-        <DashboardLayout title={t('account.title')}>
-            <PageHeader title={t('account.title')} description={t('account.subtitle')} />
-            <div className="mv-stagger max-w-3xl space-y-6">
+        <SettingsLayout title={t('account.title')} description={t('account.subtitle')}>
                 <Card>
                     <CardHeader
                         title={t('account.profile')}
@@ -111,7 +109,6 @@ export default function AccountSettings({ account }: Props) {
                         </form>
                     </CardBody>
                 </Card>
-            </div>
-        </DashboardLayout>
+        </SettingsLayout>
     );
 }

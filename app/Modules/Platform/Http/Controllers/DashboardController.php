@@ -42,8 +42,9 @@ class DashboardController extends Controller
             'attention' => $this->inventory->attention(),
             'sales' => $orders['sales']['orders'] > 0 ? $orders['sales'] : null,
             'toShip' => $orders['toShip'],
-            // Filled by the Ledger and Analytics modules when they ship; the cards show empty states until then.
-            'week' => null,
+            // From orders until the Ledger module ships (FR-ANA-02 asks for ledger-based revenue).
+            'week' => $orders['week'],
+            // Filled by the Analytics module when it ships; the card shows its empty state until then.
             'visitors' => null,
         ]);
     }

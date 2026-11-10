@@ -1,8 +1,9 @@
 // Activity log: who did what, including which AI agent acted (FR-ACC-05, FR-AI-10).
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { Bot, Cog, User } from 'lucide-react';
+import { Pagination } from '@/components/commerce';
 import { Card } from '@/components/ui/card';
-import { DashboardLayout, PageHeader } from '@/layouts/dashboard-layout';
+import { SettingsLayout } from '@/layouts/settings-layout';
 import { formatDate, useT } from '@/lib/i18n';
 import type { Paginated, SharedProps } from '@/types';
 
@@ -31,33 +32,43 @@ export default function Activity({ logs }: { logs: Paginated<Log> }) {
         return log.actor ?? '—';
     };
 
+    // Readable label for each action; unknown codes fall back to the code itself.
+    const label = (action: string) => {
+        const key = `activity.a.${action}`;
+        const text = t(key);
+        return text === key ? action : text;
+    };
+
     return (
-        <DashboardLayout title={t('activity.title')}>
-            <PageHeader title={t('activity.title')} description={t('activity.subtitle')} />
+        <SettingsLayout title={t('activity.title')} description={t('activity.subtitle')}>
             <Card>
                 {logs.data.length === 0 ? (
-                    <p className="px-5 py-8 text-center text-ink-muted">{t('activity.empty')}</p>
+                    <p className="px-5 py-10 text-center text-sm text-ink-muted">{t('activity.empty')}</p>
                 ) : (
                     <ul className="divide-y divide-line">
                         {logs.data.map((log) => {
                             const Icon = icons[log.actor_type];
+                            const details = Object.entries(log.properties ?? {}).filter(([, v]) => v !== null && typeof v !== 'object');
                             return (
-                                <li key={log.id} className="flex items-start gap-3 px-5 py-3">
-                                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted" aria-hidden />
+                                <li key={log.id} className="flex items-start gap-3 px-5 py-4 sm:px-6">
+                                    <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${log.actor_type === 'agent' ? 'bg-accent-subtle text-ink-accent' : 'bg-secondary text-ink-muted'}`}>
+                                        <Icon className="h-4 w-4" aria-hidden />
+                                    </span>
                                     <div className="min-w-0 flex-1">
                                         <p className="text-sm">
-                                            <span className="font-medium">{who(log)}</span>{' '}
-                                            <code className="rounded-sm bg-surface px-1.5 py-0.5 font-mono text-xs" dir="ltr">
-                                                {log.action}
-                                            </code>
+                                            <span className="font-medium">{who(log)}</span> <span className="text-ink-muted">·</span> {label(log.action)}
                                         </p>
-                                        {log.properties ? (
-                                            <p className="mt-1 truncate font-mono text-xs text-ink-muted" dir="ltr">
-                                                {JSON.stringify(log.properties)}
-                                            </p>
+                                        {details.length > 0 ? (
+                                            <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                                                {details.slice(0, 4).map(([k, v]) => (
+                                                    <li key={k} className="max-w-full truncate rounded-full bg-secondary px-2.5 py-0.5 text-xs text-ink-muted">
+                                                        {k.replaceAll('_', ' ')}: <span dir="auto" className="text-ink">{String(v)}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         ) : null}
                                     </div>
-                                    <time className="shrink-0 text-xs text-ink-muted" dateTime={log.created_at}>
+                                    <time className="shrink-0 pt-0.5 text-caption text-ink-muted" dateTime={log.created_at}>
                                         {formatDate(log.created_at, locale, true)}
                                     </time>
                                 </li>
@@ -67,20 +78,6 @@ export default function Activity({ logs }: { logs: Paginated<Log> }) {
                 )}
             </Card>
             <Pagination page={logs} />
-        </DashboardLayout>
-    );
-}
-
-export function Pagination<T>({ page }: { page: Paginated<T> }) {
-    const t = useT();
-    if (page.last_page <= 1) return null;
-    return (
-        <nav className="mt-4 flex items-center justify-between text-sm" aria-label="Pagination">
-            {page.prev_page_url ? <Link href={page.prev_page_url} className="text-ink-link hover:underline">{t('pagination.prev')}</Link> : <span />}
-            <span className="text-ink-muted">
-                {page.current_page} / {page.last_page}
-            </span>
-            {page.next_page_url ? <Link href={page.next_page_url} className="text-ink-link hover:underline">{t('pagination.next')}</Link> : <span />}
-        </nav>
+        </SettingsLayout>
     );
 }

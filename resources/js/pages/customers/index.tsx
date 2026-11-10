@@ -60,15 +60,15 @@ export default function CustomersIndex({ customers, filter, search, counts, stat
                                 </div>
                                 <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-line pt-3 text-center">
                                     <div>
-                                        <dt className="text-[11px] text-ink-muted">{t('customers.orders')}</dt>
+                                        <dt className="text-[0.6875rem] text-ink-muted">{t('customers.orders')}</dt>
                                         <dd className="tabular text-sm font-semibold">{formatNumber(c.orders_count)}</dd>
                                     </div>
                                     <div>
-                                        <dt className="text-[11px] text-ink-muted">{t('customers.spent')}</dt>
+                                        <dt className="text-[0.6875rem] text-ink-muted">{t('customers.spent')}</dt>
                                         <dd className="tabular truncate text-sm font-semibold">{formatPounds(c.total_spent, locale)}</dd>
                                     </div>
                                     <div>
-                                        <dt className="text-[11px] text-ink-muted">{t('customers.last')}</dt>
+                                        <dt className="text-[0.6875rem] text-ink-muted">{t('customers.last')}</dt>
                                         <dd className="truncate text-sm">{c.last_order_at ? formatDate(c.last_order_at, locale) : '—'}</dd>
                                     </div>
                                 </dl>

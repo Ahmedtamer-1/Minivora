@@ -494,7 +494,7 @@ html.lenis body {
     pointer-events: none;
 }
 
-/* Reduce Transparency: every translucent surface becomes opaque. */
+/* Reduce Transparency (OS setting, or Settings › Accessibility): every translucent surface becomes opaque. */
 @media (prefers-reduced-transparency: reduce) {
     .card,
     .glass,
@@ -504,6 +504,14 @@ html.lenis body {
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
     }
+}
+[data-transparency='reduce'] :is(.card, .glass, .glass-strong, .glass-float) {
+    background: var(--mv-bg-elevated);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+[data-transparency='reduce'] .mv-backdrop {
+    display: none;
 }
 
 /* Increase Contrast: visible borders, secondary text closer to primary, opaque surfaces. */
@@ -519,8 +527,16 @@ html.lenis body {
         background: var(--mv-bg-elevated);
     }
 }
+:root:root[data-contrast='more'] {
+    --mv-border-default: var(--mv-border-control);
+    --mv-glass-stroke: var(--mv-border-control);
+    --mv-text-muted: color-mix(in srgb, var(--mv-text-primary) 80%, var(--mv-bg-elevated));
+}
+[data-contrast='more'] :is(.card, .glass, .glass-strong) {
+    background: var(--mv-bg-elevated);
+}
 
-/* Reduce Motion: no transitions or animated progress. */
+/* Reduce Motion (OS setting, or Settings › Accessibility): no transitions or animated progress. */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -530,4 +546,29 @@ html.lenis body {
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
     }
+}
+[data-motion='reduce'] *,
+[data-motion='reduce'] *::before,
+[data-motion='reduce'] *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+}
+[data-motion='reduce'] .mv-par {
+    transform: none;
+}
+
+/* Text size (Settings › Accessibility). Type and controls are in rem, so they scale together. */
+html[data-text-size='large'] {
+    font-size: 112.5%;
+}
+html[data-text-size='larger'] {
+    font-size: 125%;
+}
+
+/* Underline links (Settings › Accessibility), so they don't rely on colour alone. */
+[data-links='underline'] main a:not([class*='rounded']) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }

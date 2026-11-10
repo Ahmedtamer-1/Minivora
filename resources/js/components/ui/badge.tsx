@@ -25,7 +25,7 @@ export function Badge({ tone = 'neutral', children, className }: { tone?: Tone; 
 /** Figma "Minivora/Label": 11px uppercase with tracking in Latin; plain 12px in Arabic. */
 export function Label({ children, className }: { children: ReactNode; className?: string }) {
     return (
-        <span className={cn('inline-flex items-center rounded-full font-display text-[11px] font-semibold leading-none ltr:uppercase ltr:tracking-[0.16em] rtl:text-xs', className)}>
+        <span className={cn('inline-flex items-center rounded-full font-display text-[0.6875rem] font-semibold leading-none ltr:uppercase ltr:tracking-[0.16em] rtl:text-xs', className)}>
             {children}
         </span>
     );

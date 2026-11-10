@@ -24,7 +24,7 @@ export function Logo({ href = '/', withName = true, className }: { href?: string
         <Link
             href={href}
             dir="ltr"
-            className={cn('inline-flex items-baseline font-display text-[26px] font-semibold leading-none tracking-[0.06em] text-brand-mark', className)}
+            className={cn('inline-flex items-baseline font-display text-[1.625rem] font-semibold leading-none tracking-[0.06em] text-brand-mark', className)}
             aria-label="Minivora"
         >
             <LogoMark className={cn('h-[0.7em] w-auto shrink-0 self-baseline', withName ? 'me-[0.08em]' : 'h-7')} />

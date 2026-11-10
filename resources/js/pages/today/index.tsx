@@ -103,7 +103,7 @@ function AskCard() {
     ].filter(Boolean) as { label: string; href: string }[];
 
     return (
-        <Card className="flex flex-col p-6 md:col-span-2 xl:min-h-[272px]">
+        <Card className="flex flex-col p-6 md:col-span-2">
             <div className="flex items-center justify-between gap-3">
                 <h2 className={cardTitle}>{t('ask.title')}</h2>
                 <button
@@ -115,7 +115,7 @@ function AskCard() {
                     <Maximize2 className="h-3 w-3 transition-transform group-hover:scale-125" aria-hidden />
                 </button>
             </div>
-            <p className="mt-3 font-display text-[28px] font-light leading-[31px] tracking-[-0.02em]">{t('ask.question')}</p>
+            <p className="mt-3 font-display text-[1.75rem] font-light leading-[31px] tracking-[-0.02em]">{t('ask.question')}</p>
             <form ref={form} onSubmit={submit} className="mt-auto pt-6">
                 <label htmlFor="ask" className="sr-only">
                     {t('ask.title')}
@@ -159,7 +159,7 @@ function SalesCard({ sales }: { sales: Props['sales'] }) {
     const amount = useCountUp(sales ? Math.round(sales.amount / 100) : 0);
 
     return (
-        <section aria-labelledby="sales-title" className="hero-sales mv-hero-lights mv-shine relative isolate flex flex-col overflow-hidden rounded-2xl p-6 text-white shadow-glass xl:min-h-[272px]">
+        <section aria-labelledby="sales-title" className="hero-sales mv-hero-lights mv-shine relative isolate flex flex-col overflow-hidden rounded-2xl p-6 text-white shadow-glass">
             <div className="flex items-center justify-between gap-3">
                 <h2 id="sales-title" className="font-display text-base font-normal text-white">
                     {t('sales.title')}
@@ -192,7 +192,7 @@ function SetupCard({ checklist }: { checklist: Props['checklist'] }) {
     const shown = useAppeared(250);
 
     return (
-        <Card className="flex flex-col items-center p-6 xl:min-h-[272px]">
+        <Card className="flex flex-col items-center p-6">
             <h2 className={cn(cardTitle, 'self-start')}>{t('setup.title')}</h2>
             <div className="relative mt-3" role="img" aria-label={t('checklist.progress', { done: checklist.done, total: checklist.total })}>
                 <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90 rtl:rotate-90 rtl:-scale-y-100" aria-hidden>
@@ -286,7 +286,7 @@ function NeedsYouCard({ attention }: { attention: Attention[] }) {
     };
 
     return (
-        <Card className="flex flex-col p-6 md:col-span-2 xl:min-h-[264px]">
+        <Card className="flex flex-col p-6 md:col-span-2">
             <div className="flex items-center justify-between gap-3">
                 <h2 className={cardTitle}>{t('needs.title')}</h2>
                 {items.length > 0 ? (
@@ -339,7 +339,7 @@ function ToShipCard({ toShip }: { toShip: Props['toShip'] }) {
     const t = useT();
     const count = useCountUp(toShip?.count ?? 0, 900);
     return (
-        <Link href="/orders?filter=to_ship" className="card group flex flex-col p-6 transition-transform hover:-translate-y-0.5 focus-visible:-translate-y-0.5 xl:min-h-[264px]">
+        <Link href="/orders?filter=to_ship" className="card group flex flex-col p-6 transition-transform hover:-translate-y-0.5 focus-visible:-translate-y-0.5">
             <div className="flex items-center justify-between gap-3">
                 <h2 className={cardTitle}>{t('ship.title')}</h2>
                 <ArrowUpRight className="h-[18px] w-[18px] text-ink-muted transition-transform duration-300 group-hover:-translate-y-1 rtl:-scale-x-100" aria-hidden />
@@ -365,7 +365,7 @@ function WeekCard({ week }: { week: Props['week'] }) {
     const amount = useCountUp(week ? Math.round(week.amount / 100) : 0);
 
     return (
-        <Card className="flex flex-col p-6 xl:min-h-[264px]">
+        <Card className="flex flex-col p-6">
             <div className="flex items-center justify-between gap-3">
                 <h2 className={cardTitle}>{t('week.title')}</h2>
                 {week?.change != null ? <Badge tone="highlight">{`${week.change > 0 ? '+' : ''}${week.change}%`}</Badge> : null}
@@ -402,7 +402,7 @@ function BestSellerCard({ best, total }: { best: Props['inventory']['best_seller
     const t = useT();
     const can = useCan();
     return (
-        <Card className="group flex flex-col p-6 xl:min-h-[296px]">
+        <Card className="group flex flex-col p-6">
             <h2 className={cardTitle}>{t('best.title')}</h2>
             <div className="mv-shine relative mt-4 aspect-[258/140] overflow-hidden rounded-2xl bg-accent-subtle">
                 {best?.cover ? (
@@ -441,7 +441,7 @@ function RunningLowCard({ items }: { items: LowItem[] }) {
     const t = useT();
     const grown = useAppeared(400);
     return (
-        <Card className="flex flex-col p-6 xl:min-h-[296px]">
+        <Card className="flex flex-col p-6">
             <div className="flex items-center justify-between gap-3">
                 <h2 className={cardTitle}>{t('low.title')}</h2>
                 {items.length > 0 ? (
@@ -494,7 +494,7 @@ function VisitorsCard({ visitors }: { visitors: Props['visitors'] }) {
     const t = useT();
     const count = useCountUp(visitors?.count ?? 0);
     return (
-        <Card className="flex flex-col p-6 md:col-span-2 xl:min-h-[296px]">
+        <Card className="flex flex-col p-6 md:col-span-2">
             <div className="flex items-center justify-between gap-3">
                 <h2 className={cardTitle}>{t('visitors.title')}</h2>
                 {visitors?.change != null ? <Badge tone="highlight">{`${visitors.change > 0 ? '+' : ''}${visitors.change}%`}</Badge> : null}
@@ -503,15 +503,27 @@ function VisitorsCard({ visitors }: { visitors: Props['visitors'] }) {
                 <p className="tabular font-display text-numeral">{formatNumber(Math.round(count))}</p>
                 <p className="pb-1 text-sm text-ink-muted">{visitors ? t('visitors.bought', { pct: visitors.conversion }) : t('visitors.empty')}</p>
             </div>
-            <ul className="mt-auto grid grid-cols-2 gap-2 pt-6 sm:grid-cols-4">
-                {sources.map((s, i) => (
-                    <li key={s.key} style={{ animationDelay: `${500 + i * 80}ms` }} className="mv-pop rounded-2xl bg-elevated p-3 shadow-sm transition-transform hover:-translate-y-0.5">
-                        <span className={cn('block h-2 w-2 rounded-full', s.color, visitors && 'mv-pulse')} aria-hidden />
-                        <p className="tabular mt-3 font-display text-numeral-sm">{visitors ? `${visitors.sources[s.key] ?? 0}%` : '—'}</p>
-                        <p className="mt-1 text-caption text-ink-muted">{t(`visitors.${s.key}`)}</p>
-                    </li>
-                ))}
-            </ul>
+            {visitors ? (
+                <ul className="mt-auto grid grid-cols-2 gap-2 pt-6 sm:grid-cols-4">
+                    {sources.map((s, i) => (
+                        <li key={s.key} style={{ animationDelay: `${500 + i * 80}ms` }} className="mv-pop rounded-2xl bg-elevated p-3 shadow-sm transition-transform hover:-translate-y-0.5">
+                            <span className={cn('block h-2 w-2 rounded-full mv-pulse', s.color)} aria-hidden />
+                            <p className="tabular mt-3 font-display text-numeral-sm">{`${visitors.sources[s.key] ?? 0}%`}</p>
+                            <p className="mt-1 text-caption text-ink-muted">{t(`visitors.${s.key}`)}</p>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                // No traffic data yet: name the sources that will appear, without empty number tiles.
+                <ul className="mt-auto flex flex-wrap gap-2 pt-6" aria-label={t('visitors.sources_soon')}>
+                    {sources.map((s) => (
+                        <li key={s.key} className="inline-flex h-8 items-center gap-2 rounded-full bg-secondary px-3 text-caption text-ink-muted">
+                            <span className={cn('h-2 w-2 rounded-full', s.color)} aria-hidden />
+                            {t(`visitors.${s.key}`)}
+                        </li>
+                    ))}
+                </ul>
+            )}
         </Card>
     );
 }
@@ -571,7 +583,7 @@ export default function Today(props: Props) {
 
     const heading = (
         <div>
-            <h1 className="text-[26px] font-light leading-tight tracking-[-0.03em] sm:text-greeting">{t(`home.greeting_${part}`, { name: firstName })}</h1>
+            <h1 className="text-[1.625rem] font-light leading-tight tracking-[-0.03em] sm:text-greeting">{t(`home.greeting_${part}`, { name: firstName })}</h1>
             <div className="mt-1.5">
                 <StoreLine />
             </div>
@@ -581,7 +593,7 @@ export default function Today(props: Props) {
     return (
         <DashboardLayout title={t('nav.home')} heading={heading}>
             {props.showOnboarding && can('design.manage') ? <OnboardingQuestions profile={props.profile} /> : null}
-            <div className="mv-stagger grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mv-stagger grid gap-4 md:grid-cols-2 xl:auto-rows-[minmax(17rem,auto)] xl:grid-cols-4">
                 <AskCard />
                 <SalesCard sales={props.sales} />
                 <SetupCard checklist={props.checklist} />

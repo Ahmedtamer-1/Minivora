@@ -15,12 +15,12 @@ export default {
                 mono: v('font-mono'),
             },
             fontSize: {
-                // Figma "Minivora" text styles
-                label: ['11px', { lineHeight: '13px', letterSpacing: '0.16em', fontWeight: '600' }],
-                caption: ['13px', { lineHeight: '18px', fontWeight: '500' }],
-                greeting: ['34px', { lineHeight: '41px', letterSpacing: '-0.03em', fontWeight: '300' }],
-                numeral: ['52px', { lineHeight: '52px', letterSpacing: '-0.06em', fontWeight: '300' }],
-                'numeral-sm': ['28px', { lineHeight: '31px', letterSpacing: '-0.07em', fontWeight: '300' }],
+                // Figma "Minivora" text styles, in rem so Settings › Accessibility › Text size scales them.
+                label: ['0.6875rem', { lineHeight: '0.8125rem', letterSpacing: '0.16em', fontWeight: '600' }],
+                caption: ['0.8125rem', { lineHeight: '1.125rem', fontWeight: '500' }],
+                greeting: ['2.125rem', { lineHeight: '2.5625rem', letterSpacing: '-0.03em', fontWeight: '300' }],
+                numeral: ['3.25rem', { lineHeight: '3.25rem', letterSpacing: '-0.06em', fontWeight: '300' }],
+                'numeral-sm': ['1.75rem', { lineHeight: '1.9375rem', letterSpacing: '-0.07em', fontWeight: '300' }],
             },
             colors: {
                 canvas: v('bg-canvas'),

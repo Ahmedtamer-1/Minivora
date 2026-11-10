@@ -50,7 +50,7 @@ export default function CustomerShow({ customer, orders }: Props) {
                 <StatTile label={t('customers.average')} value={formatPounds(average, locale)} />
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
                 <Card className="mv-rise overflow-hidden">
                     <CardHeader title={t('customers.orders_title')} />
                     <ul className="mt-2">

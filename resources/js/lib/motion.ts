@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-const reduced = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+import { prefersReducedMotion as reduced } from './display-prefs';
 
 /** False on the first paint, true right after: lets bars and rings grow from zero to their value. */
 export function useAppeared(delay = 80): boolean {

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { AnimatedBackdrop, ParallaxLayer } from '@/components/animated-backdrop';
 import { Flash } from '@/components/flash';
 import { LogoMark } from '@/components/logo';
+import { SectionNav } from '@/components/section-nav';
 import { useT } from '@/lib/i18n';
 import type { SharedProps } from '@/types';
 import { Rail, TabBar } from './rail';
@@ -76,6 +77,7 @@ export function DashboardLayout({ title, heading, children }: LayoutProps) {
             ) : null}
 
             <main id="main" className="vt-main px-4 pb-28 pt-6 sm:px-6 lg:pb-10 lg:pe-8 lg:ps-32">
+                <SectionNav />
                 {children}
             </main>
 

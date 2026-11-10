@@ -8,6 +8,7 @@ import { AiOrb, type OrbState } from '@/components/ai-orb';
 import { AnimatedBackdrop } from '@/components/animated-backdrop';
 import { roundButton } from '@/components/preferences';
 import { cn } from '@/lib/cn';
+import { prefersReducedMotion } from '@/lib/display-prefs';
 import { dayPart, useT } from '@/lib/i18n';
 import { setSmoothScrollPaused } from '@/lib/smooth-scroll';
 import { useSpeechInput, useSpeechOutput } from '@/lib/speech';
@@ -52,7 +53,7 @@ function Typewriter({ text, onDone, onTick }: { text: string; onDone: () => void
     tick.current = onTick;
 
     useEffect(() => {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (prefersReducedMotion()) {
             setShown(text.length);
             done.current();
             return;
@@ -248,7 +249,7 @@ export default function AiChat({ connected, initialQuestion }: Props) {
                         <AiOrb state={orbState} className={cn('vt-ai-orb transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]', started ? 'h-14 w-14' : 'h-36 w-36 sm:h-44 sm:w-44')} />
                         <div className={cn('grid transition-all duration-500', started ? 'grid-rows-[0fr] opacity-0' : 'mt-8 grid-rows-[1fr] opacity-100')}>
                             <div className="overflow-hidden">
-                                <h1 className="mv-ai-enter text-[28px] font-light leading-tight tracking-[-0.02em] sm:text-[34px]">
+                                <h1 className="mv-ai-enter text-[1.75rem] font-light leading-tight tracking-[-0.02em] sm:text-[2.125rem]">
                                     {t('ai.hello', { greeting: t(`ai.greeting_${dayPart()}`), name: firstName })}
                                 </h1>
                                 <p className="mv-ai-enter mx-auto mt-2 max-w-md text-sm text-ink-muted [animation-delay:80ms]">{t('ai.hello_sub')}</p>
@@ -355,7 +356,7 @@ export default function AiChat({ connected, initialQuestion }: Props) {
                             value={text}
                             onChange={(e) => setText(e.target.value)}
                             placeholder={listening ? t('ai.listening') : t('ai.placeholder')}
-                            className="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[15px] text-ink placeholder:text-ink-muted focus:ring-0"
+                            className="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[0.9375rem] text-ink placeholder:text-ink-muted focus:ring-0"
                             maxLength={1000}
                             autoComplete="off"
                             autoFocus

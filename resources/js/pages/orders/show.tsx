@@ -82,7 +82,7 @@ function Progress({ status, history }: { status: OrderStatus; history: Props['or
                             {t(`orders.status.${step}`)}
                             {active ? <span className="sr-only"> ({t('orders.current')})</span> : null}
                         </span>
-                        {at ? <span className="text-[11px] text-ink-muted">{formatDate(at, locale)}</span> : null}
+                        {at ? <span className="text-[0.6875rem] text-ink-muted">{formatDate(at, locale)}</span> : null}
                     </li>
                 );
             })}
@@ -260,7 +260,7 @@ export default function OrderShow({ order }: Props) {
                 </div>
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
                 <div className="mv-stagger space-y-6">
                     <Card className="p-6">
                         <Progress status={order.status} history={order.history} />

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Select } from '@/components/ui/input';
-import { DashboardLayout, PageHeader } from '@/layouts/dashboard-layout';
+import { SettingsLayout } from '@/layouts/settings-layout';
 import { formatDate, useT } from '@/lib/i18n';
 import type { Role, SharedProps } from '@/types';
 
@@ -43,9 +43,7 @@ export default function Members({ members, invitations, roles, invitableRoles }:
     };
 
     return (
-        <DashboardLayout title={t('members.title')}>
-            <PageHeader title={t('members.title')} description={t('members.subtitle')} />
-            <div className="space-y-6">
+        <SettingsLayout title={t('members.title')} description={t('members.subtitle')}>
                 <Card>
                     <CardHeader title={t('members.invite')} />
                     <CardBody>
@@ -138,7 +136,6 @@ export default function Members({ members, invitations, roles, invitableRoles }:
                         </ul>
                     </Card>
                 ) : null}
-            </div>
-        </DashboardLayout>
+        </SettingsLayout>
     );
 }
