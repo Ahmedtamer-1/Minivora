@@ -12,6 +12,10 @@ use App\Modules\Accounts\Http\Controllers\EmailVerificationController;
 use App\Modules\Accounts\Http\Controllers\InvitationController;
 use App\Modules\Accounts\Http\Controllers\MemberController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
+use App\Modules\Fpa\Http\Controllers\BudgetController;
+use App\Modules\Ledger\Http\Controllers\ExpenseController;
+use App\Modules\Ledger\Http\Controllers\FinanceController;
+use App\Modules\Ledger\Http\Controllers\JournalController;
 use App\Modules\Orders\Http\Controllers\CustomerController;
 use App\Modules\Orders\Http\Controllers\OrderController;
 use App\Modules\Platform\Http\Controllers\ActivityController;
@@ -113,14 +117,36 @@ Route::middleware('auth')->group(function () {
             Route::inertia('/theme', 'builder/theme')->name('theme');
             Route::inertia('/media', 'builder/media')->name('media');
         });
+        // Finance: ledger, statements, expenses, month close, budgets. FR-LED, FR-FPA, UC-10, UC-11
         Route::prefix('finance')->name('finance.')->group(function () {
-            Route::inertia('/', 'finance/index')->middleware('store.can:ledger.view,budgets.view')->name('index');
+            Route::get('/', [FinanceController::class, 'overview'])->middleware('store.can:ledger.view,budgets.view')->name('index');
             Route::middleware('store.can:ledger.view')->group(function () {
-                Route::inertia('/reports', 'finance/reports')->name('reports');
-                Route::inertia('/expenses', 'finance/expenses')->name('expenses');
-                Route::inertia('/ledger', 'finance/ledger')->name('ledger');
+                Route::get('/reports', [FinanceController::class, 'reports'])->name('reports');
+                Route::get('/reports/export', [FinanceController::class, 'export'])->middleware('throttle:20,1')->name('reports.export');
+                Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses');
+                Route::get('/close', [ExpenseController::class, 'close'])->name('close');
+                Route::get('/ledger', [JournalController::class, 'index'])->name('ledger');
             });
-            Route::inertia('/budgets', 'finance/budgets')->middleware('store.can:budgets.view')->name('budgets');
+            Route::middleware('store.can:ledger.manage')->group(function () {
+                Route::post('/expenses', [ExpenseController::class, 'store'])->middleware('throttle:60,1')->name('expenses.store');
+                Route::post('/expenses/{expense}/pay', [ExpenseController::class, 'pay'])->whereNumber('expense')->name('expenses.pay');
+                Route::post('/expenses/{expense}/void', [ExpenseController::class, 'void'])->whereNumber('expense')->name('expenses.void');
+                Route::post('/close', [ExpenseController::class, 'closeMonth'])->name('close.store');
+                Route::post('/reopen', [ExpenseController::class, 'reopen'])->name('close.reopen');
+                Route::post('/catch-up', [ExpenseController::class, 'catchUp'])->middleware('throttle:10,1')->name('catch-up');
+                Route::post('/inventory-sync', [ExpenseController::class, 'syncInventory'])->middleware('throttle:10,1')->name('inventory-sync');
+                Route::post('/journal', [JournalController::class, 'store'])->middleware('throttle:60,1')->name('journal.store');
+                Route::post('/journal/{entry}/reverse', [JournalController::class, 'reverse'])->whereNumber('entry')->name('journal.reverse');
+                Route::post('/transfer', [JournalController::class, 'transfer'])->name('transfer');
+                Route::post('/accounts', [JournalController::class, 'storeAccount'])->name('accounts.store');
+                Route::put('/accounts/{account}', [JournalController::class, 'updateAccount'])->whereNumber('account')->name('accounts.update');
+                Route::put('/settings', [JournalController::class, 'updateSettings'])->name('settings.update');
+            });
+            Route::get('/budgets', [BudgetController::class, 'index'])->middleware('store.can:budgets.view')->name('budgets');
+            Route::middleware('store.can:budgets.manage')->group(function () {
+                Route::put('/budgets', [BudgetController::class, 'update'])->name('budgets.update');
+                Route::post('/budgets/copy', [BudgetController::class, 'copy'])->name('budgets.copy');
+            });
         });
 
         // Your own account, whatever your role.

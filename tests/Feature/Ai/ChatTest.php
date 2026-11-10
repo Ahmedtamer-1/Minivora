@@ -39,12 +39,17 @@ test('without model keys the assistant answers from store data', function () {
         ->assertJsonPath('reply', 'You have 2 products: 1 live and 1 in drafts.');
 });
 
-test('the assistant never invents sales numbers', function () {
+test('FR-AI-03 sales answers come from the ledger with their period; others never get numbers', function () {
     signedInMember();
 
+    $this->postJson(route('ai.chat.send'), ['message' => 'How were my sales this month?'])
+        ->assertOk()
+        ->assertJson(fn ($json) => $json->where('reply', fn (string $r) => str_contains($r, 'net revenue 0 EGP') && str_contains($r, 'Source: your ledger'))->etc());
+
+    signedInMember(Role::Staff);
     $this->postJson(route('ai.chat.send'), ['message' => 'How were my sales today?'])
         ->assertOk()
-        ->assertJson(fn ($json) => $json->where('reply', fn (string $r) => str_contains($r, "isn't live yet"))->etc());
+        ->assertJson(fn ($json) => $json->where('reply', fn (string $r) => ! str_contains($r, 'EGP'))->etc());
 });
 
 test('"add …" offers a product draft only to members who can manage products', function () {

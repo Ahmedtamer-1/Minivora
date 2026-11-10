@@ -188,9 +188,9 @@ adorna.<domain> → Cloudflare wildcard DNS → Hostinger → ResolveStore middl
 
 | Event | Fired by | Handled by |
 |---|---|---|
-| `OrderPaid` | Checkout | Ledger (post sale), Notifications, Analytics, Proactive |
+| `OrderPaid` | Checkout, Orders (manual orders; COD on delivery) | Ledger (post sale and gateway fee), Notifications, Analytics, Proactive |
 | `OrderShipped` | Orders | Ledger (post cost of goods), Notifications |
-| `OrderCancelled` / `OrderReturned` | Orders | Catalog (restock), Ledger (reverse), Notifications |
+| `OrderCancelled` / `OrderReturned` | Orders | Catalog (restock), Ledger (refund, stock back at cost), Notifications |
 | `RefundIssued` | Orders | Ledger, Notifications, Proactive |
 | `StockBelowReorder` | Catalog | Proactive (COO) |
 | `PaymentFailed` | Checkout | Proactive (CFO, Risk) |
@@ -199,6 +199,10 @@ adorna.<domain> → Cloudflare wildcard DNS → Hostinger → ResolveStore middl
 | `SlugChanged` | Catalog / Builder | Seo (301 redirect) |
 
 Slow listeners (emails, AI calls) are queued so the shopper never waits for them.
+
+Events carry a plain order snapshot (`Order::ledgerSnapshot()`), and the Ledger posts each event
+once under a source key, so a repeated event never double-books. The posting rules and the finance
+pages are described in `app/Modules/Ledger/README.md` and `app/Modules/Fpa/README.md`.
 
 ### 4.3 AI team ↔ everything else: the function registry
 
@@ -311,6 +315,9 @@ npm run build && php artisan serve
 Seeded accounts (password `password`, local only): `admin@minivora.test` (platform admin) and
 `owner0@minivora.test` … `owner4@minivora.test`, one per demo store. Emails, including verification
 links, are written to `storage/logs/laravel.log`; run `php artisan queue:work --stop-when-empty` to send queued ones.
+
+`php artisan migrate:fresh --seed` also gives the `demo` store (owner0@minivora.test / password)
+six months of orders, expenses, budgets and closed months, so the Finance pages have data.
 
 ### Everyone else
 

@@ -6,8 +6,11 @@ use App\Ai\Llm\LlmClient;
 use App\Core\Permissions\Permission;
 use App\Modules\Accounts\Models\User;
 use App\Modules\Catalog\Services\InventoryService;
+use App\Modules\Fpa\Services\ForecastService;
+use App\Modules\Ledger\Services\StatementService;
 use App\Modules\Platform\Models\Store;
 use App\Modules\Platform\Services\SetupChecklistService;
+use Illuminate\Support\Carbon;
 
 /**
  * The dashboard assistant. Code gathers every fact and number the asking user may see; a model
@@ -26,6 +29,8 @@ class StoreAssistant
         private readonly LlmClient $llm,
         private readonly InventoryService $inventory,
         private readonly SetupChecklistService $checklist,
+        private readonly StatementService $statements,
+        private readonly ForecastService $forecast,
     ) {}
 
     /**
@@ -71,6 +76,12 @@ class StoreAssistant
             'sales_tracking' => false,
         ];
 
+        // Finance from the ledger, in pounds, for members allowed to ask finance questions (FR-AI-03).
+        if ($user->canIn($store, Permission::AiAskFinance)) {
+            $facts['finance'] = $this->financeFacts();
+            $facts['sales_tracking'] = true;
+        }
+
         if ($user->canIn($store, Permission::ProductsView)) {
             $summary = $this->inventory->summary();
             $facts['products'] = [
@@ -87,6 +98,36 @@ class StoreAssistant
         return $facts;
     }
 
+    /** @return array<string, mixed> */
+    private function financeFacts(): array
+    {
+        $now = Carbon::now('Africa/Cairo');
+        $egp = fn (int $p) => round($p / 100, 2);
+        $pl = fn (Carbon $from, Carbon $to) => (function (array $r) use ($egp) {
+            return [
+                'period' => $r['from'].' to '.$r['to'],
+                'net_revenue_egp' => $egp($r['net_revenue']),
+                'gross_profit_egp' => $egp($r['gross_profit']),
+                'gross_margin_pct' => $r['gross_margin'],
+                'costs_egp' => $egp($r['total_cogs'] + $r['total_variable'] + $r['total_fixed']),
+                'net_profit_egp' => $egp($r['net_profit']),
+            ];
+        })($this->statements->profitAndLoss($from, $to));
+        $cash = $this->forecast->cash($now);
+        $be = $this->forecast->breakEvenStatus($now);
+
+        return [
+            'source' => 'Minivora ledger (posted journal entries)',
+            'this_month' => $pl($now->copy()->startOfMonth(), $now->copy()),
+            'last_month' => $pl($now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()->endOfMonth()),
+            'cash_available_egp' => $egp($cash['cash_now']),
+            'cash_forecast' => array_map(fn ($m) => ['month' => $m['month'], 'cash_egp' => $egp($m['cash'])], $cash['months']),
+            'cash_below_safety_from' => $cash['first_below'],
+            'break_even_sales_egp' => $be['break_even'] !== null ? $egp($be['break_even']) : null,
+            'break_even_progress_pct' => $be['progress'],
+        ];
+    }
+
     private function intent(string $message): string
     {
         $m = mb_strtolower(trim($message));
@@ -95,7 +136,7 @@ class StoreAssistant
             (bool) preg_match('/^(please\s+)?add\s+|^(أضف|اضف|ضيف)\s+/u', $m) => 'add',
             (bool) preg_match('/restock|low|stock|sold out|run(ning)? out|inventory|مخزون|نفد|خلص|ناقص|قليل/u', $m) => 'stock',
             (bool) preg_match('/best|top|popular|selling most|الأكثر|اكثر|أفضل|افضل/u', $m) => 'best',
-            (bool) preg_match('/sales|revenue|money|earn|orders?|profit|مبيعات|فلوس|ارباح|أرباح|طلبات|طلب/u', $m) => 'sales',
+            (bool) preg_match('/sales|revenue|money|earn|orders?|profit|cash|expenses?|costs?|margin|break.?even|budget|مبيعات|فلوس|ارباح|أرباح|ربح|طلبات|طلب|كاش|نقدية|مصاريف|مصروفات|تكاليف|هامش|تعادل|موازنة/u', $m) => 'sales',
             (bool) preg_match('/publish|launch|live|go online|setup|set up|next|start|نشر|انشر|اطلق|أطلق|ابدأ|ابدا|تجهيز/u', $m) => 'setup',
             (bool) preg_match('/products?|catalog|items?|منتج|منتجات/u', $m) => 'products',
             (bool) preg_match('/^(hi|hello|hey|yo|good (morning|evening|afternoon))\b|مرحبا|اهلا|أهلا|السلام|صباح|مساء|ازيك|إزيك/u', $m) => 'greeting',
@@ -145,7 +186,8 @@ class StoreAssistant
         You are Minivora's AI team, talking with {$user->name}, who runs the online store "{$store->name}".
         Reply in {$language}, warm and direct, like a sharp business partner. Keep it under 120 words unless asked for detail.
         Only use the facts below for anything about this store. Never invent numbers, orders, customers or sales.
-        Sales, orders and visitor tracking are not live yet ("sales_tracking": false): say so honestly if asked, and suggest what the owner can do now.
+        If "sales_tracking" is false, sales and finance figures are not available to this person: say so honestly if asked.
+        Finance figures in "finance" come from the store's ledger; quote them exactly, say which period they cover, and never compute new numbers from them.
         You cannot take actions yourself; when something needs doing, say where in the dashboard to do it (Products, Settings, Publish).
         To add a product the owner can type "add" followed by the product, e.g. "add a leather bag for 1,250 pounds".
         If a question needs data you were not given, say you can't see that yet.
@@ -193,9 +235,9 @@ class StoreAssistant
             'best' => $p === null ? $stockLine() : ($p['best_seller'] !== null
                 ? ($ar ? "الأكثر مبيعاً: {$p['best_seller']['name']}، اتباع منه {$p['best_seller']['sold']}." : "Your best seller is {$p['best_seller']['name']}, with {$p['best_seller']['sold']} sold.")
                 : ($ar ? 'لسه مفيش مبيعات أقدر أرتب بيها المنتجات.' : "No sales yet, so there's no best seller to show.")),
-            'sales' => $ar
+            'sales' => isset($facts['finance']) ? $this->financeLine($facts['finance'], $ar) : ($ar
                 ? 'تتبّع المبيعات والطلبات لسه بيتجهز، فمش هقدر أديك أرقام دلوقتي. '.$setupLine
-                : "Sales and order tracking isn't live yet, so I can't give you numbers today. ".$setupLine,
+                : "Sales and order tracking isn't live yet, so I can't give you numbers today. ".$setupLine),
             'setup' => $setupLine,
             'products' => $p === null ? $stockLine() : ($ar
                 ? "عندك {$p['total']} منتج: {$p['live']} منشور و{$p['drafts']} مسودة."
@@ -203,5 +245,27 @@ class StoreAssistant
             'add' => $ar ? 'تمام، هعملها مسودة منتج. اضغط الزر تحت وراجع التفاصيل.' : "Got it. I'll turn that into a product draft — tap below and review the details.",
             default => ($ar ? 'ده الوضع النهارده: ' : "Here's where things stand: ").$setupLine.' '.($p !== null ? $stockLine() : ''),
         };
+    }
+
+    /** Plain answer from the ledger figures, period stated (FR-AI-03). */
+    private function financeLine(array $f, bool $ar): string
+    {
+        $fmt = fn (float $v) => number_format($v, $v == floor($v) ? 0 : 2);
+        $m = $f['this_month'];
+        $line = $ar
+            ? "الشهر ده ({$m['period']}): صافي الإيرادات {$fmt($m['net_revenue_egp'])} ج.م، وصافي الربح {$fmt($m['net_profit_egp'])} ج.م. الفلوس المتاحة دلوقتي {$fmt($f['cash_available_egp'])} ج.م."
+            : "This month ({$m['period']}): net revenue {$fmt($m['net_revenue_egp'])} EGP and net profit {$fmt($m['net_profit_egp'])} EGP. Money available now: {$fmt($f['cash_available_egp'])} EGP.";
+        if ($f['break_even_sales_egp'] !== null) {
+            $line .= $ar
+                ? " نقطة التعادل حوالي {$fmt($f['break_even_sales_egp'])} ج.م في الشهر."
+                : " You break even at about {$fmt($f['break_even_sales_egp'])} EGP of sales a month.";
+        }
+        if ($f['cash_below_safety_from'] !== null) {
+            $line .= $ar
+                ? " خلي بالك: النقدية ممكن تنزل تحت حد الأمان في {$f['cash_below_safety_from']}."
+                : " Heads up: cash may drop below your safety level in {$f['cash_below_safety_from']}.";
+        }
+
+        return $line.($ar ? ' (المصدر: دفتر الأستاذ)' : ' (Source: your ledger)');
     }
 }

@@ -143,4 +143,31 @@ class Order extends Model
             'placed_at' => ($this->placed_at ?? $this->created_at)->toIso8601String(),
         ];
     }
+
+    /**
+     * What the Ledger needs to post this order (Documentation §5.12), as plain data so the Ledger
+     * never reads Orders models. Dates are ISO strings; cost is the snapshot cost of the items.
+     *
+     * @return array{id: int, number: int, status: string, payment_method: string, subtotal: int, shipping_fee: int, discount: int, total: int, cost: int, paid_at: string|null, shipped_at: string|null, closed_at: string|null}
+     */
+    public function ledgerSnapshot(): array
+    {
+        $this->loadMissing('items');
+        $closed = $this->status->isClosed() ? ($this->cancelled_at ?? $this->updated_at ?? Carbon::now()) : null;
+
+        return [
+            'id' => $this->id,
+            'number' => $this->number,
+            'status' => $this->status->value,
+            'payment_method' => $this->payment_method,
+            'subtotal' => $this->subtotal,
+            'shipping_fee' => $this->shipping_fee,
+            'discount' => $this->discount,
+            'total' => $this->total,
+            'cost' => (int) $this->items->sum(fn (OrderItem $i) => (int) ($i->unit_cost ?? 0) * $i->quantity),
+            'paid_at' => $this->paid_at?->toIso8601String(),
+            'shipped_at' => $this->shipped_at?->toIso8601String(),
+            'closed_at' => $closed?->toIso8601String(),
+        ];
+    }
 }

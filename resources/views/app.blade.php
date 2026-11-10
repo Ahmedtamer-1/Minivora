@@ -18,6 +18,9 @@
                 if (p.transparency === 'reduce') h.dataset.transparency = 'reduce';
                 if (p.contrast === 'more') h.dataset.contrast = 'more';
                 if (p.underlineLinks) h.dataset.links = 'underline';
+                // Light effects: chosen, or automatic on low-power devices (few cores, little memory, Data Saver).
+                const n = navigator, low = (n.hardwareConcurrency || 8) <= 4 || (n.deviceMemory || 8) <= 4 || (n.connection && n.connection.saveData);
+                if (p.effects === 'light' || ((p.effects || 'auto') === 'auto' && low)) h.dataset.perf = 'lite';
             } catch (e) {}
         </script>
         @viteReactRefresh

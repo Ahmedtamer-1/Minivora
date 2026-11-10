@@ -1,3 +1,0 @@
-<?php
-
-// Posts refunds.

@@ -8,7 +8,12 @@ use App\Core\AuditLog\ActorType;
 use App\Core\Tenancy\CurrentStore;
 use App\Modules\Accounts\Models\User;
 use App\Modules\Catalog\Services\InventoryService;
+use App\Modules\Checkout\Events\OrderPaid;
 use App\Modules\Orders\Enums\OrderStatus;
+use App\Modules\Orders\Events\OrderCancelled;
+use App\Modules\Orders\Events\OrderReturned;
+use App\Modules\Orders\Events\OrderShipped;
+use App\Modules\Orders\Events\RefundIssued;
 use App\Modules\Orders\Models\Customer;
 use App\Modules\Orders\Models\Order;
 use App\Modules\Orders\Notifications\OrderStatusChanged;
@@ -141,7 +146,7 @@ class OrderService
             $status = OrderStatus::Pending;
         }
 
-        return DB::transaction(function () use ($data, $items, $deduct, $subtotal, $shipping, $discount, $status, $by) {
+        $order = DB::transaction(function () use ($data, $items, $deduct, $subtotal, $shipping, $discount, $status, $by) {
             $this->inventory->deduct($deduct);
 
             $customer = $this->matchCustomer($data);
@@ -184,6 +189,12 @@ class OrderService
 
             return $order;
         });
+
+        if ($order->paid_at !== null) {
+            OrderPaid::dispatch($order->ledgerSnapshot());
+        }
+
+        return $order;
     }
 
     /**
@@ -200,6 +211,7 @@ class OrderService
             ]);
         }
 
+        $wasPaid = $order->paid_at !== null;
         DB::transaction(function () use ($order, $from, $to, $by, $note, $actor) {
             $now = Carbon::now();
             $order->status = $to;
@@ -227,6 +239,19 @@ class OrderService
             }
             $this->activity->log('order.status_changed', $order, ['number' => $order->number, 'from' => $from->value, 'to' => $to->value], $actor);
         });
+
+        // Money events for the Ledger (Documentation §5.12), after the change is committed.
+        $snapshot = $order->ledgerSnapshot();
+        if (! $wasPaid && $order->paid_at !== null) {
+            OrderPaid::dispatch($snapshot);
+        }
+        match ($to) {
+            OrderStatus::Shipped => OrderShipped::dispatch($snapshot),
+            OrderStatus::Cancelled => OrderCancelled::dispatch($snapshot),
+            OrderStatus::Returned => OrderReturned::dispatch($snapshot),
+            OrderStatus::Refunded => RefundIssued::dispatch($snapshot),
+            default => null,
+        };
 
         if ($to->emailsShopper() && $order->email !== null && $order->email !== '') {
             $store = $this->current->getOrFail();
@@ -382,6 +407,21 @@ class OrderService
             'change' => $before > 0 ? (int) round(($amount - $before) * 100 / $before) : null,
             'days' => $days,
         ];
+    }
+
+    /**
+     * Every order the Ledger should know about (paid or shipped at some point), as ledger snapshots.
+     * Used to catch the books up with orders taken before the Ledger shipped, and by month close.
+     *
+     * @return iterable<array<string, mixed>>
+     */
+    public function ledgerSnapshots(): iterable
+    {
+        $query = Order::query()->with('items')->where(fn ($q) => $q->whereNotNull('paid_at')->orWhereNotNull('shipped_at'));
+        foreach ($query->lazyById(200) as $order) {
+            /** @var Order $order */
+            yield $order->ledgerSnapshot();
+        }
     }
 
     /** @return array<int, int> product id => quantity */

@@ -1,12 +1,12 @@
 // Accessibility and display: theme, text size, motion, transparency, contrast, link underlines.
 // Saved on this device and applied at once (lib/display-prefs.ts). NFR-USE-04 (WCAG 2.2 AA), NFR-USE-05.
 import { Link } from '@inertiajs/react';
-import { Contrast, Languages, Layers, Monitor, Moon, MoveRight, Sun, Type, Underline, type LucideIcon } from 'lucide-react';
+import { Contrast, Feather, Gauge, Languages, Layers, Monitor, Moon, MoveRight, Sparkles, Sun, Type, Underline, type LucideIcon } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Card } from '@/components/ui/card';
 import { SettingsLayout } from '@/layouts/settings-layout';
 import { cn } from '@/lib/cn';
-import { defaultPrefs, readPrefs, savePrefs, type DisplayPrefs } from '@/lib/display-prefs';
+import { defaultPrefs, isLowPowerDevice, readPrefs, savePrefs, type DisplayPrefs } from '@/lib/display-prefs';
 import { useLocale, useT } from '@/lib/i18n';
 import { stopSmoothScroll } from '@/lib/smooth-scroll';
 
@@ -87,7 +87,7 @@ export default function AccessibilitySettings() {
         const next = { ...prefs, [key]: value };
         setPrefs(next);
         savePrefs(next);
-        if (key === 'motion' && value === 'reduce') stopSmoothScroll();
+        if ((key === 'motion' && value === 'reduce') || (key === 'effects' && value === 'light')) stopSmoothScroll();
         setAnnounce(t('a11y.saved'));
     };
 
@@ -132,6 +132,20 @@ export default function AccessibilitySettings() {
             <Card className="p-5 sm:p-6">
                 <h2 className="font-display text-base">{t('a11y.comfort')}</h2>
                 <p className="mt-1 text-sm text-ink-muted">{t('a11y.comfort_hint')}</p>
+                <div className="mt-4">
+                    <ChoiceGroup
+                        name="effects"
+                        legend={t('a11y.effects')}
+                        hint={prefs.effects === 'auto' ? t(isLowPowerDevice() ? 'a11y.effects_auto_light' : 'a11y.effects_auto_full') : t('a11y.effects_hint')}
+                        value={prefs.effects}
+                        onChange={(v) => update('effects', v)}
+                        options={[
+                            { value: 'auto', label: t('a11y.effects_auto'), icon: Gauge },
+                            { value: 'full', label: t('a11y.effects_full'), icon: Sparkles },
+                            { value: 'light', label: t('a11y.effects_light'), icon: Feather },
+                        ]}
+                    />
+                </div>
                 <div className="mt-2 divide-y divide-line">
                     <SwitchRow id="motion" icon={MoveRight} flipRtl label={t('a11y.motion')} hint={t('a11y.motion_hint')} checked={prefs.motion === 'reduce'} onChange={(on) => update('motion', on ? 'reduce' : 'system')} />
                     <SwitchRow id="transparency" icon={Layers} label={t('a11y.transparency')} hint={t('a11y.transparency_hint')} checked={prefs.transparency === 'reduce'} onChange={(on) => update('transparency', on ? 'reduce' : 'system')} />

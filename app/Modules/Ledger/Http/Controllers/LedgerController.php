@@ -1,3 +1,0 @@
-<?php
-
-// Dashboard: journal, accounts.

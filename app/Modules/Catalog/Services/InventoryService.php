@@ -48,6 +48,23 @@ class InventoryService
     }
 
     /**
+     * Stock on hand at cost, for the Ledger's inventory check and opening balance. Products with no
+     * cost recorded are counted separately so the owner knows the figure is incomplete.
+     *
+     * @return array{value: int, units: int, missing_cost: int}
+     */
+    public function stockValue(): array
+    {
+        $row = Product::query()->where('stock', '>', 0)
+            ->selectRaw('COALESCE(SUM(CASE WHEN cost IS NOT NULL THEN stock * cost ELSE 0 END), 0) as value')
+            ->selectRaw('COALESCE(SUM(stock), 0) as units')
+            ->selectRaw('SUM(CASE WHEN cost IS NULL THEN 1 ELSE 0 END) as missing_cost')
+            ->first();
+
+        return ['value' => (int) ($row->value ?? 0), 'units' => (int) ($row->units ?? 0), 'missing_cost' => (int) ($row->missing_cost ?? 0)];
+    }
+
+    /**
      * Things the owner should act on, most urgent first (stand-in for the AI "Today" feed, FR-PRO-04).
      *
      * @return list<array{key: string, kind: string, product_id: int|null, name: string|null, count: int}>

@@ -11,6 +11,8 @@ export interface DisplayPrefs {
     transparency: Choice<'system' | 'reduce'>;
     contrast: Choice<'system' | 'more'>;
     underlineLinks: boolean;
+    /** Visual effects: "auto" turns the light set on by itself on low-power devices. */
+    effects: Choice<'auto' | 'full' | 'light'>;
 }
 
 export const defaultPrefs: DisplayPrefs = {
@@ -20,6 +22,7 @@ export const defaultPrefs: DisplayPrefs = {
     transparency: 'system',
     contrast: 'system',
     underlineLinks: false,
+    effects: 'auto',
 };
 
 const KEY = 'mv-display';
@@ -52,6 +55,22 @@ export function applyPrefs(p: DisplayPrefs): void {
     set('transparency', p.transparency === 'reduce' ? 'reduce' : null);
     set('contrast', p.contrast === 'more' ? 'more' : null);
     set('links', p.underlineLinks ? 'underline' : null);
+    set('perf', p.effects === 'light' || (p.effects === 'auto' && isLowPowerDevice()) ? 'lite' : null);
+}
+
+/**
+ * Few cores, little memory or Data Saver: the moving backdrop and smooth scrolling cost more than
+ * they give. Mirrors the inline script in app.blade.php.
+ */
+export function isLowPowerDevice(): boolean {
+    if (typeof navigator === 'undefined') return false;
+    const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
+    return (nav.hardwareConcurrency ?? 8) <= 4 || (nav.deviceMemory ?? 8) <= 4 || nav.connection?.saveData === true;
+}
+
+/** Light effects are on (setting, or chosen automatically for this device). */
+export function liteEffects(): boolean {
+    return typeof document !== 'undefined' && document.documentElement.dataset.perf === 'lite';
 }
 
 export function savePrefs(p: DisplayPrefs): void {

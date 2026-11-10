@@ -3,6 +3,7 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
+import { startCalmWhenIdle } from './lib/calm';
 import { prefersReducedMotion } from './lib/display-prefs';
 import { cleanPath, sectionFor } from './lib/nav';
 import { startSmoothScroll } from './lib/smooth-scroll';
@@ -40,6 +41,7 @@ createInertiaApp({
 
         createRoot(el).render(<App {...props} />);
         startSmoothScroll();
+        startCalmWhenIdle();
     },
     defaults: {
         // Moving to another area cross-fades with the View Transitions API (see app.css). Moving within

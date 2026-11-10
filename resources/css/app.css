@@ -1,6 +1,13 @@
 @import './tokens.css';
 
 @tailwind base;
+
+/* Finance charts: revenue and costs. Checked with the dataviz validator (lightness band, chroma,
+   colour-blind separation, contrast) against both the light and the dark surface. */
+:root {
+    --mv-fin-revenue: #2A8FB8;
+    --mv-fin-costs: #C9741F;
+}
 @tailwind components;
 @tailwind utilities;
 
@@ -31,8 +38,9 @@
         border: 1px solid var(--mv-glass-stroke);
         border-radius: var(--mv-radius-2xl);
         box-shadow: var(--mv-glass-shadow), inset 0 1px 0 var(--mv-glass-highlight);
-        backdrop-filter: blur(24px) saturate(140%);
-        -webkit-backdrop-filter: blur(24px) saturate(140%);
+        /* 16px reads the same frosted on these mostly opaque cards, at about half the cost of 24px. */
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
     }
     /* Floating controls layer (rail, tab bar, menus): the only real glass. */
     .glass {
@@ -71,32 +79,33 @@
     .mv-backdrop {
         background: var(--mv-bg-canvas);
     }
+    /* No filter: blur here. The radial gradients already fade to nothing, and a blur on a moving,
+       screen-sized layer is re-rasterised every frame (measured: about a fifth of scroll cost). */
     .mv-orb {
         position: absolute;
         aspect-ratio: 1;
         border-radius: 9999px;
-        filter: blur(40px);
         will-change: transform;
     }
     .mv-orb--1 {
         width: 46vmax;
         left: -14vmax;
         bottom: -16vmax;
-        background: radial-gradient(circle, var(--mv-aurora-1) 0%, transparent 68%);
+        background: radial-gradient(circle, var(--mv-aurora-1) 0%, color-mix(in srgb, var(--mv-aurora-1) 50%, transparent) 32%, transparent 70%);
         animation: mv-drift-a 26s ease-in-out var(--mv-clock, 0s) infinite alternate;
     }
     .mv-orb--2 {
         width: 40vmax;
         left: 28%;
         top: -22vmax;
-        background: radial-gradient(circle, var(--mv-aurora-2) 0%, transparent 68%);
+        background: radial-gradient(circle, var(--mv-aurora-2) 0%, color-mix(in srgb, var(--mv-aurora-2) 50%, transparent) 32%, transparent 70%);
         animation: mv-drift-b 32s ease-in-out var(--mv-clock, 0s) infinite alternate;
     }
     .mv-orb--3 {
         width: 44vmax;
         right: -16vmax;
         bottom: -18vmax;
-        background: radial-gradient(circle, var(--mv-aurora-3) 0%, transparent 68%);
+        background: radial-gradient(circle, var(--mv-aurora-3) 0%, color-mix(in srgb, var(--mv-aurora-3) 50%, transparent) 32%, transparent 70%);
         animation: mv-drift-c 29s ease-in-out var(--mv-clock, 0s) infinite alternate;
     }
     .mv-orb--4 {
@@ -104,7 +113,7 @@
         right: 8%;
         top: 6%;
         opacity: 0.55;
-        background: radial-gradient(circle, var(--mv-brand-accent) 0%, transparent 68%);
+        background: radial-gradient(circle, var(--mv-brand-accent) 0%, color-mix(in srgb, var(--mv-brand-accent) 50%, transparent) 32%, transparent 70%);
         animation: mv-drift-b 38s ease-in-out calc(var(--mv-clock, 0s) - 12s) infinite alternate-reverse;
     }
     .mv-orb--5 {
@@ -112,7 +121,7 @@
         left: 18%;
         top: 38%;
         opacity: 0.35;
-        background: radial-gradient(circle, var(--mv-brand-highlight) 0%, transparent 68%);
+        background: radial-gradient(circle, var(--mv-brand-highlight) 0%, color-mix(in srgb, var(--mv-brand-highlight) 50%, transparent) 32%, transparent 70%);
         animation: mv-drift-a 34s ease-in-out calc(var(--mv-clock, 0s) - 8s) infinite alternate-reverse;
     }
     /* Scroll parallax layer (lib/motion.ts useScrollParallax): moves up by scroll × depth. */
@@ -134,7 +143,8 @@
         background: conic-gradient(from 0deg, transparent 0deg, color-mix(in srgb, var(--mv-aurora-2) 22%, transparent) 60deg, transparent 140deg, color-mix(in srgb, var(--mv-aurora-1) 18%, transparent) 220deg, transparent 300deg);
         opacity: 0.6;
         filter: blur(60px);
-        animation: mv-spin 80s linear var(--mv-clock, 0s) infinite;
+        /* Still on purpose: at 80s a turn the motion was invisible but kept a 160vmax blurred layer
+           repainting. Static, it is rasterised once. */
     }
     /* Fine film grain keeps the gradients from banding. */
     .mv-grain {
@@ -490,6 +500,48 @@ html.lenis body {
 }
 .lenis.lenis-smooth iframe {
     pointer-events: none;
+}
+
+/* Calm when idle (lib/calm.ts): a few seconds after the last input, or with the window in the
+   background, decorative loops pause where they are. Measured on the finance page: idle CPU drops
+   from about one full core to under a tenth of one. The AI orb keeps moving while it thinks or speaks. */
+[data-calm] :is(.mv-orb, .mv-float, .mv-twinkle, .mv-pan, .mv-wave > *),
+[data-calm] .mv-pulse-dot::after,
+[data-calm] .mv-pulse::after,
+[data-calm] .mv-shine::after,
+[data-calm] .mv-hero-lights::before,
+[data-calm] .mv-hero-lights::after,
+[data-calm] .mv-ai-orb[data-state='idle'],
+[data-calm] .mv-ai-orb[data-state='idle']::before {
+    animation-play-state: paused;
+}
+
+/* Light effects (Settings › Accessibility › Visual effects, automatic on low-power devices): the same
+   colours and glass, standing still. No drifting backdrop, parallax or smooth scrolling, smaller blurs. */
+[data-perf='lite'] .mv-backdrop *,
+[data-perf='lite'] .mv-ai-orb[data-state='idle'],
+[data-perf='lite'] .mv-ai-orb[data-state='idle']::before,
+[data-perf='lite'] .mv-shine::after,
+[data-perf='lite'] .mv-hero-lights::before,
+[data-perf='lite'] .mv-hero-lights::after,
+[data-perf='lite'] :is(.mv-float, .mv-twinkle, .mv-pan) {
+    animation: none !important;
+}
+[data-perf='lite'] :is(.mv-par, .mv-orb) {
+    transform: none !important;
+    will-change: auto;
+}
+[data-perf='lite'] .mv-sheen {
+    display: none;
+}
+[data-perf='lite'] .card {
+    background: color-mix(in srgb, var(--mv-bg-elevated) 88%, transparent);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+[data-perf='lite'] :is(.glass, .glass-float) {
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
 /* Reduce Transparency (OS setting, or Settings › Accessibility): every translucent surface becomes opaque. */

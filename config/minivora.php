@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Ledger\AiFunctions\LedgerFunctions;
 use App\Modules\Platform\AiFunctions\PlatformFunctions;
 
 // Minivora settings read from .env.
@@ -60,6 +61,7 @@ return [
         // Classes whose #[AiFunction] methods the AI team may call (FR-AI-06). Add one per module.
         'functions' => [
             PlatformFunctions::class,
+            LedgerFunctions::class,
         ],
     ],
 ];

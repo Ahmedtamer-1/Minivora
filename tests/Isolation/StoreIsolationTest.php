@@ -85,9 +85,23 @@ function isolationRow(string $table, int $storeId): array
 {
     $row = ['store_id' => $storeId];
 
+    // Required foreign keys point at a real row of the same store (created if there is none yet).
+    foreach (Schema::getForeignKeys($table) as $fk) {
+        $column = $fk['columns'][0];
+        $parent = $fk['foreign_table'];
+        if ($column === 'store_id' || $parent === $table || in_array($parent, ['users', 'stores'], true)) {
+            continue;
+        }
+        $query = DB::table($parent);
+        if (Schema::hasColumn($parent, 'store_id')) {
+            $query->where('store_id', $storeId);
+        }
+        $row[$column] = $query->value('id') ?? DB::table($parent)->insertGetId(isolationRow($parent, $storeId));
+    }
+
     foreach (Schema::getColumns($table) as $column) {
         $name = $column['name'];
-        if ($name === 'id' || $name === 'store_id' || $column['nullable'] || $column['default'] !== null) {
+        if ($name === 'id' || array_key_exists($name, $row) || $column['nullable'] || $column['default'] !== null) {
             continue;
         }
         $type = strtolower($column['type_name']);

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { prefersReducedMotion as reduced } from './display-prefs';
+import { liteEffects, prefersReducedMotion as reduced } from './display-prefs';
 
 /** False on the first paint, true right after: lets bars and rings grow from zero to their value. */
 export function useAppeared(delay = 80): boolean {
@@ -45,7 +45,7 @@ export function useTypedPlaceholder(examples: string[], active = true): string {
     const key = examples.join('|');
 
     useEffect(() => {
-        if (!active || reduced() || examples.length === 0) {
+        if (!active || reduced() || liteEffects() || examples.length === 0) {
             setText(examples[0] ?? '');
             return;
         }
@@ -54,6 +54,11 @@ export function useTypedPlaceholder(examples: string[], active = true): string {
         let deleting = false;
         let id = 0;
         const tick = () => {
+            // Asleep while the page is calm (lib/calm.ts): no re-render every few milliseconds.
+            if (document.documentElement.dataset.calm !== undefined) {
+                id = window.setTimeout(tick, 1000);
+                return;
+            }
             const word = examples[i];
             if (!deleting) {
                 pos++;
@@ -93,7 +98,7 @@ export function useTypedPlaceholder(examples: string[], active = true): string {
 export function useScrollParallax<T extends HTMLElement>(ref: React.RefObject<T | null>): void {
     useEffect(() => {
         const el = ref.current;
-        if (!el || reduced()) return;
+        if (!el || reduced() || liteEffects()) return;
         let raf = 0;
         let last = -1;
         const apply = () => {
