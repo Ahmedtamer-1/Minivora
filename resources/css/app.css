@@ -156,10 +156,10 @@
     }
     /* Content entrance: rise and fade in. */
     .mv-rise {
-        animation: mv-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation: mv-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
     .mv-rise-delay {
-        animation-delay: 0.12s;
+        animation-delay: 0.06s;
     }
 
     /* Live status dot (pending orders): a soft ring that keeps pulsing outwards. */
@@ -175,21 +175,18 @@
         animation: mv-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
 
-    /* Dashboard cards: rise in one after another, then lift gently under the pointer.
+    /* Dashboard cards: rise in one after another, then lift gently under the pointer. Quick, so a
+       page is readable at once (about 0.45s for the whole set).
        fill-mode "backwards" so the hover transform still applies once the entrance ends. */
     .mv-stagger > * {
-        animation: mv-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) var(--mv-d, 0ms) backwards;
+        animation: mv-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) var(--mv-d, 0ms) backwards;
         transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
     }
-    .mv-stagger > :nth-child(2) { --mv-d: 60ms; }
-    .mv-stagger > :nth-child(3) { --mv-d: 120ms; }
-    .mv-stagger > :nth-child(4) { --mv-d: 180ms; }
-    .mv-stagger > :nth-child(5) { --mv-d: 240ms; }
-    .mv-stagger > :nth-child(6) { --mv-d: 300ms; }
-    .mv-stagger > :nth-child(7) { --mv-d: 360ms; }
-    .mv-stagger > :nth-child(8) { --mv-d: 420ms; }
-    .mv-stagger > :nth-child(9) { --mv-d: 480ms; }
-    .mv-stagger > :nth-child(n + 10) { --mv-d: 540ms; }
+    .mv-stagger > :nth-child(2) { --mv-d: 25ms; }
+    .mv-stagger > :nth-child(3) { --mv-d: 50ms; }
+    .mv-stagger > :nth-child(4) { --mv-d: 75ms; }
+    .mv-stagger > :nth-child(5) { --mv-d: 100ms; }
+    .mv-stagger > :nth-child(n + 6) { --mv-d: 120ms; }
     @media (hover: hover) {
         .mv-stagger > :hover {
             transform: translateY(-3px);
@@ -412,10 +409,10 @@
     100% { background-position: 100% 50%; }
 }
 @keyframes mv-fade-out {
-    to { opacity: 0; transform: translateY(-8px) scale(0.99); }
+    to { opacity: 0; }
 }
 @keyframes mv-fade-in {
-    from { opacity: 0; transform: translateY(14px) scale(0.99); }
+    from { opacity: 0; transform: translateY(6px); }
 }
 @keyframes mv-breathe {
     0%, 100% { transform: scale(1); }
@@ -441,21 +438,22 @@
     from { opacity: 0; transform: scale(0.94); filter: blur(6px); }
 }
 @keyframes mv-rise {
-    from { opacity: 0; transform: translateY(16px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: none; }
 }
 
-/* Page switches (Inertia visits with viewTransition). The rail and tab bar stay put;
-   only the page content fades out and the new page rises in. */
+/* Switching areas (Inertia visits with viewTransition; moves within one area swap in place, see
+   app.tsx). Short on purpose: the rail and tab bar stay put, the old page fades out quickly and the
+   new one settles in, about a quarter of a second in all, so a click never feels like a page load. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-    animation-duration: 0.3s;
+    animation-duration: 0.18s;
 }
 ::view-transition-old(mv-main) {
-    animation: mv-fade-out 0.2s ease-in both;
+    animation: mv-fade-out 0.09s ease-in both;
 }
 ::view-transition-new(mv-main) {
-    animation: mv-fade-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
+    animation: mv-fade-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 ::view-transition-group(mv-ai-orb) {
     animation-duration: 0.6s;

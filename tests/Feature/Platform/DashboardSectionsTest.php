@@ -104,3 +104,24 @@ test('home "This week" stays empty until the store has a sale', function () {
 
     $this->get('/dashboard')->assertInertia(fn (Assert $page) => $page->where('week', null));
 });
+
+test('translations are sent once per language, not with every click', function () {
+    signedInMember(Role::Owner);
+    $version = $this->get('/settings/account')->viewData('page')['version'];
+    $key = 'translations:en:'.filemtime(lang_path('en.json'));
+    $inertia = ['X-Inertia' => 'true', 'X-Inertia-Version' => $version];
+
+    // A visit from a client that has not got them yet: the dictionary comes along.
+    $first = $this->get('/settings/accessibility', $inertia)->assertOk()->json();
+    expect($first['props'])->toHaveKey('translations')
+        ->and($first['props']['translations']['common.save'])->toBe('Save');
+
+    // A client that already holds this language: the next page arrives without them.
+    $next = $this->get('/settings/members', $inertia + ['X-Inertia-Except-Once-Props' => $key])->assertOk()->json();
+    expect($next['props'])->not->toHaveKey('translations');
+
+    // Switching language changes the key, so the new dictionary is sent.
+    $this->get('/locale/ar');
+    $arabic = $this->get('/settings/members', $inertia + ['X-Inertia-Except-Once-Props' => $key])->assertOk()->json();
+    expect($arabic['props']['translations']['common.save'])->toBe('حفظ');
+});

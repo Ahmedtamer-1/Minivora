@@ -11,11 +11,12 @@ import {
     Users,
     type LucideIcon,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 import { useT } from '@/lib/i18n';
 import { cleanPath } from '@/lib/nav';
 import { useCan, type Permission } from '@/lib/permissions';
+import { useCurrentInView } from '@/lib/use-current-in-view';
 import { DashboardLayout, PageHeader } from './dashboard-layout';
 
 interface Item {
@@ -58,6 +59,8 @@ export function SettingsLayout({ title, description, action, children }: { title
     const t = useT();
     const can = useCan();
     const path = cleanPath(usePage().url);
+    const row = useRef<HTMLDivElement>(null);
+    useCurrentInView(row);
 
     const visible = groups.map((g) => ({ ...g, items: g.items.filter((i) => !i.permission || can(i.permission)) })).filter((g) => g.items.length > 0);
 
@@ -65,7 +68,7 @@ export function SettingsLayout({ title, description, action, children }: { title
         <DashboardLayout title={title}>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:gap-8">
                 <nav aria-label={t('settings.nav')} className="min-w-0 lg:sticky lg:top-6 lg:self-start">
-                    <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:block lg:space-y-5 lg:overflow-visible lg:px-0">
+                    <div ref={row} className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:block lg:space-y-5 lg:overflow-visible lg:px-0">
                         {visible.map((group) => (
                             <section key={group.key} aria-labelledby={`settings-${group.key}`} className="shrink-0">
                                 <h2 id={`settings-${group.key}`} className="mb-1.5 hidden px-3 text-caption text-ink-muted lg:block">

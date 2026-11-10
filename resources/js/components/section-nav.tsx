@@ -1,8 +1,10 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useRef } from 'react';
 import { cn } from '@/lib/cn';
 import { useT } from '@/lib/i18n';
 import { cleanPath, pageFor, sectionFor } from '@/lib/nav';
 import { useCan } from '@/lib/permissions';
+import { useCurrentInView } from '@/lib/use-current-in-view';
 
 /**
  * Tabs for the pages inside the current section (Products · Categories · Inventory). Rendered by
@@ -14,6 +16,8 @@ export function SectionNav() {
     const can = useCan();
     const { url } = usePage();
     const path = cleanPath(url);
+    const row = useRef<HTMLElement>(null);
+    useCurrentInView(row);
     const section = sectionFor(path);
     if (!section?.pages) return null;
 
@@ -22,7 +26,7 @@ export function SectionNav() {
     const current = pageFor(section, path);
 
     return (
-        <nav aria-label={t(`nav.${section.key}`)} className="-mx-1 mb-6 overflow-x-auto px-1 pb-1">
+        <nav ref={row} aria-label={t(`nav.${section.key}`)} className="-mx-1 mb-6 overflow-x-auto px-1 pb-1">
             <ul className="flex w-max gap-1 glass-strong rounded-full p-1 shadow-sm">
                 {pages.map((p) => {
                     const Icon = p.icon;

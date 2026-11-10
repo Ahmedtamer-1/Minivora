@@ -4,7 +4,15 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
 import { prefersReducedMotion } from './lib/display-prefs';
+import { cleanPath, sectionFor } from './lib/nav';
 import { startSmoothScroll } from './lib/smooth-scroll';
+
+/** True when the link stays inside the section the member is in now. */
+function sameSection(href: string | URL): boolean {
+    const from = sectionFor(cleanPath(window.location.pathname));
+    const to = sectionFor(cleanPath(new URL(href, window.location.href).pathname));
+    return from !== undefined && from === to;
+}
 
 const appName = import.meta.env.VITE_APP_NAME || 'Minivora';
 
@@ -34,10 +42,11 @@ createInertiaApp({
         startSmoothScroll();
     },
     defaults: {
-        // Page changes inside the app cross-fade with the View Transitions API (see app.css) instead of
-        // swapping abruptly. Browsers without it, and Reduce Motion, get the plain swap.
-        visitOptions: (_href, options) => ({
-            viewTransition: (options.method ?? 'get') === 'get' && !prefersReducedMotion(),
+        // Moving to another area cross-fades with the View Transitions API (see app.css). Moving within
+        // one area (Settings pages, a section's tabs) swaps in place, so the frame stays put and the
+        // click feels instant. Browsers without the API, and Reduce Motion, always get the plain swap.
+        visitOptions: (href, options) => ({
+            viewTransition: (options.method ?? 'get') === 'get' && !prefersReducedMotion() && !sameSection(href),
         }),
     },
     progress: { color: '#1D7AA0' },

@@ -6,6 +6,7 @@ use App\Core\Permissions\PermissionMatrix;
 use App\Core\Tenancy\CurrentStore;
 use App\Modules\Accounts\Models\User;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -22,7 +23,10 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'locale' => $locale,
             'dir' => $locale === 'ar' ? 'rtl' : 'ltr',
-            'translations' => fn () => $this->translations($locale),
+            // The whole dictionary is ~40 KB: send it once per language and file version, and let the
+            // client reuse it on every later visit instead of downloading it with each click.
+            'translations' => Inertia::once(fn () => $this->translations($locale))
+                ->as('translations:'.$locale.':'.@filemtime(lang_path($locale.'.json'))),
             'domain' => config('minivora.domain'),
             'auth' => [
                 'user' => $user === null ? null : [
