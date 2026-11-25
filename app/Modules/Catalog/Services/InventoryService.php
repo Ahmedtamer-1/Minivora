@@ -3,7 +3,9 @@
 namespace App\Modules\Catalog\Services;
 
 use App\Modules\Catalog\Enums\ProductStatus;
+use App\Modules\Catalog\Events\StockBelowReorder;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -172,5 +174,52 @@ class InventoryService
                 $product->save();
             }
         });
+    }
+
+    /**
+     * Keep parent product stock equal to the sum of its variants' stock when variants exist. FR-CAT-02
+     */
+    public function syncProductStock(Product $product): int
+    {
+        if (! $product->variants()->exists()) {
+            return (int) $product->stock;
+        }
+
+        $total = (int) $product->variants()->sum('stock');
+        $product->stock = $total;
+        $product->save();
+
+        return $total;
+    }
+
+    /**
+     * Adjust stock for a product or a specific variant by $delta (positive or negative).
+     * Syncs parent product stock when adjusting a variant, and dispatches StockBelowReorder
+     * when the resulting stock is at or below the product's reorder_threshold. FR-CAT-02, FR-CAT-17
+     */
+    public function adjustStock(Product $product, int $delta, ?ProductVariant $variant = null): int
+    {
+        $threshold = (int) ($product->reorder_threshold ?? Product::LOW_STOCK);
+
+        $resultingStock = DB::transaction(function () use ($product, $delta, $variant): int {
+            if ($variant !== null) {
+                $variant->stock = max(0, $variant->stock + $delta);
+                $variant->save();
+                $this->syncProductStock($product);
+
+                return (int) $variant->stock;
+            }
+
+            $product->stock = max(0, $product->stock + $delta);
+            $product->save();
+
+            return (int) $product->stock;
+        });
+
+        if ($resultingStock <= $threshold) {
+            StockBelowReorder::dispatch($product, $variant, $resultingStock);
+        }
+
+        return $resultingStock;
     }
 }

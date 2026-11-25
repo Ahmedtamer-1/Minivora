@@ -107,6 +107,46 @@ class Store extends Model
         return $this->suspended_at !== null;
     }
 
+    public function isInMaintenanceMode(): bool
+    {
+        return (bool) ($this->profile['maintenance_mode'] ?? false);
+    }
+
+    public function maintenanceMessage(): string
+    {
+        $custom = trim((string) ($this->profile['maintenance_message'] ?? ''));
+
+        return $custom !== ''
+            ? $custom
+            : 'We are currently performing scheduled maintenance. Please check back soon.';
+    }
+
+    public function enableMaintenanceMode(?string $message = null): self
+    {
+        $profile = $this->profile ?? [];
+        $profile['maintenance_mode'] = true;
+
+        if ($message !== null) {
+            $profile['maintenance_message'] = trim($message);
+        }
+
+        $this->profile = $profile;
+        $this->save();
+
+        return $this;
+    }
+
+    public function disableMaintenanceMode(): self
+    {
+        $profile = $this->profile ?? [];
+        $profile['maintenance_mode'] = false;
+
+        $this->profile = $profile;
+        $this->save();
+
+        return $this;
+    }
+
     public function profileData(): StoreProfileData
     {
         return StoreProfileData::from($this->profile ?? []);

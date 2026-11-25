@@ -8,6 +8,8 @@ use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
@@ -19,16 +21,21 @@ use Illuminate\Support\Facades\Storage;
  * @property int $store_id
  * @property string $name
  * @property string|null $name_ar
+ * @property string|null $slug
+ * @property string|null $sku
  * @property string|null $description
  * @property string|null $category
+ * @property int|null $category_id
  * @property int $price
  * @property int|null $compare_at_price
  * @property int|null $cost
  * @property int $stock
+ * @property int $reorder_threshold
  * @property ProductStatus $status
  * @property bool $has_options
  * @property list<array{name: string, hex: string}>|null $colors
  * @property list<string>|null $images
+ * @property string|null $video_url
  * @property string|null $seo_title
  * @property string|null $seo_description
  * @property string $source
@@ -47,22 +54,26 @@ class Product extends Model
     public const LOW_STOCK = 5;
 
     protected $fillable = [
-        'name', 'name_ar', 'description', 'category', 'price', 'compare_at_price', 'cost', 'stock',
-        'status', 'has_options', 'colors', 'images', 'seo_title', 'seo_description', 'source',
+        'name', 'name_ar', 'slug', 'sku', 'description', 'category', 'category_id',
+        'price', 'compare_at_price', 'cost', 'stock', 'reorder_threshold',
+        'status', 'has_options', 'colors', 'images', 'video_url', 'seo_title', 'seo_description', 'source',
     ];
 
     protected $attributes = [
         'status' => 'draft',
         'source' => 'manual',
+        'reorder_threshold' => self::LOW_STOCK,
     ];
 
     protected function casts(): array
     {
         return [
+            'category_id' => 'integer',
             'price' => 'integer',
             'compare_at_price' => 'integer',
             'cost' => 'integer',
             'stock' => 'integer',
+            'reorder_threshold' => 'integer',
             'sold_count' => 'integer',
             'status' => ProductStatus::class,
             'has_options' => 'boolean',
@@ -75,6 +86,30 @@ class Product extends Model
     protected static function newFactory(): ProductFactory
     {
         return ProductFactory::new();
+    }
+
+    /** @return HasMany<ProductVariant, $this> */
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    /** @return BelongsTo<Category, $this> */
+    public function categoryRecord(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    /** @return HasMany<Review, $this> */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /** @return HasMany<Review, $this> */
+    public function approvedReviews(): HasMany
+    {
+        return $this->hasMany(Review::class)->where('approved', true);
     }
 
     public function isLive(): bool

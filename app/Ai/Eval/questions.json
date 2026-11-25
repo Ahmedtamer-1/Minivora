@@ -1,4 +1,61 @@
-{
-  "_note": "50-100 owner questions with SQL-computed expected answers (NFR-AIQ). Add real Adorna questions.",
-  "questions": []
-}
+[
+  {"id": 1, "question": "بعت بكام النهاردة؟", "locale": "ar", "expected_function": "analytics.sales_summary", "expected_agent": "cro", "held_out": false, "facts": {"revenue_egp": 14500, "orders": 18}},
+  {"id": 2, "question": "مبيعات الشهر ده وصلت كام؟", "locale": "ar", "expected_function": "analytics.sales_summary", "expected_agent": "cro", "held_out": false, "facts": {"revenue_egp": 182400, "orders": 215}},
+  {"id": 3, "question": "إيرادات الشهر اللي فات كانت كام؟", "locale": "ar", "expected_function": "analytics.sales_summary", "expected_agent": "cro", "held_out": true, "facts": {"revenue_egp": 165000, "orders": 198}},
+  {"id": 4, "question": "How were my sales this month?", "locale": "en", "expected_function": "analytics.sales_summary", "expected_agent": "cro", "held_out": false, "facts": {"revenue_egp": 182400, "orders": 215}},
+  {"id": 5, "question": "What is our total revenue for last 7 days?", "locale": "en", "expected_function": "analytics.sales_summary", "expected_agent": "cro", "held_out": true, "facts": {"revenue_egp": 49200, "orders": 61}},
+
+  {"id": 6, "question": "المكسب صافي كام الشهر ده؟", "locale": "ar", "expected_function": "finance.profit_and_loss", "expected_agent": "cfo", "held_out": false, "facts": {"net_profit_egp": 38600, "margin_pct": 21.2}},
+  {"id": 7, "question": "كسبنا ولا خسرنا الشهر اللي فات؟", "locale": "ar", "expected_function": "finance.profit_and_loss", "expected_agent": "cfo", "held_out": true, "facts": {"net_profit_egp": 31200, "margin_pct": 18.9}},
+  {"id": 8, "question": "Show me my profit and loss for this month", "locale": "en", "expected_function": "finance.profit_and_loss", "expected_agent": "cfo", "held_out": false, "facts": {"net_profit_egp": 38600, "margin_pct": 21.2}},
+  {"id": 9, "question": "What is our net profit margin last month?", "locale": "en", "expected_function": "finance.profit_and_loss", "expected_agent": "cfo", "held_out": false, "facts": {"net_profit_egp": 31200, "margin_pct": 18.9}},
+  {"id": 10, "question": "Give me the P&L bottom line for this month", "locale": "en", "expected_function": "finance.profit_and_loss", "expected_agent": "cfo", "held_out": true, "facts": {"net_profit_egp": 38600, "margin_pct": 21.2}},
+
+  {"id": 11, "question": "إيه المنتجات اللي قربت تخلص من المخزون؟", "locale": "ar", "expected_function": "catalog.low_stock", "expected_agent": "coo", "held_out": false, "facts": {"low_count": 4, "sold_out": 1}},
+  {"id": 12, "question": "في حاجة خلصت في المخزون ومحتاجة إعادة طلب؟", "locale": "ar", "expected_function": "catalog.low_stock", "expected_agent": "coo", "held_out": false, "facts": {"low_count": 4, "sold_out": 1}},
+  {"id": 13, "question": "قولي نواقص المخزون دلوقتي", "locale": "ar", "expected_function": "catalog.low_stock", "expected_agent": "coo", "held_out": true, "facts": {"low_count": 5, "sold_out": 2}},
+  {"id": 14, "question": "Which products are running low on stock?", "locale": "en", "expected_function": "catalog.low_stock", "expected_agent": "coo", "held_out": false, "facts": {"low_count": 4, "sold_out": 1}},
+  {"id": 15, "question": "What items do I need to restock today?", "locale": "en", "expected_function": "catalog.low_stock", "expected_agent": "coo", "held_out": true, "facts": {"low_count": 3, "sold_out": 0}},
+
+  {"id": 16, "question": "كام طلب جه النهاردة؟", "locale": "ar", "expected_function": "orders.today_summary", "expected_agent": "coo", "held_out": false, "facts": {"orders_count": 24, "total_egp": 19800}},
+  {"id": 17, "question": "أوردرات اليوم وصلت كام؟", "locale": "ar", "expected_function": "orders.today_summary", "expected_agent": "coo", "held_out": true, "facts": {"orders_count": 24, "total_egp": 19800}},
+  {"id": 18, "question": "How many orders came in today?", "locale": "en", "expected_function": "orders.today_summary", "expected_agent": "coo", "held_out": false, "facts": {"orders_count": 24, "total_egp": 19800}},
+  {"id": 19, "question": "Give me today's orders summary", "locale": "en", "expected_function": "orders.today_summary", "expected_agent": "coo", "held_out": false, "facts": {"orders_count": 24, "total_egp": 19800}},
+  {"id": 20, "question": "How many new orders are pending today?", "locale": "en", "expected_function": "orders.today_summary", "expected_agent": "coo", "held_out": true, "facts": {"orders_count": 9, "total_egp": 7250}},
+
+  {"id": 21, "question": "أكتر منتج بيتباع إيه الشهر ده؟", "locale": "ar", "expected_function": "analytics.top_products", "expected_agent": "cro", "held_out": false, "facts": {"units_sold": 64, "revenue_egp": 51200}},
+  {"id": 22, "question": "إيه المنتجات الأكثر مبيعاً عندي؟", "locale": "ar", "expected_function": "analytics.top_products", "expected_agent": "cro", "held_out": false, "facts": {"units_sold": 64, "revenue_egp": 51200}},
+  {"id": 23, "question": "أفضل منتج اتباع الأسبوع ده إيه؟", "locale": "ar", "expected_function": "analytics.top_products", "expected_agent": "cro", "held_out": true, "facts": {"units_sold": 19, "revenue_egp": 15200}},
+  {"id": 24, "question": "What are my top products this month?", "locale": "en", "expected_function": "analytics.top_products", "expected_agent": "cro", "held_out": false, "facts": {"units_sold": 64, "revenue_egp": 51200}},
+  {"id": 25, "question": "Show me the best selling items last week", "locale": "en", "expected_function": "analytics.top_products", "expected_agent": "cro", "held_out": true, "facts": {"units_sold": 22, "revenue_egp": 17600}},
+
+  {"id": 26, "question": "حملة ميتا شغالة كويس ولا لأ؟", "locale": "ar", "expected_function": "marketing.meta_verdict", "expected_agent": "cmo", "held_out": false, "facts": {"roas": 3.4, "spend_egp": 12000}},
+  {"id": 27, "question": "عائد الإعلانات على فيسبوك وانستجرام عامل إيه؟", "locale": "ar", "expected_function": "marketing.meta_verdict", "expected_agent": "cmo", "held_out": true, "facts": {"roas": 2.8, "spend_egp": 9500}},
+  {"id": 28, "question": "What is the Meta campaign verdict this week?", "locale": "en", "expected_function": "marketing.meta_verdict", "expected_agent": "cmo", "held_out": false, "facts": {"roas": 3.4, "spend_egp": 12000}},
+  {"id": 29, "question": "How is our Facebook ad spend performing?", "locale": "en", "expected_function": "marketing.meta_verdict", "expected_agent": "cmo", "held_out": false, "facts": {"roas": 3.1, "spend_egp": 10500}},
+  {"id": 30, "question": "Check Instagram ads ROAS for last 7 days", "locale": "en", "expected_function": "marketing.meta_verdict", "expected_agent": "cmo", "held_out": true, "facts": {"roas": 1.6, "spend_egp": 8400}},
+
+  {"id": 31, "question": "الفرق عن الميزانية كام الشهر ده؟", "locale": "ar", "expected_function": "fpa.budget_variance", "expected_agent": "cfo", "held_out": false, "facts": {"variance_egp": 6400, "variance_pct": 8.5}},
+  {"id": 32, "question": "هل تجاوزنا الموازنة المخططة؟", "locale": "ar", "expected_function": "fpa.budget_variance", "expected_agent": "cfo", "held_out": false, "facts": {"variance_egp": 6400, "variance_pct": 8.5}},
+  {"id": 33, "question": "انحراف الميزانية الشهر اللي فات كان قد إيه؟", "locale": "ar", "expected_function": "fpa.budget_variance", "expected_agent": "cfo", "held_out": true, "facts": {"variance_egp": 4200, "variance_pct": 5.2}},
+  {"id": 34, "question": "What is our budget variance this month?", "locale": "en", "expected_function": "fpa.budget_variance", "expected_agent": "cfo", "held_out": false, "facts": {"variance_egp": 6400, "variance_pct": 8.5}},
+  {"id": 35, "question": "Are we over budget on expenses this month?", "locale": "en", "expected_function": "fpa.budget_variance", "expected_agent": "cfo", "held_out": true, "facts": {"variance_egp": 6400, "variance_pct": 8.5}},
+
+  {"id": 36, "question": "كام عميل سابوا السلة ومكملوش الشراء؟", "locale": "ar", "expected_function": "checkout.abandoned_checkouts", "expected_agent": "cro", "held_out": false, "facts": {"abandoned_count": 37, "value_egp": 29600}},
+  {"id": 37, "question": "السلات المتروكة الأسبوع ده وصلت كام؟", "locale": "ar", "expected_function": "checkout.abandoned_checkouts", "expected_agent": "cro", "held_out": true, "facts": {"abandoned_count": 37, "value_egp": 29600}},
+  {"id": 38, "question": "How many abandoned checkouts did we have this week?", "locale": "en", "expected_function": "checkout.abandoned_checkouts", "expected_agent": "cro", "held_out": false, "facts": {"abandoned_count": 37, "value_egp": 29600}},
+  {"id": 39, "question": "Show me incomplete checkout drop-off last 7 days", "locale": "en", "expected_function": "checkout.abandoned_checkouts", "expected_agent": "cro", "held_out": false, "facts": {"abandoned_count": 37, "value_egp": 29600}},
+  {"id": 40, "question": "How much value was left in abandoned carts yesterday?", "locale": "en", "expected_function": "checkout.abandoned_checkouts", "expected_agent": "cro", "held_out": true, "facts": {"abandoned_count": 6, "value_egp": 4800}},
+
+  {"id": 41, "question": "نسبة المرتجعات كام الأسبوع ده؟", "locale": "ar", "expected_function": "orders.refund_rate", "expected_agent": "cxo", "held_out": false, "facts": {"refund_rate_pct": 4.5, "refunded_egp": 3200}},
+  {"id": 42, "question": "الطلبات الراجعة والاسترجاع الشهر ده قد إيه؟", "locale": "ar", "expected_function": "orders.refund_rate", "expected_agent": "cxo", "held_out": false, "facts": {"refund_rate_pct": 3.8, "refunded_egp": 6900}},
+  {"id": 43, "question": "قيمة المرتجعات خلال آخر 7 أيام كام؟", "locale": "ar", "expected_function": "orders.refund_rate", "expected_agent": "cxo", "held_out": true, "facts": {"refund_rate_pct": 4.5, "refunded_egp": 3200}},
+  {"id": 44, "question": "What is our refund rate for the last 7 days?", "locale": "en", "expected_function": "orders.refund_rate", "expected_agent": "cxo", "held_out": false, "facts": {"refund_rate_pct": 4.5, "refunded_egp": 3200}},
+  {"id": 45, "question": "How high are returns and refunds this month?", "locale": "en", "expected_function": "orders.refund_rate", "expected_agent": "cxo", "held_out": true, "facts": {"refund_rate_pct": 3.8, "refunded_egp": 6900}},
+
+  {"id": 46, "question": "الرصيد في الخزنة والكاش المتاح كام دلوقتي؟", "locale": "ar", "expected_function": "finance.cash_balance", "expected_agent": "cfo", "held_out": false, "facts": {"cash_egp": 94500, "bank_egp": 72000}},
+  {"id": 47, "question": "الفلوس المتاحة في البنك كام النهاردة؟", "locale": "ar", "expected_function": "finance.cash_balance", "expected_agent": "cfo", "held_out": true, "facts": {"cash_egp": 94500, "bank_egp": 72000}},
+  {"id": 48, "question": "What is my current cash balance?", "locale": "en", "expected_function": "finance.cash_balance", "expected_agent": "cfo", "held_out": false, "facts": {"cash_egp": 94500, "bank_egp": 72000}},
+  {"id": 49, "question": "How much cash on hand do we have today?", "locale": "en", "expected_function": "finance.cash_balance", "expected_agent": "cfo", "held_out": false, "facts": {"cash_egp": 94500, "bank_egp": 72000}},
+  {"id": 50, "question": "Check our bank balance and liquidity", "locale": "en", "expected_function": "finance.cash_balance", "expected_agent": "cfo", "held_out": true, "facts": {"cash_egp": 94500, "bank_egp": 72000}}
+]

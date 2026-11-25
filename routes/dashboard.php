@@ -3,7 +3,9 @@
 // Platform host routes (the root domain and app.<domain>): create-your-store, sign-in, owner
 // dashboard (Inertia) and platform admin. Storefront subdomains are matched first in storefront.php.
 
+use App\Ai\Http\Controllers\ApprovalController;
 use App\Ai\Http\Controllers\ChatController;
+use App\Ai\Http\Controllers\InsightController;
 use App\Core\Tenancy\ResolveStoreFromSession;
 use App\Http\Middleware\EnsurePlatformAdmin;
 use App\Modules\Accounts\Http\Controllers\AccountSettingsController;
@@ -11,19 +13,37 @@ use App\Modules\Accounts\Http\Controllers\AuthController;
 use App\Modules\Accounts\Http\Controllers\EmailVerificationController;
 use App\Modules\Accounts\Http\Controllers\InvitationController;
 use App\Modules\Accounts\Http\Controllers\MemberController;
+use App\Modules\Accounts\Http\Controllers\TwoFactorController;
+use App\Modules\Analytics\Http\Controllers\AnalyticsController;
+use App\Modules\Builder\Http\Controllers\MediaController;
+use App\Modules\Builder\Http\Controllers\PageController;
+use App\Modules\Builder\Http\Controllers\ThemeController;
+use App\Modules\Catalog\Http\Controllers\CategoryController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
+use App\Modules\Catalog\Http\Controllers\ReviewController;
+use App\Modules\Catalog\Http\Controllers\StaticPageController;
+use App\Modules\Checkout\Http\Controllers\CheckoutController;
 use App\Modules\Fpa\Http\Controllers\BudgetController;
+use App\Modules\Fpa\Http\Controllers\ScenarioController;
 use App\Modules\Ledger\Http\Controllers\ExpenseController;
 use App\Modules\Ledger\Http\Controllers\FinanceController;
 use App\Modules\Ledger\Http\Controllers\JournalController;
+use App\Modules\Marketing\Http\Controllers\AdSpendController;
+use App\Modules\Marketing\Http\Controllers\CampaignController;
+use App\Modules\Marketing\Http\Controllers\PixelController;
+use App\Modules\Marketing\Http\Controllers\SubscriberController;
+use App\Modules\Notifications\Http\Controllers\AlertController;
 use App\Modules\Orders\Http\Controllers\CustomerController;
 use App\Modules\Orders\Http\Controllers\OrderController;
+use App\Modules\Orders\Http\Controllers\ReturnController;
+use App\Modules\Orders\Http\Controllers\ShippingZoneController;
 use App\Modules\Platform\Http\Controllers\ActivityController;
 use App\Modules\Platform\Http\Controllers\DashboardController;
 use App\Modules\Platform\Http\Controllers\LocaleController;
 use App\Modules\Platform\Http\Controllers\PlatformAdminController;
 use App\Modules\Platform\Http\Controllers\StoreSettingsController;
 use App\Modules\Platform\Http\Controllers\StoreSignupController;
+use App\Modules\Seo\Http\Controllers\SeoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [StoreSignupController::class, 'landing'])->name('home');
@@ -93,29 +113,81 @@ Route::middleware('auth')->group(function () {
             Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->whereNumber('order')->name('orders.status');
             Route::put('/orders/{order}/fulfilment', [OrderController::class, 'updateFulfilment'])->whereNumber('order')->name('orders.fulfilment');
             Route::put('/orders/{order}/notes', [OrderController::class, 'updateNotes'])->whereNumber('order')->name('orders.notes');
+            Route::post('/payments/{payment}/verify-instapay', [CheckoutController::class, 'verifyInstaPay'])->whereNumber('payment')->name('payments.verify-instapay');
         });
 
         // Previews of areas that are designed but not built yet (Documentation §7.3): each page shows
         // the final layout with sample data and disabled actions, behind the permission the real
         // module will use. Swap Route::inertia for a controller when the module ships.
         Route::inertia('/approvals', 'approvals/index')->middleware('store.can:ai.approve')->name('approvals.index');
+        Route::middleware('store.can:ai.approve')->prefix('approvals')->name('approvals.')->group(function () {
+            Route::get('/list', [ApprovalController::class, 'index'])->name('list');
+            Route::post('/{approval}/approve', [ApprovalController::class, 'approve'])->whereNumber('approval')->name('approve');
+            Route::post('/{approval}/reject', [ApprovalController::class, 'reject'])->whereNumber('approval')->name('reject');
+        });
+        Route::prefix('insights')->name('insights.')->group(function () {
+            Route::get('/', [InsightController::class, 'index'])->name('index');
+            Route::post('/{insight}/act', [InsightController::class, 'act'])->whereNumber('insight')->name('act');
+            Route::get('/morning-brief', [InsightController::class, 'morningBrief'])->name('morning-brief');
+        });
         Route::middleware('store.can:products.view')->group(function () {
             Route::inertia('/categories', 'categories/index')->name('categories.index');
             Route::inertia('/inventory', 'products/inventory')->name('inventory.index');
         });
+        Route::middleware('store.can:products.manage')->group(function () {
+            Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+            Route::put('/categories/{category}', [CategoryController::class, 'update'])->whereNumber('category')->name('categories.update');
+            Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->whereNumber('category')->name('categories.destroy');
+            Route::post('/categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
+            Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve'])->whereNumber('review')->name('reviews.approve');
+            Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->whereNumber('review')->name('reviews.destroy');
+            Route::get('/static-pages', [StaticPageController::class, 'index'])->name('static-pages.index');
+            Route::put('/static-pages/{slug}', [StaticPageController::class, 'upsert'])->name('static-pages.upsert');
+            Route::get('/inbox', [StaticPageController::class, 'inbox'])->name('inbox.index');
+            Route::post('/inbox/{message}/read', [StaticPageController::class, 'markRead'])->whereNumber('message')->name('inbox.read');
+        });
         Route::inertia('/returns', 'orders/returns')->middleware('store.can:refunds.view')->name('returns.index');
+        Route::middleware('store.can:refunds.manage')->group(function () {
+            Route::post('/returns', [ReturnController::class, 'store'])->name('returns.store');
+            Route::post('/returns/{returnRequest}/approve', [ReturnController::class, 'approve'])->whereNumber('returnRequest')->name('returns.approve');
+            Route::post('/returns/{returnRequest}/reject', [ReturnController::class, 'reject'])->whereNumber('returnRequest')->name('returns.reject');
+        });
         Route::inertia('/analytics', 'analytics/index')->middleware('store.can:orders.view,ledger.view')->name('analytics.index');
+        Route::get('/analytics/summary', [AnalyticsController::class, 'index'])->middleware('store.can:orders.view,ledger.view')->name('analytics.summary');
         Route::middleware('store.can:marketing.manage')->prefix('marketing')->name('marketing.')->group(function () {
             Route::inertia('/', 'marketing/index')->name('index');
             Route::inertia('/campaigns', 'marketing/campaigns')->name('campaigns');
             Route::inertia('/discounts', 'marketing/discounts')->name('discounts');
             Route::inertia('/abandoned', 'marketing/abandoned')->name('abandoned');
+            Route::get('/pixels', [PixelController::class, 'show'])->name('pixels.show');
+            Route::put('/pixels', [PixelController::class, 'update'])->name('pixels.update');
+            Route::get('/subscribers', [SubscriberController::class, 'index'])->name('subscribers.index');
+            Route::get('/subscribers/export', [SubscriberController::class, 'export'])->name('subscribers.export');
+            Route::get('/campaigns/verdicts', [CampaignController::class, 'index'])->name('campaigns.verdicts');
+            Route::post('/ad-spends', [AdSpendController::class, 'store'])->name('ad-spends.store');
         });
         Route::inertia('/seo', 'seo/index')->middleware('store.can:marketing.manage,design.manage')->name('seo.index');
+        Route::middleware('store.can:marketing.manage,design.manage')->prefix('seo')->name('seo.')->group(function () {
+            Route::get('/redirects', [SeoController::class, 'redirects'])->name('redirects.index');
+            Route::post('/redirects', [SeoController::class, 'storeRedirect'])->name('redirects.store');
+            Route::delete('/redirects/{redirect}', [SeoController::class, 'destroyRedirect'])->whereNumber('redirect')->name('redirects.destroy');
+            Route::get('/not-found', [SeoController::class, 'notFoundLogs'])->name('not-found');
+            Route::post('/audit', [SeoController::class, 'audit'])->name('audit');
+        });
         Route::middleware('store.can:design.manage')->prefix('builder')->name('builder.')->group(function () {
             Route::inertia('/', 'builder/editor')->name('pages');
             Route::inertia('/theme', 'builder/theme')->name('theme');
             Route::inertia('/media', 'builder/media')->name('media');
+            Route::post('/pages', [PageController::class, 'store'])->name('pages.store');
+            Route::post('/pages/{page}/sections', [PageController::class, 'addSection'])->whereNumber('page')->name('sections.store');
+            Route::put('/sections/{section}', [PageController::class, 'updateSection'])->whereNumber('section')->name('sections.update');
+            Route::delete('/sections/{section}', [PageController::class, 'deleteSection'])->whereNumber('section')->name('sections.destroy');
+            Route::post('/pages/{page}/reorder', [PageController::class, 'reorder'])->whereNumber('page')->name('sections.reorder');
+            Route::post('/pages/{page}/publish', [PageController::class, 'publish'])->whereNumber('page')->name('pages.publish');
+            Route::post('/pages/{page}/versions/{version}/restore', [PageController::class, 'restore'])->whereNumber('page')->whereNumber('version')->name('pages.restore');
+            Route::put('/theme', [ThemeController::class, 'update'])->name('theme.update');
+            Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+            Route::delete('/media/bulk', [MediaController::class, 'bulkDestroy'])->name('media.bulk-destroy');
         });
         // Finance: ledger, statements, expenses, month close, budgets. FR-LED, FR-FPA, UC-10, UC-11
         Route::prefix('finance')->name('finance.')->group(function () {
@@ -146,6 +218,9 @@ Route::middleware('auth')->group(function () {
             Route::middleware('store.can:budgets.manage')->group(function () {
                 Route::put('/budgets', [BudgetController::class, 'update'])->name('budgets.update');
                 Route::post('/budgets/copy', [BudgetController::class, 'copy'])->name('budgets.copy');
+                Route::get('/scenarios', [ScenarioController::class, 'index'])->name('scenarios.index');
+                Route::post('/scenarios/simulate', [ScenarioController::class, 'simulate'])->name('scenarios.simulate');
+                Route::post('/scenarios', [ScenarioController::class, 'store'])->name('scenarios.store');
             });
         });
 
@@ -153,9 +228,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings/account', [AccountSettingsController::class, 'edit'])->name('account.edit');
         Route::put('/settings/account', [AccountSettingsController::class, 'updateProfile'])->name('account.update');
         Route::put('/settings/account/password', [AccountSettingsController::class, 'updatePassword'])->middleware('throttle:6,1')->name('account.password');
-        // Display and accessibility preferences live on the device; notifications are a preview for now.
+        Route::post('/settings/account/two-factor/setup', [TwoFactorController::class, 'setup'])->name('account.two-factor.setup');
+        Route::post('/settings/account/two-factor/confirm', [TwoFactorController::class, 'confirm'])->name('account.two-factor.confirm');
+        Route::delete('/settings/account/two-factor', [TwoFactorController::class, 'destroy'])->name('account.two-factor.destroy');
+        Route::get('/settings/account/export', [AccountSettingsController::class, 'exportData'])->name('account.export');
+        Route::post('/settings/account/delete-request', [AccountSettingsController::class, 'requestDeletion'])->name('account.delete-request');
+        // Display and accessibility preferences live on the device; notifications & alerts.
         Route::inertia('/settings/accessibility', 'settings/accessibility')->name('settings.accessibility');
         Route::inertia('/settings/notifications', 'settings/notifications')->name('settings.notifications');
+        Route::get('/alerts', [AlertController::class, 'index'])->name('alerts.index');
+        Route::post('/alerts/{alert}/read', [AlertController::class, 'markRead'])->whereNumber('alert')->name('alerts.read');
+        Route::post('/settings/notifications/test-email', [AlertController::class, 'sendTestEmail'])->middleware('throttle:6,1')->name('settings.notifications.test-email');
 
         Route::middleware('store.can:settings.manage')->group(function () {
             Route::get('/settings', [StoreSettingsController::class, 'edit'])->name('settings.general');
@@ -164,6 +247,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/settings/activity', [ActivityController::class, 'index'])->name('settings.activity');
             Route::inertia('/settings/payments', 'settings/payments')->name('settings.payments');
             Route::inertia('/settings/shipping', 'settings/shipping')->name('settings.shipping');
+            Route::post('/settings/shipping/zones', [ShippingZoneController::class, 'store'])->name('settings.shipping.zones.store');
+            Route::put('/settings/shipping/zones/{zone}', [ShippingZoneController::class, 'update'])->whereNumber('zone')->name('settings.shipping.zones.update');
+            Route::delete('/settings/shipping/zones/{zone}', [ShippingZoneController::class, 'destroy'])->whereNumber('zone')->name('settings.shipping.zones.destroy');
             Route::inertia('/settings/domain', 'settings/domain')->name('settings.domain');
         });
 

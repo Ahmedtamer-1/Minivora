@@ -3,6 +3,8 @@
 namespace App\Modules\Orders\Services;
 
 use App\Modules\Orders\Models\ShippingZone;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 
 /**
  * Shipping fee per governorate. A store's own zones win; until it sets them up, sensible defaults
@@ -54,6 +56,73 @@ class ShippingService
             return 0;
         }
 
-        return $this->rates()[$governorate]['rate'] ?? 0;
+        return $this->rateForGovernorate($governorate) ?? 0;
+    }
+
+    /** @return Collection<int, ShippingZone> */
+    public function listZones(): Collection
+    {
+        return ShippingZone::query()
+            ->orderBy('sort_order')
+            ->orderBy('governorate')
+            ->get();
+    }
+
+    public function upsertZone(string $governorate, int $rate, int $deliveryDays, int $sortOrder = 0): ShippingZone
+    {
+        return ShippingZone::query()->updateOrCreate(
+            ['governorate' => trim($governorate)],
+            [
+                'rate' => max(0, $rate),
+                'delivery_days' => max(1, $deliveryDays),
+                'sort_order' => max(0, $sortOrder),
+            ],
+        );
+    }
+
+    public function deleteZone(ShippingZone $zone): void
+    {
+        $zone->delete();
+    }
+
+    public function rateForGovernorate(string $governorate): ?int
+    {
+        $zone = ShippingZone::query()->where('governorate', $governorate)->first();
+        if ($zone !== null) {
+            return $zone->rate;
+        }
+
+        if (! in_array($governorate, self::GOVERNORATES, true)) {
+            return null;
+        }
+
+        [$rate] = self::DEFAULTS[$governorate] ?? self::FALLBACK;
+
+        return $rate;
+    }
+
+    /**
+     * Estimated delivery date window for a governorate. FR-CAT-07, FR-ORD-06
+     *
+     * @return array{min_date: string, max_date: string, delivery_days: int}|null
+     */
+    public function deliveryEstimate(string $governorate, ?Carbon $from = null): ?array
+    {
+        $zone = ShippingZone::query()->where('governorate', $governorate)->first();
+        if ($zone !== null) {
+            $deliveryDays = $zone->delivery_days;
+        } elseif (in_array($governorate, self::GOVERNORATES, true)) {
+            [, $deliveryDays] = self::DEFAULTS[$governorate] ?? self::FALLBACK;
+        } else {
+            return null;
+        }
+
+        $base = ($from?->copy() ?? Carbon::now('Africa/Cairo'))->startOfDay();
+
+        return [
+            'min_date' => $base->copy()->addDays($deliveryDays)->toDateString(),
+            'max_date' => $base->copy()->addDays($deliveryDays + 1)->toDateString(),
+            'delivery_days' => $deliveryDays,
+        ];
     }
 }

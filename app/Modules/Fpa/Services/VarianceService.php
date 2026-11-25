@@ -22,6 +22,77 @@ class VarianceService
     ) {}
 
     /**
+     * Monthly budget-vs-actual variance per P&L account for a given YYYY-MM month. FR-FPA-02
+     * All money values are integer piasters.
+     *
+     * @return array{
+     *   month: string,
+     *   rows: list<array{account_code: string, account_name: string, budget: int, actual: int, variance: int, variance_pct: float|null, favorable: bool}>,
+     *   total_budget: int,
+     *   total_actual: int,
+     *   total_variance: int
+     * }
+     */
+    public function monthlyVariance(string $yearMonth): array
+    {
+        $from = Carbon::createFromFormat('Y-m', $yearMonth, 'Africa/Cairo')->startOfMonth();
+        $to = $from->copy()->endOfMonth();
+
+        $actualBalances = $this->statements->balances($from, $to);
+        $budgets = Budget::query()
+            ->where('month', $from->toDateString())
+            ->pluck('amount', 'account_id');
+
+        $rows = [];
+        $totalBudget = 0;
+        $totalActual = 0;
+
+        foreach ($this->statements->accounts() as $account) {
+            if (! $account->type->isTemporary() || ! $account->is_active) {
+                continue;
+            }
+
+            $isRevenue = $account->type === AccountType::Revenue;
+            $isContra = $account->subtype === 'contra';
+
+            $actual = (int) ($actualBalances[$account->id] ?? 0);
+            if ($isContra) {
+                $actual = -$actual;
+            }
+
+            $budget = (int) ($budgets[$account->id] ?? 0);
+            if ($budget === 0 && $actual === 0) {
+                continue;
+            }
+
+            $variance = $actual - $budget;
+            $variancePct = $budget !== 0 ? round(($variance * 100) / $budget, 1) : null;
+            $favorable = ($isRevenue && ! $isContra) ? $variance >= 0 : $variance <= 0;
+
+            $rows[] = [
+                'account_code' => $account->code,
+                'account_name' => $account->name_en,
+                'budget' => $budget,
+                'actual' => $actual,
+                'variance' => $variance,
+                'variance_pct' => $variancePct,
+                'favorable' => $favorable,
+            ];
+
+            $totalBudget += $budget;
+            $totalActual += $actual;
+        }
+
+        return [
+            'month' => $from->format('Y-m'),
+            'rows' => $rows,
+            'total_budget' => $totalBudget,
+            'total_actual' => $totalActual,
+            'total_variance' => $totalActual - $totalBudget,
+        ];
+    }
+
+    /**
      * @return array{month: string, rows: list<array<string, mixed>>, totals: array{revenue_budget: int, revenue_actual: int, cost_budget: int, cost_actual: int, profit_budget: int, profit_actual: int}, has_budget: bool, running: bool, share: float}
      */
     public function report(Carbon $month): array

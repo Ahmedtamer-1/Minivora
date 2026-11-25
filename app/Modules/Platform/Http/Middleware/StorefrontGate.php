@@ -4,6 +4,7 @@ namespace App\Modules\Platform\Http\Middleware;
 
 use App\Core\Tenancy\CurrentStore;
 use App\Modules\Platform\Enums\StoreStatus;
+use App\Modules\Platform\Models\Store;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,8 +39,25 @@ class StorefrontGate
             StoreStatus::OpeningSoon => $request->session()->get(self::sessionKey($store->id)) === true
                 ? $next($request)
                 : response()->view('storefront.pages.opening-soon', ['store' => $store]),
-            StoreStatus::Live => $next($request),
+            StoreStatus::Live => $this->handleLiveStore($request, $next, $store),
         };
+    }
+
+    private function handleLiveStore(Request $request, Closure $next, Store $store): Response
+    {
+        if (! $store->isInMaintenanceMode()) {
+            return $next($request);
+        }
+
+        $user = $request->user();
+        if ($user !== null && $user->roleIn($store) !== null) {
+            return $next($request);
+        }
+
+        return response()->view('storefront.pages.maintenance', [
+            'store' => $store,
+            'message' => $store->maintenanceMessage(),
+        ], 503);
     }
 
     private function localeFor(Request $request, string $default): string

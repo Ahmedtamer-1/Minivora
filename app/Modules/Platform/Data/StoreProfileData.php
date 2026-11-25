@@ -21,10 +21,30 @@ class StoreProfileData extends Data
         public ?string $location = null,    // governorate or city
         #[In(['ar', 'en'])]
         public ?string $language = null,    // storefront language
+        public bool $maintenance_mode = false,
+        #[Max(500)]
+        public ?string $maintenance_message = null,
     ) {}
 
     public function isEmpty(): bool
     {
         return $this->sells === null && $this->location === null && $this->language === null;
+    }
+
+    /** @return array<string, mixed> */
+    public function toArray(): array
+    {
+        $data = [
+            'sells' => $this->sells,
+            'location' => $this->location,
+            'language' => $this->language,
+        ];
+
+        if ($this->maintenance_mode || $this->maintenance_message !== null) {
+            $data['maintenance_mode'] = $this->maintenance_mode;
+            $data['maintenance_message'] = $this->maintenance_message;
+        }
+
+        return $data;
     }
 }

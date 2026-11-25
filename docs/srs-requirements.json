@@ -1,0 +1,1633 @@
+[
+    {
+        "id": "FR-CAT-01",
+        "category": "FR-CAT",
+        "description": "The system shall store products with Arabic and English name and description, price, compare-at price, unit cost, SKU, images, video, category and status (draft, active, archived).",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-CAT-02",
+        "category": "FR-CAT",
+        "description": "The system shall support variants built from up to three owner-defined option types per product, each variant with its own price, cost, stock, SKU and color image gallery; product stock shall equal the sum of its variants’ stock.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-CAT-03",
+        "category": "FR-CAT",
+        "description": "The system shall allow the owner to create, order and illustrate categories and assign products to them.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-CAT-04",
+        "category": "FR-CAT",
+        "description": "The shop page shall filter by category, price and availability, sort by newest, price and best-selling, and paginate.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-CAT-05",
+        "category": "FR-CAT",
+        "description": "Search shall return live suggestions and match Arabic spelling variants (alef, ya, ta marbuta forms).",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-CAT-06",
+        "category": "FR-CAT",
+        "description": "Search shall also match by meaning using multilingual embeddings from a free cloud API, once Minivora runs on a server with vector search (stage 2 or later).",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-CAT-07",
+        "category": "FR-CAT",
+        "description": "The product page shall show a gallery, a variant selector, an optional stock count, a delivery estimate and related products. The delivery estimate is the order date plus the delivery days of the shopper’s governorate zone (FR-ORD-06), shown as a date range. Related products are up to 4 other active products from the same category, ordered by units sold in the last 30 days.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-CAT-08",
+        "category": "FR-CAT",
+        "description": "Uploaded images shall be converted to WebP (and AVIF where the server supports it) in several widths and served with srcset and lazy loading.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-CAT-09",
+        "category": "FR-CAT",
+        "description": "The system shall allow shoppers to ask for a back-in-stock alert on sold-out variants.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-CAT-10",
+        "category": "FR-CAT",
+        "description": "The system shall allow verified buyers (shoppers with a delivered order of the product) to rate a product from 1 to 5 and write a review.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-CAT-11",
+        "category": "FR-CAT",
+        "description": "The system shall allow the owner to edit static pages: about, contact, privacy, terms, shipping, exchange and returns.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-CAT-12",
+        "category": "FR-CAT",
+        "description": "The AI team shall draft policy pages from the store’s settings for the owner to approve.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-CAT-13",
+        "category": "FR-CAT",
+        "description": "The contact form shall send messages to the store’s inbox, marked read when opened.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-CAT-14",
+        "category": "FR-CAT",
+        "description": "The system shall allow the owner to switch the store to maintenance mode with a custom message; logged-in staff still see the store.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-CAT-15",
+        "category": "FR-CAT",
+        "description": "The storefront shall run in Arabic (right-to-left) and English with a language switch that keeps the current page.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-CAT-16",
+        "category": "FR-CAT",
+        "description": "The system shall allow shoppers to save products to a wishlist.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-CAT-17",
+        "category": "FR-CAT",
+        "description": "The system shall allow staff to import products from a CSV file in the template offered in the dashboard, and shall report every rejected row with its reason.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-CAT-18",
+        "category": "FR-CAT",
+        "description": "Reviews shall show on the storefront only after the owner approves them.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-CRT-01",
+        "category": "FR-CRT",
+        "description": "The cart shall persist across visits for guests (session) and registered shoppers (account), and merge on login.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-CRT-02",
+        "category": "FR-CRT",
+        "description": "Every add, remove and quantity change shall be recorded as a cart event for demand analysis.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-CRT-03",
+        "category": "FR-CRT",
+        "description": "The system shall check stock when an item is added and again at checkout. When a quantity is reduced, an item is removed or a price has changed, the cart shall show a message naming the item, the old and new value, and the reason.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-CRT-04",
+        "category": "FR-CRT",
+        "description": "The cart shall show a shipping estimate and the remaining amount to free shipping.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-CRT-05",
+        "category": "FR-CRT",
+        "description": "The system shall allow shoppers to apply one discount code in the cart or at checkout.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-PAY-01",
+        "category": "FR-PAY",
+        "description": "Checkout shall be a single page that works without an account, collecting name, phone, email, address and governorate.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-PAY-02",
+        "category": "FR-PAY",
+        "description": "Phone numbers shall be accepted as 01XXXXXXXXX, +201XXXXXXXXX or 00201XXXXXXXXX, stored normalized as 01XXXXXXXXX, and validated as Egyptian mobile numbers of 11 digits whose prefix is 010, 011, 012 or 015.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-PAY-03",
+        "category": "FR-PAY",
+        "description": "Shipping fees shall come from the store’s governorate zones, with an optional free-shipping threshold.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-PAY-04",
+        "category": "FR-PAY",
+        "description": "The store shall accept Kashier (cards and wallets) in test mode.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-PAY-05",
+        "category": "FR-PAY",
+        "description": "The store shall accept Cash on Delivery, with an optional COD fee.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-PAY-06",
+        "category": "FR-PAY",
+        "description": "The store shall accept InstaPay by receipt upload; the order stays pending until staff verify the receipt.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-PAY-07",
+        "category": "FR-PAY",
+        "description": "The store shall accept Paymob in test mode as a second gateway.",
+        "priority": "Should",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-PAY-08",
+        "category": "FR-PAY",
+        "description": "The store shall accept Fawry reference-code payments.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-PAY-09",
+        "category": "FR-PAY",
+        "description": "Payment webhooks shall be verified by HMAC signature and processed once only (idempotent).",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-PAY-10",
+        "category": "FR-PAY",
+        "description": "Once a shopper enters a phone number, the checkout shall be saved as a lead for abandoned-checkout recovery.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-PAY-11",
+        "category": "FR-PAY",
+        "description": "The system shall allow the owner to create discount codes: percentage, fixed amount or free shipping, with minimum order, expiry and usage limits; a welcome offer is one such code.",
+        "priority": "Should",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-PAY-12",
+        "category": "FR-PAY",
+        "description": "The system shall flag an order for review when any of these holds: the phone number has at least one refused or returned COD order in the same store; more than 3 orders arrive from the same phone number or IP address within 24 hours; or the order total exceeds 5 times the store’s average order value of the last 30 days. The owner may change these defaults.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-ORD-01",
+        "category": "FR-ORD",
+        "description": "Orders shall move through the statuses pending, paid, processing, shipped, delivered, cancelled, refunded and returned, exactly as in the order state machine (Figure 11.6). Returned means the goods came back and were restocked; refunded means the full order total was refunded. A partial refund shall post to the ledger without changing the order status.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-ORD-02",
+        "category": "FR-ORD",
+        "description": "Every order status change shall be logged with the user or agent who made it and the time; the shopper emails for status changes are defined in FR-NTF-01.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ORD-03",
+        "category": "FR-ORD",
+        "description": "Cancelling or returning an order shall restock its items.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ORD-04",
+        "category": "FR-ORD",
+        "description": "The system shall allow staff to create manual orders for sales taken on Instagram, WhatsApp or by phone.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ORD-05",
+        "category": "FR-ORD",
+        "description": "The system shall allow shoppers to track an order with its number and their phone or email.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ORD-06",
+        "category": "FR-ORD",
+        "description": "The system shall allow the owner to manage shipping zones per governorate with rate, delivery days and display order.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ORD-07",
+        "category": "FR-ORD",
+        "description": "The system shall allow staff to record a courier name and tracking link, shown on the tracking page.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-ORD-08",
+        "category": "FR-ORD",
+        "description": "The system shall allow shoppers to request a return or exchange with a reason; the owner approves; approved refunds post to the ledger.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-ORD-09",
+        "category": "FR-ORD",
+        "description": "The system shall generate a packing slip and an invoice PDF for each order.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-ORD-10",
+        "category": "FR-ORD",
+        "description": "The system shall allow staff to change the status of several selected orders at once.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ORD-11",
+        "category": "FR-ORD",
+        "description": "The system shall allow staff to add internal notes and tags to orders.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-ORD-12",
+        "category": "FR-ORD",
+        "description": "The system shall export orders to CSV encoded in UTF-8 with a byte-order mark, so Arabic text opens correctly in spreadsheet software.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ACC-01",
+        "category": "FR-ACC",
+        "description": "The system shall allow shoppers to register and log in with email and password or with Google.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ACC-02",
+        "category": "FR-ACC",
+        "description": "The account page shall show order history, saved addresses and return requests.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-ACC-03",
+        "category": "FR-ACC",
+        "description": "The system shall support the roles owner, manager, accountant, staff and platform admin, with a permission matrix (section 7.2).",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-ACC-04",
+        "category": "FR-ACC",
+        "description": "The system shall allow owners to invite staff by email, assign a role and revoke access.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ACC-05",
+        "category": "FR-ACC",
+        "description": "Every staff and AI action shall be written to a tamper-evident activity log.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-ACC-06",
+        "category": "FR-ACC",
+        "description": "The system shall allow owners and managers to turn on two-factor sign-in with a TOTP authenticator app.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-ACC-07",
+        "category": "FR-ACC",
+        "description": "The system shall create owner accounts only through the store creation flow in section 4.6 and shall offer no separate sign-up page.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ACC-08",
+        "category": "FR-ACC",
+        "description": "The system shall allow platform admins to list, suspend and restore stores and see each store’s usage.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ACC-09",
+        "category": "FR-ACC",
+        "description": "The system shall allow shoppers to download their data and ask for account deletion; requests are completed within 30 days.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-01",
+        "category": "FR-ONB",
+        "description": "The landing page shall offer one “Create your store” form asking only store name, email and password, or Google sign-in plus store name. Submitting it creates the account and the store together.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-02",
+        "category": "FR-ONB",
+        "description": "The store address storename.[Minivora domain] shall be checked for availability as the owner types, with suggestions when taken; reserved names (app, api, www, mail, admin, status) are never available.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-03",
+        "category": "FR-ONB",
+        "description": "The system shall open the new store’s dashboard for the owner within 60 seconds of the form being submitted.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-04",
+        "category": "FR-ONB",
+        "description": "The dashboard shall open with up to three optional questions (what you sell, where you are, store language) that the owner can skip.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-05",
+        "category": "FR-ONB",
+        "description": "The Store Builder shall start from those answers in the background and show a draft store preview, without blocking the owner.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-06",
+        "category": "FR-ONB",
+        "description": "A new store shall stay password-protected (“opening soon” page) until the owner publishes it.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-07",
+        "category": "FR-ONB",
+        "description": "Email verification shall run in the background; it shall be required before publishing the store, not before building it.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-08",
+        "category": "FR-ONB",
+        "description": "The system shall allow a logged-in owner to create another store from the store switcher, reusing the same account.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-09",
+        "category": "FR-ONB",
+        "description": "The system shall import an existing store from the Adorna EG MySQL database: products, variants, categories, customers, orders, shipping zones, visits and ad spend (section 2.8).",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-10",
+        "category": "FR-ONB",
+        "description": "A setup checklist (add products, connect payment, set shipping, publish) shall track progress, and the AI CEO shall nudge the owner on the next step.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-ONB-11",
+        "category": "FR-ONB",
+        "description": "The system shall import products from other platforms’ product CSV exports by mapping them to the template of FR-CAT-17.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-BLD-01",
+        "category": "FR-BLD",
+        "description": "Pages shall be built from ordered sections: hero, video hero, featured products, category grid, image banner, image carousel, brand story, text block, video, video gallery, video reels, social carousel, logo carousel, testimonials and testimonial carousel.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-BLD-02",
+        "category": "FR-BLD",
+        "description": "The system shall allow the owner to add, edit, hide, reorder and delete sections on the homepage and any custom page, with a live preview.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-BLD-03",
+        "category": "FR-BLD",
+        "description": "The theme manager shall set colors, fonts, corner radius and light or dark mode for the storefront.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-BLD-04",
+        "category": "FR-BLD",
+        "description": "The media library shall store images and videos, support bulk select and delete, and be reachable from every image field.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-BLD-05",
+        "category": "FR-BLD",
+        "description": "The Store Builder agent shall turn a business description in Arabic or English into categories, products, product copy, theme and homepage sections. Suggested prices shall be computed by code from unit cost and the store’s target margin (Appendix K.2), never written by the language model.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-BLD-06",
+        "category": "FR-BLD",
+        "description": "Every AI-made change shall appear as a draft with a preview; nothing is published until the owner approves it.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-BLD-07",
+        "category": "FR-BLD",
+        "description": "Each publish shall be saved as a version that the owner can restore.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-BLD-08",
+        "category": "FR-BLD",
+        "description": "The system shall let a new store start from a template per business type: fashion, food, handmade or electronics.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-01",
+        "category": "FR-AI",
+        "description": "The system shall allow the owner to ask questions in Arabic (including Egyptian dialect) or English by text, from the dashboard chat.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-02",
+        "category": "FR-AI",
+        "description": "Question Understanding shall map each question to one predefined function with parameters; it shall not answer from its own knowledge.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-03",
+        "category": "FR-AI",
+        "description": "Every financial answer shall come from code and state its period and data source.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-04",
+        "category": "FR-AI",
+        "description": "When a question cannot be mapped, the system shall show three suggested questions instead of guessing.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-05",
+        "category": "FR-AI",
+        "description": "The AI team shall consist of the AI CEO, eight executives (CFO, CMO, CRO, COO, CXO, CTO, CHRO and Risk Officer) and the 17 core sub-agents listed in TBD-4.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-06",
+        "category": "FR-AI",
+        "description": "Each agent shall call only the functions in its permission scope, checked against the asking user’s role.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-07",
+        "category": "FR-AI",
+        "description": "Actions that spend money, change prices, refund, publish or message customers shall wait for approval by the owner, or by a manager within the approval limit the owner sets (section 7.2).",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-08",
+        "category": "FR-AI",
+        "description": "The Decision Coordinator shall resolve conflicts between agents with these rules, applied in order: (1) a discount that takes a product’s margin below the store’s minimum margin is rejected, and if the product has more than 60 days of stock cover a bundle with a higher-margin product is proposed instead; (2) when two agents propose actions on the same product within 24 hours, the action with the higher estimated EGP impact is kept and the other is attached as an alternative; (3) actions that spend money are capped by the remaining monthly budget of the matching account (FR-FPA-01).",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-09",
+        "category": "FR-AI",
+        "description": "The AI team shall send a daily summary and a weekly executive briefing, and alert the owner on these anomalies: a day’s revenue below 70% of the average of the same weekday over the last 4 weeks; refunds in the last 7 days above twice the weekly average of the last 4 weeks; and any variant below its reorder point. The owner may change these thresholds.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-10",
+        "category": "FR-AI",
+        "description": "The system shall allow the owner to see, for every AI action, which agent acted, which function it called and the result.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-11",
+        "category": "FR-AI",
+        "description": "When an AI provider is unavailable or a key hits its rate limit, requests shall move to the next configured free provider or key (Gemini, Groq, OpenRouter) without user action.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-12",
+        "category": "FR-AI",
+        "description": "The system shall accept owner questions spoken in Arabic.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-AI-13",
+        "category": "FR-AI",
+        "description": "The AI team shall also include the 20 non-core sub-agents listed in TBD-4.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-01",
+        "category": "FR-LED",
+        "description": "Each store shall get a default chart of accounts with at least these accounts: cash, bank, wallet, receivables, inventory, sales, cost of goods sold, gateway fees, shipping, marketing and VAT payable (VAT treatment: TBD-5).",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-02",
+        "category": "FR-LED",
+        "description": "The system shall post journal entries automatically for: payment received, COD collected, refund, gateway fee, shipping cost and cost of goods on shipment.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-03",
+        "category": "FR-LED",
+        "description": "Every journal entry shall balance (total debits equal total credits), enforced by the database.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-04",
+        "category": "FR-LED",
+        "description": "The system shall produce profit and loss, balance sheet and cash-flow statements for any period.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-05",
+        "category": "FR-LED",
+        "description": "The system shall allow accountants to add manual entries and expenses (rent, salaries, packaging) with an optional receipt image.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-06",
+        "category": "FR-LED",
+        "description": "Ad spend entered in the dashboard shall post as a marketing expense, and ROAS shall be computed from ledger sales.",
+        "priority": "Should",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-LED-07",
+        "category": "FR-LED",
+        "description": "The system shall allow accountants to close a month; closed periods accept no changes except reversing entries.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-08",
+        "category": "FR-LED",
+        "description": "Reports and the ledger shall export to Excel and PDF.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-09",
+        "category": "FR-LED",
+        "description": "Cost of goods sold shall be valued by one inventory valuation method for all stores: FIFO or weighted average (TBD-10).",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-10",
+        "category": "FR-LED",
+        "description": "COD revenue and cash shall be recognized at the point set in TBD-10 (delivery to the shopper or remittance by the courier), and the same rule shall apply to every COD order.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-11",
+        "category": "FR-LED",
+        "description": "All amounts shall be in Egyptian pounds (EGP); version 1.0 shall support no other currency.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-LED-12",
+        "category": "FR-LED",
+        "description": "Amounts shall be stored as integer piasters; a percentage applied to money shall be rounded half up to the nearest piaster, once per line.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-ANA-01",
+        "category": "FR-ANA",
+        "description": "The system shall record page views with page, referrer, UTM source, medium and campaign, device type and session.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ANA-02",
+        "category": "FR-ANA",
+        "description": "The dashboard shall show today’s and period KPIs: visitors, orders, revenue, conversion rate, average order value and returning-buyer rate.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ANA-03",
+        "category": "FR-ANA",
+        "description": "The system shall allow staff to browse a visit log of individual sessions and their pages.",
+        "priority": "Should",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ANA-04",
+        "category": "FR-ANA",
+        "description": "The demand view shall rank products by viewers, cart adds and purchases, and flag sold-out products people still want.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-ANA-05",
+        "category": "FR-ANA",
+        "description": "Analytics shall attribute orders to traffic source and campaign.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-ANA-06",
+        "category": "FR-ANA",
+        "description": "Tracking cookies shall load only after the shopper accepts the cookie banner.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-FPA-01",
+        "category": "FR-FPA",
+        "description": "The system shall allow the owner or accountant to set a monthly budget per income and expense account.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-FPA-02",
+        "category": "FR-FPA",
+        "description": "The system shall compute budget-vs-actual variances per account and month.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-FPA-03",
+        "category": "FR-FPA",
+        "description": "The system shall allow the owner to run what-if scenarios on price, discount, order volume, ad spend and shipping cost, and see the effect on profit.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-FPA-04",
+        "category": "FR-FPA",
+        "description": "The system shall compute break-even sales and a 3-month cash forecast.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-FPA-05",
+        "category": "FR-FPA",
+        "description": "The FP&A Analyst shall write commentary on variances and scenarios using only numbers computed by code.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-FPA-06",
+        "category": "FR-FPA",
+        "description": "A number guard shall reject any AI answer containing a figure not in the computed data, and fall back to a template answer.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-FPA-07",
+        "category": "FR-FPA",
+        "description": "A monthly FP&A memo shall be generated overnight, in Arabic or English per the owner’s language.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-01",
+        "category": "FR-PRO",
+        "description": "Each executive agent shall run scheduled checks on its area: hourly (orders, payments, stock), daily (sales, traffic, ad results, cash) and weekly (margins, trends, budget).",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-02",
+        "category": "FR-PRO",
+        "description": "Events shall trigger checks immediately: payment failures, stock below its reorder point, a refund or return, an order from a flagged phone, a traffic drop against the same weekday, a campaign below its ROAS target, and a spike in 404 errors.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-03",
+        "category": "FR-PRO",
+        "description": "Every finding shall become an insight card showing what happened, the evidence (numbers and a chart computed by code), the estimated impact in EGP, the recommended action and the agent behind it.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-04",
+        "category": "FR-PRO",
+        "description": "The “Today” feed shall rank insights by estimated EGP impact and urgency (score in Appendix K.2), within the daily limit of NFR-USE-06.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-05",
+        "category": "FR-PRO",
+        "description": "The system shall allow the owner to approve, edit, snooze or dismiss each insight in one tap; approved actions run under the approval rules of FR-AI-07.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-06",
+        "category": "FR-PRO",
+        "description": "A morning brief at the owner’s chosen time (default 09:00 Cairo time) shall cover yesterday’s results, today’s priorities and pending approvals, in the dashboard and by email.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-07",
+        "category": "FR-PRO",
+        "description": "Dismissing an insight with a reason shall raise that insight type’s threshold by 20% (β = 0.2, Appendix K.2).",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-08",
+        "category": "FR-PRO",
+        "description": "The system shall allow the owner to set monthly goals (revenue, profit, orders); agents shall track the pace and propose actions when the store falls behind.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-09",
+        "category": "FR-PRO",
+        "description": "Urgent alerts (gateway down, suspected fraud) shall break through quiet hours; everything else respects them.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-10",
+        "category": "FR-PRO",
+        "description": "Each acted-on insight shall record what happened afterwards, building a proactivity scorecard for the owner and for the evaluation.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-PRO-11",
+        "category": "FR-PRO",
+        "description": "Whether the owner may pre-approve chosen low-risk actions to run without a separate approval each time is open issue TBD-6; until it is closed, every act-level action follows FR-AI-07.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-01",
+        "category": "FR-SEO",
+        "description": "Storefront URLs shall be readable and language-prefixed in the form /{language}/{page type}/{slug}, as in /ar/products/شنطة-جلد-بني and /en/products/brown-leather-tote; slugs shall be generated from names and be editable.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-SEO-02",
+        "category": "FR-SEO",
+        "description": "Every page shall have a unique title and meta description; the owner can edit them, and the SEO Specialist suggests text within 60 and 155 characters.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-SEO-03",
+        "category": "FR-SEO",
+        "description": "Every page shall carry a canonical URL; filter, sort and tracking parameters shall point to the clean URL.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-SEO-04",
+        "category": "FR-SEO",
+        "description": "Arabic and English versions shall link to each other with hreflang tags plus x-default.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-05",
+        "category": "FR-SEO",
+        "description": "Each store shall publish XML sitemaps (products, categories, pages, articles) with last-modified dates and image entries, regenerated on every publish.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-06",
+        "category": "FR-SEO",
+        "description": "Each store shall serve a robots.txt that links the sitemap and blocks cart, checkout, account, search results and admin pages; those pages also send noindex.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-07",
+        "category": "FR-SEO",
+        "description": "Pages shall include JSON-LD structured data: Organization, WebSite with SearchAction, Product with Offer (price, currency, availability, shipping and return policy), AggregateRating and Review, BreadcrumbList, and FAQPage where FAQs exist.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-SEO-08",
+        "category": "FR-SEO",
+        "description": "Every page shall carry Open Graph and Twitter card tags with a share image.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-SEO-09",
+        "category": "FR-SEO",
+        "description": "Storefront pages shall be rendered on the server, with titles, prices and descriptions present in the HTML before any script runs.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-10",
+        "category": "FR-SEO",
+        "description": "Product and category pages shall show breadcrumbs, also marked up as structured data.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-11",
+        "category": "FR-SEO",
+        "description": "Listing pages shall paginate with real, crawlable URLs; “load more” shall update the URL.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-12",
+        "category": "FR-SEO",
+        "description": "Changing a slug shall create a 301 redirect from the old URL automatically.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-SEO-13",
+        "category": "FR-SEO",
+        "description": "Every image shall have alt text in both languages; the Copywriter drafts it on upload for the owner to accept.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-15",
+        "category": "FR-SEO",
+        "description": "Each store shall publish an llms.txt generated from its pages and products, so AI search tools can read the store.",
+        "priority": "Should",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-SEO-16",
+        "category": "FR-SEO",
+        "description": "Each store shall publish product feeds for Google Merchant Center (RSS 2.0 with Google fields) and Meta catalog (tab-separated), refreshed on change.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-SEO-17",
+        "category": "FR-SEO",
+        "description": "The store shall notify search engines of new and changed URLs through IndexNow.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-18",
+        "category": "FR-SEO",
+        "description": "The system shall allow the owner to verify the store in Google Search Console from settings, and shall import the store’s top 100 search queries through the Search Console API once a day.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-19",
+        "category": "FR-SEO",
+        "description": "The dashboard shall score each page’s SEO and list the fixes the SEO Specialist can apply after approval. The score checks: title length 30–60 characters, description length 70–155 characters, exactly one H1, alt text on every image, thin content (fewer than 150 words of body text on product, category and blog pages), duplicate content (a title or description identical to another page of the store) and missing structured data.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-20",
+        "category": "FR-SEO",
+        "description": "Stores shall have a blog with categories and authors, marked up as Article.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-21",
+        "category": "FR-SEO",
+        "description": "Custom domains shall get HTTPS automatically and redirect www and non-www to one host (cost and hosting stage: TBD-8).",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-SEO-22",
+        "category": "FR-SEO",
+        "description": "Each page shall set lang and dir to match its language.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-SEO-23",
+        "category": "FR-SEO",
+        "description": "The system shall allow the owner to add manual 301 redirects.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-SEO-24",
+        "category": "FR-SEO",
+        "description": "The system shall log every 404 hit with its URL, referrer and time, and show the most frequent ones to the owner.",
+        "priority": "Must",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-MKT-01",
+        "category": "FR-MKT",
+        "description": "The system shall allow staff to see abandoned checkouts and open a WhatsApp message pre-filled with the shopper’s name and items in one click.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-MKT-02",
+        "category": "FR-MKT",
+        "description": "The system shall send a recovery email 1 hour and 24 hours after a checkout is abandoned, using a template the owner approved.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-MKT-03",
+        "category": "FR-MKT",
+        "description": "The system shall allow the owner to connect Meta Pixel, TikTok Pixel, Snap Pixel and Google Analytics 4 by pasting IDs in settings.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-MKT-04",
+        "category": "FR-MKT",
+        "description": "Purchases and checkouts shall also be sent server-side to Meta Conversions API, de-duplicated with the browser event by event ID.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-MKT-05",
+        "category": "FR-MKT",
+        "description": "The storefront shall collect newsletter sign-ups; staff can export subscribers.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-MKT-06",
+        "category": "FR-MKT",
+        "description": "The system shall allow the owner to send newsletter campaigns to subscribers through the email provider.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-MKT-07",
+        "category": "FR-MKT",
+        "description": "A welcome-offer pop-up shall give new visitors a discount code. It shall be shown at most once per visitor in 7 days, never on cart or checkout pages, and never to visitors who already subscribed.",
+        "priority": "Should",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-MKT-08",
+        "category": "FR-MKT",
+        "description": "The system shall allow the owner to record ad spend by channel and campaign; posting and ROAS follow FR-LED-06.",
+        "priority": "Should",
+        "status": "Improved"
+    },
+    {
+        "id": "FR-MKT-09",
+        "category": "FR-MKT",
+        "description": "The storefront shall show a WhatsApp chat button and the store’s social links.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-MKT-10",
+        "category": "FR-MKT",
+        "description": "The system shall allow the owner to build UTM-tagged links for campaigns.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-NTF-01",
+        "category": "FR-NTF",
+        "description": "The system shall send shoppers bilingual, store-branded emails for order confirmation, paid, shipped and cancelled.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-NTF-02",
+        "category": "FR-NTF",
+        "description": "The system shall also email shoppers when a refund is issued and when a return is approved.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-NTF-03",
+        "category": "FR-NTF",
+        "description": "The system shall allow staff to test email delivery from an email diagnostic page.",
+        "priority": "Must",
+        "status": "Kept"
+    },
+    {
+        "id": "FR-NTF-04",
+        "category": "FR-NTF",
+        "description": "The system shall notify owners in the dashboard and by email of new orders, low stock, pending AI approvals and anomaly alerts.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-NTF-05",
+        "category": "FR-NTF",
+        "description": "Order pages shall offer click-to-WhatsApp messages to the shopper for manual updates.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-NTF-06",
+        "category": "FR-NTF",
+        "description": "The system shall send owners browser push notifications for the events in FR-NTF-04.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-01",
+        "category": "FR-MI",
+        "description": "The CMO and CRO agents shall read visit analytics (pages, products viewed, traffic source, UTM tags, device, cart events, checkout leads) through read-only functions.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-02",
+        "category": "FR-MI",
+        "description": "The system shall allow the owner to connect the store’s Meta ad account with read-only access (Meta Marketing API, ads_read).",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-03",
+        "category": "FR-MI",
+        "description": "Daily results for each campaign, ad set and ad shall be imported: spend, impressions, reach, clicks, CTR, CPC, CPM, frequency, and Meta-reported purchases and value.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-04",
+        "category": "FR-MI",
+        "description": "Campaigns shall be matched to store sessions and orders through UTM tags and Conversions API event IDs, giving store-verified orders, ROAS, cost per order and profit after product cost, shipping and fees from the ledger.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-05",
+        "category": "FR-MI",
+        "description": "Each campaign shall get one verdict from these rules, checked in this order: Pause when spend exceeds the owner-set limit (default 500 EGP) with no store-verified orders; Fix when CTR is below 1% over at least 1,000 impressions; Scale when store-verified profit after product cost, shipping and fees is above zero, ROAS is at or above the store’s target ROAS and frequency is below 3; Keep in all other cases. The verdict shall be shown with the rule that produced it.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-06",
+        "category": "FR-MI",
+        "description": "The system shall allow the owner to ask “which Meta campaign is working?” in chat and get the ranked campaigns with verdicts and the numbers behind them.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-07",
+        "category": "FR-MI",
+        "description": "The marketing team shall propose campaigns from visit data: which products (viewed often but rarely bought, overstocked, or highest margin), which audience (cart abandoners, past buyers, lookalikes), which offer (passed the CFO margin check), a UTM-tagged link and Arabic and English ad copy. Budget and duration shall be computed by code from the store’s marketing budget (FR-FPA-01) and the product margin, never written by the language model.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-08",
+        "category": "FR-MI",
+        "description": "Campaign proposals shall wait for owner approval; in version 1.0 the owner launches an approved campaign in Meta Ads Manager.",
+        "priority": "Must",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-09",
+        "category": "FR-MI",
+        "description": "After a proposed campaign runs, the system shall report its results against the forecast.",
+        "priority": "Should",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-10",
+        "category": "FR-MI",
+        "description": "The campaign evaluation of FR-MI-03 to FR-MI-06 shall also cover TikTok and Google Ads.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "FR-MI-11",
+        "category": "FR-MI",
+        "description": "The system shall create an approved campaign in Meta in a paused state through the Marketing API.",
+        "priority": "Could",
+        "status": "New"
+    },
+    {
+        "id": "NFR-PER-01",
+        "category": "NFR-PER",
+        "description": "Storefront pages shall return their first byte within 800 ms at the 95th percentile with 50 concurrent shoppers, using page caching at the server and the CDN.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PER-02",
+        "category": "NFR-PER",
+        "description": "Home, category and product pages shall score at least 80 on Lighthouse mobile performance, with LCP ≤ 2.5 s and CLS ≤ 0.1 in the same run.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PER-03",
+        "category": "NFR-PER",
+        "description": "Storefront JavaScript shall stay under 100 KB compressed per page.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PER-04",
+        "category": "NFR-PER",
+        "description": "Dashboard pages (excluding AI answers) shall load their data within 1 s at the 95th percentile for a seeded store.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PER-05",
+        "category": "NFR-PER",
+        "description": "Search suggestions shall appear within 500 ms after the shopper stops typing.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PER-06",
+        "category": "NFR-PER",
+        "description": "An owner question answered by one LLM call plus SQL shall return within 10 s at the 90th percentile on the evaluation set, with a typing indicator while it waits.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PER-07",
+        "category": "NFR-PER",
+        "description": "On-demand FP&A answers shall return within 60 s with a progress indicator.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SCL-01",
+        "category": "NFR-SCL",
+        "description": "The application shall keep no state on one server: sessions, cache and queued jobs shall use shared storage (the database at stage 1) and files shall go through a storage abstraction, so moving hosting stage changes only configuration.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SCL-02",
+        "category": "NFR-SCL",
+        "description": "Owner AI questions shall be capped per store per day (default 50, set by the platform admin) to protect the free API quotas.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-01",
+        "category": "NFR-SEC",
+        "description": "All traffic shall use HTTPS, HTTP shall redirect to HTTPS, and pages shall send HSTS (6 months, no preload), X-Content-Type-Options, frame-ancestors and Referrer-Policy headers.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-02",
+        "category": "NFR-SEC",
+        "description": "Passwords shall be stored only as salted hashes made with an adaptive algorithm (bcrypt or Argon2id); sign-in shall lock for 15 minutes after 5 failed attempts per account and IP address.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-03",
+        "category": "NFR-SEC",
+        "description": "Every state-changing request shall carry CSRF protection; cookies shall be Secure, HttpOnly and SameSite=Lax.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-05",
+        "category": "NFR-SEC",
+        "description": "Every store-owned record shall be filtered by the current store on every access path: queries, reports, exports, queued jobs, cache keys and AI functions. An automated test for each access path shall prove that no data can be read across stores.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-06",
+        "category": "NFR-SEC",
+        "description": "Secrets, including AI provider keys, shall live only in server environment variables, never in code, Git, archives or the browser. The Adorna EG credentials in the uploaded .env must be rotated.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-07",
+        "category": "NFR-SEC",
+        "description": "Uploads shall be checked by content type and size, images re-encoded, executables rejected, and private files stored outside the web root.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-08",
+        "category": "NFR-SEC",
+        "description": "Card data shall never reach Minivora servers; hosted checkout keeps the platform in the simplest PCI DSS scope.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-10",
+        "category": "NFR-SEC",
+        "description": "The activity log shall be append-only and hash-chained, with a command that reports any edited or deleted entry; the latest chain hash shall be copied outside the database every night (into the off-site backup and an email to the team), so the whole chain cannot be recomputed unnoticed.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-11",
+        "category": "NFR-SEC",
+        "description": "GitHub dependency alerts shall be on, and the code shall be checked against the OWASP Top 10 checklist before the defense.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-12",
+        "category": "NFR-SEC",
+        "description": "Posted journal entries shall never be edited or deleted; a correction shall be a reversing entry, and a closed period shall accept only reversing entries.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-13",
+        "category": "NFR-SEC",
+        "description": "Dashboard sessions shall end after 120 minutes without activity and after 12 hours in total; shopper sessions shall end after 30 days without activity.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-14",
+        "category": "NFR-SEC",
+        "description": "A payment webhook shall be rejected when its event ID was already processed, or when its signed timestamp, where the gateway sends one, is more than 5 minutes old.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-15",
+        "category": "NFR-SEC",
+        "description": "Text written by shoppers (reviews, contact messages, order notes) shall reach agents only as quoted data, never as instructions; no function outside the asking user’s scope shall run because of such text.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-16",
+        "category": "NFR-SEC",
+        "description": "Every capability and role in the permission matrix (section 7.2) shall be enforced on the server.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-SEC-17",
+        "category": "NFR-SEC",
+        "description": "The CDN and the page cache shall never cache cart, checkout or account pages, or any page that carries a CSRF token or shopper-specific content; cache keys shall include the store.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PRV-01",
+        "category": "NFR-PRV",
+        "description": "Each store shall show a privacy notice and ask consent before sending marketing emails, in line with Egypt’s Personal Data Protection Law; consent for tracking cookies is FR-ANA-06.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PRV-03",
+        "category": "NFR-PRV",
+        "description": "Shopper names, phones and addresses shall be masked before any request to a cloud LLM; only aggregated store figures may be sent, including during the Adorna pilot.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PRV-04",
+        "category": "NFR-PRV",
+        "description": "Abandoned-checkout leads shall be deleted automatically after 90 days; ledger entries and invoices are never deleted.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PRV-05",
+        "category": "NFR-PRV",
+        "description": "Before any of a store’s data is sent to a cloud AI provider, the owner shall be told which providers are used, that processing happens outside Egypt, and what is sent (masked or aggregated data only), and shall give consent; without consent the AI team shall be off for that store.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-PRV-06",
+        "category": "NFR-PRV",
+        "description": "Journal entries, invoices and their source documents shall be kept for 10 years, as Egyptian tax rules require, and shall not be deletable by any user.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-REL-01",
+        "category": "NFR-REL",
+        "description": "The database shall be backed up nightly to off-site storage, and a full restore shall be rehearsed and timed once before the Adorna pilot and once before the defense.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-REL-02",
+        "category": "NFR-REL",
+        "description": "If every AI provider is down or rate-limited, the storefront, checkout and dashboard shall keep working, and the chat shall say the AI team is unavailable.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-REL-05",
+        "category": "NFR-REL",
+        "description": "An external uptime monitor shall check the platform and the Adorna pilot store every 5 minutes and alert the team.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-REL-06",
+        "category": "NFR-REL",
+        "description": "Store emails shall be sent from the Minivora domain with SPF, DKIM and DMARC records set in DNS.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-REL-07",
+        "category": "NFR-REL",
+        "description": "At stage 1 the recovery point objective shall be 24 hours (nightly backup) and the recovery time objective shall be the value set in TBD-11.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-REL-08",
+        "category": "NFR-REL",
+        "description": "A scheduled job shall not start while its previous run is still running; the skipped run shall be logged.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-USE-01",
+        "category": "NFR-USE",
+        "description": "A new owner shall create a store and publish a first product within 15 minutes without help, in a usability test with 5 owners.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-USE-02",
+        "category": "NFR-USE",
+        "description": "Owners shall rate the dashboard at 68 or above on the System Usability Scale.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-USE-03",
+        "category": "NFR-USE",
+        "description": "Guest checkout shall need no more than 8 fields on one page.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-USE-04",
+        "category": "NFR-USE",
+        "description": "Home, category, product, cart and checkout pages, and the dashboard chat and approvals, shall show no serious or critical issues in an axe scan against the WCAG 2.2 Level AA rules; checkout shall work by keyboard alone.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-USE-05",
+        "category": "NFR-USE",
+        "description": "Layouts shall mirror correctly in Arabic; amounts show as EGP with Western digits; times use Cairo time.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-USE-06",
+        "category": "NFR-USE",
+        "description": "The Today feed shall show at most 5 non-urgent insights a day (FR-PRO-04), and no non-urgent notification shall be sent during the owner’s quiet hours (FR-PRO-09).",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-MNT-01",
+        "category": "NFR-MNT",
+        "description": "All code shall be under version control, with automated checks on every push: tests, static analysis at a fixed level, code style, type checking and a production build.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-MNT-02",
+        "category": "NFR-MNT",
+        "description": "Ledger posting rules and money calculations shall have 100% test coverage, and every Must requirement shall have at least one test tagged with its ID.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-MNT-03",
+        "category": "NFR-MNT",
+        "description": "Database changes shall go through versioned migration scripts, and the /api/v1 endpoints shall be documented as OpenAPI generated from the code.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-AIQ-01",
+        "category": "NFR-AIQ",
+        "description": "Question Understanding shall pick the correct function and parameters for at least 85% of a 50-question evaluation set, of which at least 20 questions are written by a person outside the team and kept unseen until the final run.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-AIQ-02",
+        "category": "NFR-AIQ",
+        "description": "Financial figures shown to owners shall match the ledger in 100% of evaluation answers.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-AIQ-03",
+        "category": "NFR-AIQ",
+        "description": "At least 40% of the evaluation set shall be in Arabic, including Egyptian dialect, and accuracy shall be reported separately for Arabic and English.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-AIQ-04",
+        "category": "NFR-AIQ",
+        "description": "The evaluation shall compare at least two free providers on accuracy and response time.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-AIQ-05",
+        "category": "NFR-AIQ",
+        "description": "Over an Adorna shadow run of at least 3 weeks, at least 50% of proactive insights shall be rated useful by a rater outside the team (TBD-13); the owner’s own ratings are reported separately.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-AIQ-06",
+        "category": "NFR-AIQ",
+        "description": "No more than 25% of proactive alerts in the same shadow run shall be false alarms, as judged by the same independent rater.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-AIQ-07",
+        "category": "NFR-AIQ",
+        "description": "Store-verified campaign figures (FR-MI-04) shall match a manual reconciliation of Adorna’s orders and Meta spend for 2 weeks.",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-AIQ-08",
+        "category": "NFR-AIQ",
+        "description": "No act-level function shall run without a recorded approval by the owner or by a manager within the limit set by the owner; scheduled agents shall only read and draft.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-AIQ-09",
+        "category": "NFR-AIQ",
+        "description": "Every answer shall restate how the question was understood (function, period and filters). When Question Understanding marks its mapping as uncertain, the system shall ask the owner to confirm the interpretation before computing.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-AIQ-10",
+        "category": "NFR-AIQ",
+        "description": "The evaluation shall compare the multi-agent team with a single orchestrator that uses the same functions, on the same question set and shadow-run data, reporting function accuracy and insight usefulness for both (TBD-14).",
+        "priority": "Should",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-OPS-01",
+        "category": "NFR-OPS",
+        "description": "Running the platform at stage 1 shall cost 0 EGP a month beyond the Hostinger plan and the Minivora domain.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-OPS-02",
+        "category": "NFR-OPS",
+        "description": "Every scheduled job step shall finish within 60 s on the shared hosting plan. Longer work (nightly backup, Adorna import, FP&A memo, Meta import) shall run as resumable chunks of at most 60 s each. Deployment shall need no build step on the server.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-OPS-03",
+        "category": "NFR-OPS",
+        "description": "Payment gateways shall run in test mode only, with 0 real transactions; each test payment shall post one balanced journal entry.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-OPS-04",
+        "category": "NFR-OPS",
+        "description": "No self-hosted GPU shall be used; storefront images shall be served as WebP or AVIF, and storefront pages shall be cached.",
+        "priority": "Must",
+        "status": "N/A"
+    },
+    {
+        "id": "NFR-OPS-05",
+        "category": "NFR-OPS",
+        "description": "Model calls per day shall stay below 70% of the combined free-tier quota of the configured providers, using the call budget in Appendix K.5 (quotas: TBD-12).",
+        "priority": "Must",
+        "status": "N/A"
+    }
+]

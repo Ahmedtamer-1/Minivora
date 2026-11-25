@@ -58,6 +58,18 @@ class JournalEntry extends Model
                 throw new LogicException("Journal entry is not balanced: debits {$entry->total_debit}, credits {$entry->total_credit}.");
             }
         });
+
+        // Strict ledger immutability: only reversed_by_id may be linked once on an unreversed entry. NFR-SEC-12, FR-LED-03
+        static::updating(function (self $entry): void {
+            $disallowed = array_diff(array_keys($entry->getDirty()), ['reversed_by_id', 'updated_at']);
+            if ($disallowed !== [] || $entry->getRawOriginal('reversed_by_id') !== null) {
+                throw new LogicException('Posted journal entries cannot be edited; reverse them instead.');
+            }
+        });
+
+        static::deleting(function (): void {
+            throw new LogicException('Posted journal entries cannot be deleted; reverse them instead.');
+        });
     }
 
     /** @return HasMany<JournalLine, $this> */

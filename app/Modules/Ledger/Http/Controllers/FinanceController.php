@@ -12,6 +12,7 @@ use App\Modules\Ledger\Services\FinanceSettings;
 use App\Modules\Ledger\Services\PeriodService;
 use App\Modules\Ledger\Services\StatementService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -118,11 +119,12 @@ class FinanceController extends Controller
         ]);
     }
 
-    /** CSV of any statement, opened in Excel with Arabic intact (UTF-8 BOM). FR-LED-08 */
-    public function export(Request $request): StreamedResponse
+    /** CSV (Excel UTF-8 BOM) or printable HTML/PDF of any statement. FR-LED-08 */
+    public function export(Request $request): HttpResponse|StreamedResponse
     {
         [$from, $to] = $this->period($request);
         $report = in_array($request->query('report'), self::REPORTS, true) ? (string) $request->query('report') : 'pl';
+        $format = strtolower((string) $request->query('format', 'csv'));
         $locale = app()->getLocale();
         $data = $this->build($report, $from, $to);
         $name = fn (array $r) => $locale === 'ar' && ($r['name_ar'] ?? '') !== '' ? $r['name_ar'] : ($r['name_en'] ?? '');
@@ -180,6 +182,26 @@ class FinanceController extends Controller
                 }
             })(),
         };
+
+        if (in_array($format, ['print', 'html', 'pdf'], true)) {
+            $dir = $locale === 'ar' ? 'rtl' : 'ltr';
+            $title = e((string) $label('report_'.$report));
+            $tableRows = '';
+            foreach ($rows as $row) {
+                if ($row === []) {
+                    continue;
+                }
+                $cells = implode('', array_map(fn ($cell) => '<td>'.e((string) $cell).'</td>', $row));
+                $tableRows .= "<tr>{$cells}</tr>";
+            }
+
+            $html = "<!DOCTYPE html><html lang=\"{$locale}\" dir=\"{$dir}\"><head><meta charset=\"utf-8\">"
+                ."<title>{$title}</title>"
+                .'<style>@media print { body { margin: 0; } } body { font-family: sans-serif; padding: 24px; } table { width: 100%; border-collapse: collapse; } td { padding: 6px 8px; border-bottom: 1px solid #e5e7eb; }</style>'
+                ."</head><body><h1>{$title}</h1><table>{$tableRows}</table></body></html>";
+
+            return response($html, 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+        }
 
         $file = "minivora-{$report}-{$from->toDateString()}-{$to->toDateString()}.csv";
 

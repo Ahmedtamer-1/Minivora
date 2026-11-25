@@ -7,6 +7,7 @@ use App\Modules\Ledger\Models\Casts\DateOnly;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 /**
  * One side of a journal entry: a debit or a credit to one account, never both. FR-LED-03
@@ -29,6 +30,18 @@ class JournalLine extends Model
     protected function casts(): array
     {
         return ['debit' => 'integer', 'credit' => 'integer', 'entry_date' => DateOnly::class];
+    }
+
+    protected static function booted(): void
+    {
+        // Strict ledger immutability: posted lines can never be edited or deleted. NFR-SEC-12, FR-LED-03
+        static::updating(function (): void {
+            throw new LogicException('Posted journal lines cannot be edited.');
+        });
+
+        static::deleting(function (): void {
+            throw new LogicException('Posted journal lines cannot be deleted.');
+        });
     }
 
     /** @return BelongsTo<Account, $this> */

@@ -104,6 +104,18 @@ class Order extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    /** @return HasMany<ReturnRequest, $this> */
+    public function returnRequests(): HasMany
+    {
+        return $this->hasMany(ReturnRequest::class);
+    }
+
+    /** @return HasMany<Refund, $this> */
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
+
     /**
      * Orders that still need packing and handing to a courier.
      *

@@ -24,6 +24,9 @@ use Illuminate\Support\Carbon;
  * @property string $locale
  * @property bool $is_platform_admin
  * @property Carbon|null $email_verified_at
+ * @property string|null $two_factor_secret
+ * @property Carbon|null $two_factor_confirmed_at
+ * @property Carbon|null $deletion_requested_at
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -37,9 +40,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'locale' => 'ar',
         'is_platform_admin' => false,
         'email_verified_at' => null,
+        'two_factor_secret' => null,
+        'two_factor_confirmed_at' => null,
+        'deletion_requested_at' => null,
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'two_factor_secret'];
 
     protected function casts(): array
     {
@@ -47,7 +53,15 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_platform_admin' => 'boolean',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_confirmed_at' => 'datetime',
+            'deletion_requested_at' => 'datetime',
         ];
+    }
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
     }
 
     protected static function newFactory(): UserFactory
