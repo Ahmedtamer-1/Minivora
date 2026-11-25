@@ -4,6 +4,7 @@
 // Reserved names (app, www, ...) never match here, so they fall through to the platform routes.
 
 use App\Core\Tenancy\ReservedSubdomains;
+use App\Core\Tenancy\StoreUrl;
 use App\Core\Tenancy\ResolveStoreFromHost;
 use App\Modules\Analytics\Http\Controllers\TrackController;
 use App\Modules\Cart\Http\Controllers\CartController;
@@ -22,8 +23,12 @@ use Illuminate\Support\Facades\Route;
 
 $reserved = implode('|', array_map('preg_quote', ReservedSubdomains::all()));
 
-Route::domain('{store}.'.config('minivora.domain'))
-    ->where(['store' => '(?!(?:'.$reserved.')\.)[a-z0-9-]+'])
+// STOREFRONT_MODE=path serves the same routes at <APP_URL>/s/<store> instead (StoreUrl).
+$group = StoreUrl::pathMode()
+    ? Route::prefix('s/{store}')->where(['store' => '(?!(?:'.$reserved.')$)[a-z0-9-]+'])
+    : Route::domain('{store}.'.config('minivora.domain'))->where(['store' => '(?!(?:'.$reserved.')\.)[a-z0-9-]+']);
+
+$group
     ->middleware([ResolveStoreFromHost::class, StorefrontGate::class])
     ->name('storefront.')
     ->group(function () {
@@ -31,6 +36,16 @@ Route::domain('{store}.'.config('minivora.domain'))
         Route::get('/__preview', [StorefrontController::class, 'preview'])->middleware('signed:relative')->name('preview');
         Route::post('/__unlock', [StorefrontController::class, 'unlock'])->middleware('throttle:20,1')->name('unlock');
         Route::get('/{locale}', [StorefrontController::class, 'home'])->whereIn('locale', config('minivora.locales'))->name('home');
+
+        // Shopper pages built by the store builder (FR-BLD-01, FR-CAT-04, FR-CAT-07, FR-CAT-11)
+        Route::prefix('/{locale}')->whereIn('locale', config('minivora.locales'))->group(function () {
+            Route::get('/shop', [StorefrontController::class, 'shop'])->name('shop');
+            Route::get('/categories/{slug}', [StorefrontController::class, 'category'])->name('category');
+            Route::get('/products/{slug}', [StorefrontController::class, 'product'])->name('product');
+            Route::get('/pages/{slug}', [StorefrontController::class, 'page'])->name('page');
+            Route::get('/search', [StorefrontController::class, 'search'])->name('search');
+            Route::get('/cart', [StorefrontController::class, 'cart'])->name('cart');
+        });
 
         // SEO crawlers & product feeds (FR-SEO-05, FR-SEO-06, FR-SEO-15, FR-SEO-16)
         Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('seo.sitemap');

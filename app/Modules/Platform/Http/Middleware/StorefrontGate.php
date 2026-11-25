@@ -62,7 +62,7 @@ class StorefrontGate
 
     private function localeFor(Request $request, string $default): string
     {
-        $segment = $request->segment(1);
+        $segment = $request->route('locale') ?? $request->segment(1);
 
         return in_array($segment, config('minivora.locales'), true) ? $segment : $default;
     }

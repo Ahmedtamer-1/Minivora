@@ -67,7 +67,7 @@ export const groups: Group[] = [
         key: 'run',
         sections: [
             { key: 'home', icon: House, href: '/dashboard', match: (p) => p === '/dashboard' },
-            { key: 'approvals', icon: ListChecks, href: '/approvals', permissions: ['ai.approve'], planned: true, match: under('/approvals') },
+            { key: 'approvals', icon: ListChecks, href: '/approvals', permissions: ['ai.approve'], match: under('/approvals') },
         ],
     },
     {
@@ -81,8 +81,8 @@ export const groups: Group[] = [
                 match: under('/products', '/categories', '/inventory'),
                 pages: [
                     { key: 'products', href: '/products', icon: Package, match: under('/products') },
-                    { key: 'categories', href: '/categories', icon: Tags, planned: true },
-                    { key: 'inventory', href: '/inventory', icon: Boxes, planned: true },
+                    { key: 'categories', href: '/categories', icon: Tags },
+                    { key: 'inventory', href: '/inventory', icon: Boxes },
                 ],
             },
             {
@@ -93,7 +93,7 @@ export const groups: Group[] = [
                 match: under('/orders', '/returns'),
                 pages: [
                     { key: 'orders', href: '/orders', icon: ShoppingBag, match: under('/orders') },
-                    { key: 'returns', href: '/returns', icon: Undo2, permission: 'refunds.view', planned: true },
+                    { key: 'returns', href: '/returns', icon: Undo2, permission: 'refunds.view' },
                 ],
             },
             { key: 'customers', icon: Users, href: '/customers', permissions: ['orders.view'], match: under('/customers') },
@@ -102,13 +102,12 @@ export const groups: Group[] = [
     {
         key: 'grow',
         sections: [
-            { key: 'analytics', icon: BarChart3, href: '/analytics', permissions: ['orders.view', 'ledger.view'], planned: true, match: under('/analytics') },
+            { key: 'analytics', icon: BarChart3, href: '/analytics', permissions: ['orders.view', 'ledger.view'], match: under('/analytics') },
             {
                 key: 'marketing',
                 icon: Megaphone,
                 href: '/marketing',
                 permissions: ['marketing.manage'],
-                planned: true,
                 match: under('/marketing'),
                 pages: [
                     { key: 'overview', href: '/marketing', icon: Megaphone, match: (p) => p === '/marketing' },
@@ -117,7 +116,7 @@ export const groups: Group[] = [
                     { key: 'abandoned', href: '/marketing/abandoned', icon: ShoppingCart },
                 ],
             },
-            { key: 'seo', icon: SearchCheck, href: '/seo', permissions: ['marketing.manage', 'design.manage'], planned: true, match: under('/seo') },
+            { key: 'seo', icon: SearchCheck, href: '/seo', permissions: ['marketing.manage', 'design.manage'], match: under('/seo') },
         ],
     },
     {
@@ -128,7 +127,6 @@ export const groups: Group[] = [
                 icon: LayoutTemplate,
                 href: '/builder',
                 permissions: ['design.manage'],
-                planned: true,
                 match: under('/builder'),
                 pages: [
                     { key: 'pages', href: '/builder', icon: Files, match: (p) => p === '/builder' },

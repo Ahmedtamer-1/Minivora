@@ -19,7 +19,7 @@
         <p class="mt-3 text-ink-muted">{{ __('storefront.opening_soon.body', ['store' => $store->name]) }}</p>
 
         @if ($store->storefront_password)
-            <form method="POST" action="/__unlock" class="mt-8 space-y-3 text-start">
+            <form method="POST" action="{{ \App\Core\Tenancy\StoreUrl::prefix($store->subdomain) }}/__unlock" class="mt-8 space-y-3 text-start">
                 @csrf
                 <label for="password" class="block text-sm font-medium">{{ __('storefront.opening_soon.have_password') }}</label>
                 <div class="flex gap-2">

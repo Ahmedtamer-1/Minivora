@@ -38,6 +38,8 @@ class ThemeController extends Controller
             'corner_radius' => ['sometimes', 'string', Rule::in(ThemeService::VALID_CORNER_RADII)],
             'color_mode' => ['sometimes', 'string', Rule::in(ThemeService::VALID_COLOR_MODES)],
             'template' => ['sometimes', 'nullable', 'string', 'max:32'],
+            'custom_css' => ['sometimes', 'nullable', 'string', 'max:60000'],
+            'settings' => ['sometimes', 'array'],
         ]);
 
         $theme = $this->themes->update($data);

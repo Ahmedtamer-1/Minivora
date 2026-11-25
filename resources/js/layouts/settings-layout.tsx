@@ -34,7 +34,7 @@ const groups: Array<{ key: 'you' | 'store'; items: Item[] }> = [
         items: [
             { key: 'account', href: '/settings/account', icon: UserRound },
             { key: 'accessibility', href: '/settings/accessibility', icon: Accessibility },
-            { key: 'notifications', href: '/settings/notifications', icon: BellRing, planned: true },
+            { key: 'notifications', href: '/settings/notifications', icon: BellRing },
         ],
     },
     {
@@ -42,9 +42,9 @@ const groups: Array<{ key: 'you' | 'store'; items: Item[] }> = [
         items: [
             { key: 'general', href: '/settings', icon: Store, permission: 'settings.manage' },
             { key: 'members', href: '/settings/members', icon: Users, permission: 'members.manage' },
-            { key: 'payments', href: '/settings/payments', icon: CreditCard, permission: 'settings.manage', planned: true },
-            { key: 'shipping', href: '/settings/shipping', icon: Truck, permission: 'settings.manage', planned: true },
-            { key: 'domain', href: '/settings/domain', icon: Globe2, permission: 'settings.manage', planned: true },
+            { key: 'payments', href: '/settings/payments', icon: CreditCard, permission: 'settings.manage' },
+            { key: 'shipping', href: '/settings/shipping', icon: Truck, permission: 'settings.manage' },
+            { key: 'domain', href: '/settings/domain', icon: Globe2, permission: 'settings.manage' },
             { key: 'activity', href: '/settings/activity', icon: History, permission: 'settings.manage' },
         ],
     },

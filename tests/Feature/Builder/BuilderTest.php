@@ -51,8 +51,9 @@ test('FR-BLD-01 section registry defines all 15 SRS section types with defaults 
         'testimonial_carousel',
     ];
 
-    expect(array_keys($registry->all()))->toBe($expectedTypes)
-        ->and($registry->all())->toHaveCount(15);
+    // The 15 SRS types are all present (the library adds more: slideshow, marquee, custom…).
+    expect(array_values(array_intersect(array_keys($registry->all()), $expectedTypes)))->toBe($expectedTypes)
+        ->and(SectionRegistry::SRS_TYPES)->toBe($expectedTypes);
 
     foreach ($expectedTypes as $type) {
         expect($registry->isValid($type))->toBeTrue()

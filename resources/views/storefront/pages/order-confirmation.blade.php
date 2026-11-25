@@ -63,7 +63,7 @@
     $address = data_get($order ?? null, 'address');
 
     $trackUrl = data_get($order ?? null, 'tracking_url')
-        ?: ('/track-order'.($orderNumber !== '' ? '?order='.urlencode((string) $orderNumber) : ''));
+        ?: ((isset($store->subdomain) ? \App\Core\Tenancy\StoreUrl::prefix($store->subdomain) : '').'/track-order'.($orderNumber !== '' ? '?order='.urlencode((string) $orderNumber) : ''));
 
     $statusBadgeClass = match ($statusValue) {
         'paid', 'delivered' => 'bg-success-subtle text-success',
@@ -299,7 +299,7 @@
                         {{ $isAr ? 'تتبع طلبك' : 'Track your order' }}
                     </a>
                     <a
-                        href="/{{ $locale }}"
+                        href="{{ (isset($store->subdomain) ? \App\Core\Tenancy\StoreUrl::prefix($store->subdomain) : '') }}/{{ $locale }}"
                         class="inline-flex items-center justify-center rounded-lg border border-line bg-elevated px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-line-focus"
                     >
                         {{ $isAr ? 'العودة إلى المتجر' : 'Back to store' }}

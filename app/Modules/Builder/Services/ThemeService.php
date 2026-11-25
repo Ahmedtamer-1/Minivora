@@ -48,7 +48,17 @@ class ThemeService
             'corner_radius',
             'color_mode',
             'template',
+            'custom_css',
+            'settings',
         ]));
+
+        if (array_key_exists('custom_css', $allowed)) {
+            $allowed['custom_css'] = CssSanitizer::clean((string) $allowed['custom_css']);
+        }
+
+        if (array_key_exists('settings', $allowed)) {
+            $allowed['settings'] = $this->cleanSettings(is_array($allowed['settings']) ? $allowed['settings'] : []);
+        }
 
         foreach (['primary_color', 'accent_color'] as $colorKey) {
             if (array_key_exists($colorKey, $allowed)) {
@@ -84,5 +94,30 @@ class ThemeService
         $this->activity->log('theme.updated', $theme, array_keys($allowed));
 
         return $theme->refresh();
+    }
+
+    /**
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
+     */
+    private function cleanSettings(array $input): array
+    {
+        $out = [];
+        foreach (Theme::SETTING_DEFAULTS as $key => $default) {
+            if (! array_key_exists($key, $input)) {
+                continue;
+            }
+            $value = $input[$key];
+            $out[$key] = match (true) {
+                is_bool($default) => (bool) $value,
+                is_int($default) => (int) $value,
+                str_ends_with($key, '_color') => preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', (string) $value) ? strtolower((string) $value) : '',
+                default => mb_substr((string) $value, 0, 40),
+            };
+        }
+        $out['page_width'] = max(720, min(2400, (int) ($out['page_width'] ?? 1280)));
+        $out['base_font_size'] = max(12, min(22, (int) ($out['base_font_size'] ?? 16)));
+
+        return $out;
     }
 }

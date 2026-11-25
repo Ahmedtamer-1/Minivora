@@ -19,6 +19,8 @@ use Illuminate\Support\Carbon;
  * @property string $corner_radius
  * @property string $color_mode
  * @property string|null $template
+ * @property string|null $custom_css
+ * @property array<string, mixed>|null $settings
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
@@ -34,7 +36,34 @@ class Theme extends Model
         'corner_radius',
         'color_mode',
         'template',
+        'custom_css',
+        'settings',
     ];
+
+    /** Extra theme settings and their defaults. */
+    public const SETTING_DEFAULTS = [
+        'background_color' => '',
+        'text_color' => '',
+        'page_width' => 1280,
+        'base_font_size' => 16,
+        'heading_weight' => 600,
+        'heading_uppercase' => false,
+        'heading_letter_spacing' => 0,
+        'button_style' => 'solid',
+        'button_uppercase' => false,
+        'card_style' => 'plain',
+    ];
+
+    protected function casts(): array
+    {
+        return ['settings' => 'array'];
+    }
+
+    /** @return array<string, mixed> */
+    public function resolvedSettings(): array
+    {
+        return array_replace(self::SETTING_DEFAULTS, array_intersect_key($this->settings ?? [], self::SETTING_DEFAULTS));
+    }
 
     protected $attributes = [
         'primary_color' => '#111827',

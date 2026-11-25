@@ -25,7 +25,7 @@ use InvalidArgumentException;
  */
 class PageBuilderService
 {
-    public const STARTER_TEMPLATES = ['fashion', 'food', 'handmade', 'electronics'];
+    public const STARTER_TEMPLATES = ['fashion', 'food', 'handmade', 'electronics', 'streetwear'];
 
     public function __construct(
         private readonly SectionRegistry $registry,
@@ -177,6 +177,108 @@ class PageBuilderService
     }
 
     /**
+     * Replace a page's sections with the editor's list in one transaction: existing ids are updated,
+     * entries without an id are created, missing ones deleted. Settings are stored as sent (the
+     * storefront merges defaults and sanitises at render time). FR-BLD-02
+     *
+     * @param  list<array{id?: int|string|null, type: string, is_visible?: bool, settings?: array<string, mixed>}>  $sections
+     * @return Collection<int, Section>
+     */
+    public function syncSections(Page $page, array $sections): Collection
+    {
+        $allowedGroup = match ($page->slug) {
+            '__header' => 'header',
+            '__footer' => 'footer',
+            default => 'template',
+        };
+
+        DB::transaction(function () use ($page, $sections, $allowedGroup): void {
+            $existing = Section::query()->where('page_id', $page->id)->get()->keyBy('id');
+            $keep = [];
+
+            foreach (array_values($sections) as $position => $data) {
+                $type = (string) ($data['type'] ?? '');
+                if (! $this->registry->isValid($type) || $this->registry->group($type) !== $allowedGroup) {
+                    throw ValidationException::withMessages(['sections' => "Section type {$type} cannot be placed here."]);
+                }
+
+                $settings = is_array($data['settings'] ?? null) ? $data['settings'] : [];
+                $id = isset($data['id']) && is_numeric($data['id']) ? (int) $data['id'] : null;
+                $section = $id !== null ? $existing->get($id) : null;
+
+                if ($section === null || $section->type !== $type) {
+                    $section = new Section(['page_id' => $page->id, 'type' => $type]);
+                }
+
+                $section->fill([
+                    'sort_order' => $position,
+                    'is_visible' => (bool) ($data['is_visible'] ?? true),
+                    'settings' => $settings,
+                ]);
+                $section->page_id = $page->id;
+                $section->save();
+                $keep[] = $section->id;
+            }
+
+            Section::query()->where('page_id', $page->id)->whereNotIn('id', $keep ?: [0])->delete();
+
+            // Marks unpublished changes; shoppers keep seeing the last published version.
+            $page->touch();
+        });
+
+        $this->activity->log('page.saved', $page, ['sections' => count($sections)]);
+
+        return $page->sections()->get();
+    }
+
+    /**
+     * The store-wide header and footer section groups, created with defaults on first use.
+     *
+     * @return array{header: Page, footer: Page}
+     */
+    public function ensureGroupPages(): array
+    {
+        $out = [];
+        foreach (['header' => ['__header', 'Header', 'رأس الصفحة', ['announcement_bar', 'header']], 'footer' => ['__footer', 'Footer', 'تذييل الصفحة', ['footer']]] as $key => [$slug, $title, $titleAr, $types]) {
+            $page = Page::query()->where('slug', $slug)->first();
+            if ($page === null) {
+                $page = Page::query()->create(['slug' => $slug, 'title' => $title, 'title_ar' => $titleAr, 'is_home' => false, 'status' => Page::STATUS_DRAFT]);
+                foreach ($types as $i => $type) {
+                    $this->addSection($page, $type, [], $i, $type !== 'announcement_bar');
+                }
+            }
+            $out[$key] = $page;
+        }
+
+        return $out;
+    }
+
+    /** Update a page's title, slug and home flag. */
+    public function updatePageMeta(Page $page, array $data): Page
+    {
+        if (isset($data['slug']) && trim((string) $data['slug']) !== '' && ! str_starts_with($page->slug, '__')) {
+            $slug = $this->resolveSlug((string) $data['slug'], $page->title);
+            if (str_starts_with($slug, '__') || Page::query()->where('slug', $slug)->whereKeyNot($page->id)->exists()) {
+                throw ValidationException::withMessages(['slug' => __('validation.unique', ['attribute' => 'slug'])]);
+            }
+            $page->slug = $slug;
+        }
+        if (isset($data['title']) && trim((string) $data['title']) !== '') {
+            $page->title = trim((string) $data['title']);
+        }
+        if (array_key_exists('title_ar', $data)) {
+            $page->title_ar = $data['title_ar'] !== null ? trim((string) $data['title_ar']) : null;
+        }
+        if (! empty($data['is_home']) && ! str_starts_with($page->slug, '__')) {
+            Page::query()->where('is_home', true)->whereKeyNot($page->id)->update(['is_home' => false]);
+            $page->is_home = true;
+        }
+        $page->save();
+
+        return $page;
+    }
+
+    /**
      * Pure-code margin pricing formula: round(unitCost / (1 - margin)) half-up in integer piasters.
      * Refuses invalid margins (< 0 or >= 1) and negative unit costs. FR-BLD-05
      */
@@ -317,6 +419,7 @@ class PageBuilderService
                 'title_ar' => $page->title_ar,
                 'is_home' => $page->is_home,
                 'sections' => $sections->map(fn (Section $section): array => [
+                    'id' => $section->id,
                     'type' => $section->type,
                     'sort_order' => $section->sort_order,
                     'is_visible' => $section->is_visible,
@@ -525,6 +628,42 @@ class PageBuilderService
                     ['type' => 'featured_products', 'settings' => ['heading' => 'Small-Batch Pieces', 'heading_ar' => 'قطع محدودة الإصدار']],
                     ['type' => 'video_reels', 'settings' => ['heading' => 'Behind the Scenes', 'heading_ar' => 'كواليس الصنع']],
                     ['type' => 'testimonial_carousel', 'settings' => []],
+                ],
+            ],
+            'streetwear' => [
+                'title' => 'Streetwear Drops',
+                'title_ar' => 'إصدارات ستريت وير',
+                'theme' => [
+                    'primary_color' => '#f5f5f4',
+                    'accent_color' => '#e11d48',
+                    'font_heading' => 'Space Grotesk',
+                    'font_body' => 'Inter',
+                    'corner_radius' => 'none',
+                    'color_mode' => 'dark',
+                    'settings' => ['heading_uppercase' => true, 'heading_letter_spacing' => -2, 'heading_weight' => 700, 'button_uppercase' => true, 'button_style' => 'outline', 'page_width' => 1440],
+                ],
+                'sections' => [
+                    ['type' => 'slideshow', 'settings' => ['height' => 'full', 'overlay_opacity' => 35, 'blocks' => [
+                        ['id' => 'sw-s1', 'type' => 'slide', 'settings' => ['eyebrow' => 'Drop 01 · AW', 'eyebrow_ar' => 'الإصدار ٠١', 'heading' => 'Built for the night', 'heading_ar' => 'مصمم لليل', 'button_label' => 'Shop the drop', 'button_label_ar' => 'تسوق الإصدار', 'button_url' => '/shop', 'content_position' => 'bottom-start', 'countdown_to' => now()->addDays(7)->format('Y-m-d\TH:i')]],
+                        ['id' => 'sw-s2', 'type' => 'slide', 'settings' => ['eyebrow' => 'Drop 02', 'eyebrow_ar' => 'الإصدار ٠٢', 'heading' => 'Archive sale −35%', 'heading_ar' => 'تخفيضات الأرشيف −٣٥٪', 'button_label' => 'View', 'button_label_ar' => 'شاهد', 'button_url' => '/shop', 'content_position' => 'bottom-start']],
+                    ]]],
+                    ['type' => 'multicolumn', 'settings' => ['heading' => 'Four styles, one studio', 'heading_ar' => 'أربعة أنماط، استوديو واحد', 'columns' => 4, 'card_style' => 'overlay', 'aspect' => 'tall', 'blocks' => [
+                        ['id' => 'sw-c1', 'type' => 'column', 'settings' => ['label' => '01', 'title' => 'Gothic', 'title_ar' => 'قوطي', 'text' => 'Black on black.', 'link_url' => '/shop']],
+                        ['id' => 'sw-c2', 'type' => 'column', 'settings' => ['label' => '02', 'title' => 'Techwear', 'title_ar' => 'تك وير', 'text' => 'Straps, zips, utility.', 'link_url' => '/shop']],
+                        ['id' => 'sw-c3', 'type' => 'column', 'settings' => ['label' => '03', 'title' => 'Avant', 'title_ar' => 'طليعي', 'text' => 'Volume and drape.', 'link_url' => '/shop']],
+                        ['id' => 'sw-c4', 'type' => 'column', 'settings' => ['label' => '04', 'title' => 'Office', 'title_ar' => 'رسمي', 'text' => 'Sharp, never boring.', 'link_url' => '/shop']],
+                    ]]],
+                    ['type' => 'marquee', 'settings' => ['font_size' => 72, 'outline' => true, 'separator' => '✦', 'style' => ['width' => 'full', 'padding_top' => 24, 'padding_bottom' => 24], 'blocks' => [
+                        ['id' => 'sw-m1', 'type' => 'item', 'settings' => ['text' => 'Limited drops', 'text_ar' => 'إصدارات محدودة']],
+                        ['id' => 'sw-m2', 'type' => 'item', 'settings' => ['text' => 'No restocks', 'text_ar' => 'بدون إعادة إنتاج']],
+                    ]]],
+                    ['type' => 'featured_products', 'settings' => ['heading' => 'New in', 'heading_ar' => 'وصل حديثاً', 'subheading' => 'Fresh from this week\'s drop.', 'layout' => 'carousel', 'columns' => 4, 'aspect' => 'tall', 'source' => 'newest']],
+                    ['type' => 'countdown_banner', 'settings' => ['eyebrow' => 'Black Week', 'eyebrow_ar' => 'الأسبوع الأسود', 'heading' => '−20% on everything', 'heading_ar' => 'خصم ٢٠٪ على كل شيء', 'ends_at' => now()->addDays(5)->format('Y-m-d\TH:i'), 'button_label' => 'Shop the sale', 'button_label_ar' => 'تسوق العرض', 'button_url' => '/shop', 'layout' => 'text', 'style' => ['background' => '#e11d48', 'text_color' => '#ffffff', 'width' => 'full', 'padding_top' => 72, 'padding_bottom' => 72]]],
+                    ['type' => 'featured_products', 'settings' => ['heading' => 'Best sellers', 'heading_ar' => 'الأكثر مبيعاً', 'layout' => 'grid', 'columns' => 4, 'aspect' => 'tall', 'source' => 'best_selling']],
+                    ['type' => 'image_banner', 'settings' => ['badge' => '−35%', 'heading' => 'The archive', 'heading_ar' => 'الأرشيف', 'button_label' => 'Shop the archive', 'button_label_ar' => 'تسوق الأرشيف', 'button_url' => '/shop', 'height' => 'large', 'content_position' => 'bottom-start']],
+                    ['type' => 'image_with_text', 'settings' => ['big_text' => '2015 →', 'eyebrow' => 'Inside the studio', 'eyebrow_ar' => 'داخل الاستوديو', 'heading' => 'Made in small runs', 'heading_ar' => 'نُنتج بكميات صغيرة', 'body' => "Every piece is cut in limited numbers.\nWhen it's gone, it's gone.", 'body_ar' => "كل قطعة تُنتج بعدد محدود.\nعندما تنفد، لا تعود.", 'button_label' => 'More about us', 'button_label_ar' => 'المزيد عنا', 'button_url' => '/pages/about', 'image_position' => 'end']],
+                    ['type' => 'social_carousel', 'settings' => ['heading' => 'Our models aren\'t models', 'heading_ar' => 'عارضونا ليسوا عارضين', 'handle' => '@yourstore', 'columns' => 4]],
+                    ['type' => 'newsletter', 'settings' => ['eyebrow' => '01 · Start', 'heading' => 'Drops drop to you first', 'heading_ar' => 'الإصدارات تصلك أولاً', 'text' => '10% on your first order.', 'text_ar' => 'خصم ١٠٪ على أول طلب.', 'layout' => 'split']],
                 ],
             ],
             'electronics' => [

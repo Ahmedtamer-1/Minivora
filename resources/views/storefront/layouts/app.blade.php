@@ -2,8 +2,9 @@
 @php
     $locale = app()->getLocale();
     $other = $locale === 'ar' ? 'en' : 'ar';
-    $path = request()->path();
-    $switchPath = '/'.$other.(str_contains($path, '/') ? '/'.\Illuminate\Support\Str::after($path, '/') : '');
+    $prefix = isset($store->subdomain) ? \App\Core\Tenancy\StoreUrl::prefix($store->subdomain) : '';
+    $path = ltrim(\Illuminate\Support\Str::after('/'.request()->path(), $prefix ?: '/'), '/');
+    $switchPath = $prefix.'/'.$other.(str_contains($path, '/') ? '/'.\Illuminate\Support\Str::after($path, '/') : '');
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}" dir="{{ $locale === 'ar' ? 'rtl' : 'ltr' }}">
@@ -22,7 +23,7 @@
 <body class="min-h-screen flex flex-col bg-canvas text-ink">
     <header class="border-b border-line bg-elevated">
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-            <a href="/{{ $locale }}" class="font-display text-xl font-semibold">{{ $store->name }}</a>
+            <a href="{{ $prefix }}/{{ $locale }}" class="font-display text-xl font-semibold">{{ $store->name }}</a>
             <a href="{{ $switchPath }}" hreflang="{{ $other }}" class="text-sm text-ink-link hover:underline">{{ __('storefront.switch_language') }}</a>
         </div>
     </header>

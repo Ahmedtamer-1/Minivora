@@ -1,1 +1,11 @@
-{{-- Builder section "brand-story". Must match the entry in Modules/Builder/Services/SectionRegistry.php. FR-BLD-01 --}}
+@php($btn = $sf->t($s, 'button_label'))
+<div class="mv-container">
+    <div class="mv-split {{ ($s['image_position'] ?? 'right') === 'right' ? 'is-reverse' : '' }}">
+        @include('storefront.partials.media', ['src' => $sf->media($s['image'] ?? null), 'alt' => $sf->t($s, 'heading'), 'ratio' => 'landscape'])
+        <div>
+            @if (($h = $sf->t($s, 'heading')) !== '')<h2 class="mv-h2">{{ $h }}</h2>@endif
+            <div class="mv-rte">{!! $sf->rich($sf->t($s, 'body')) !!}</div>
+            @if ($btn !== '')<div class="mv-btn-row"><a class="mv-btn mv-btn--outline" href="{{ $sf->link($s['button_url'] ?? '/') }}">{{ $btn }}</a></div>@endif
+        </div>
+    </div>
+</div>

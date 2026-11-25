@@ -46,7 +46,7 @@
                         {{ $isAr ? 'إتمام الطلب' : 'Complete your order' }}
                     </h1>
                 </div>
-                <a href="/{{ $locale }}" class="text-sm font-medium text-ink-link hover:underline">
+                <a href="{{ \App\Core\Tenancy\StoreUrl::prefix($store->subdomain) }}/{{ $locale }}" class="text-sm font-medium text-ink-link hover:underline">
                     {{ $isAr ? 'العودة للتسوق' : 'Continue shopping' }}
                 </a>
             </div>
@@ -86,7 +86,7 @@
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
                 {{-- Checkout form (7 visible controls, strictly <= 8 per NFR-USE-03) --}}
                 <div class="card p-6 sm:p-8 lg:col-span-7">
-                    <form method="POST" action="/checkout" class="space-y-6" novalidate>
+                    <form method="POST" action="{{ \App\Core\Tenancy\StoreUrl::prefix($store->subdomain) }}/checkout" class="space-y-6" novalidate>
                         @csrf
 
                         <fieldset class="space-y-4">
@@ -312,7 +312,7 @@
                     @if (empty($items))
                         <div class="mt-4 rounded-lg border border-line bg-surface p-4 text-sm text-ink-muted">
                             <p>{{ $isAr ? 'سلة التسوق فارغة حاليًا.' : 'Your cart is currently empty.' }}</p>
-                            <a href="/{{ $locale }}" class="mt-2 inline-block font-medium text-ink-link hover:underline">
+                            <a href="{{ \App\Core\Tenancy\StoreUrl::prefix($store->subdomain) }}/{{ $locale }}" class="mt-2 inline-block font-medium text-ink-link hover:underline">
                                 {{ $isAr ? 'تصفح المنتجات' : 'Browse products' }}
                             </a>
                         </div>

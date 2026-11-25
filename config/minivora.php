@@ -10,6 +10,10 @@ return [
     // Root domain. Stores live at <subdomain>.<domain>; the dashboard at app.<domain> (or the root).
     'domain' => env('APP_DOMAIN', 'localhost'),
 
+    // How shoppers reach a store: "subdomain" (<store>.<domain>, needs wildcard DNS + wildcard SSL)
+    // or "path" (<APP_URL>/s/<store>, works on any single host such as a free Hostinger subdomain).
+    'storefront_mode' => env('STOREFRONT_MODE', 'subdomain'),
+
     // Port appended to generated store URLs in local development (e.g. 8000). Empty in production.
     'port' => env('APP_PORT_SUFFIX', ''),
 
