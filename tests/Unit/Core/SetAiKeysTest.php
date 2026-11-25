@@ -57,3 +57,11 @@ test('bad input fails without touching .env', function () {
 
     expect($code)->toBe(1)->and($env)->toBe("A=1\n");
 });
+
+test('the deploy sets the storefront mode, accepting only path or subdomain', function () {
+    [, $env] = runSetAiKeys("APP_NAME=Minivora\nSTOREFRONT_MODE=subdomain\n", ['STOREFRONT_MODE' => 'path']);
+    expect($env)->toContain("STOREFRONT_MODE=path\n")->and(substr_count($env, 'STOREFRONT_MODE='))->toBe(1);
+
+    [, $env] = runSetAiKeys("APP_NAME=Minivora\n", ['STOREFRONT_MODE' => 'everything']);
+    expect($env)->not->toContain('STOREFRONT_MODE');
+});
