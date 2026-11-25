@@ -38,7 +38,10 @@ use App\Modules\Orders\Http\Controllers\OrderController;
 use App\Modules\Orders\Http\Controllers\ReturnController;
 use App\Modules\Orders\Http\Controllers\ShippingZoneController;
 use App\Modules\Platform\Http\Controllers\ActivityController;
+use App\Modules\Platform\Http\Controllers\BuilderSeoPagesController;
+use App\Modules\Platform\Http\Controllers\CommercePagesController;
 use App\Modules\Platform\Http\Controllers\DashboardController;
+use App\Modules\Platform\Http\Controllers\GrowthAiPagesController;
 use App\Modules\Platform\Http\Controllers\LocaleController;
 use App\Modules\Platform\Http\Controllers\PlatformAdminController;
 use App\Modules\Platform\Http\Controllers\StoreSettingsController;
@@ -116,10 +119,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/payments/{payment}/verify-instapay', [CheckoutController::class, 'verifyInstaPay'])->whereNumber('payment')->name('payments.verify-instapay');
         });
 
-        // Previews of areas that are designed but not built yet (Documentation §7.3): each page shows
-        // the final layout with sample data and disabled actions, behind the permission the real
-        // module will use. Swap Route::inertia for a controller when the module ships.
-        Route::inertia('/approvals', 'approvals/index')->middleware('store.can:ai.approve')->name('approvals.index');
+        // Live dashboard areas wired to their real modules and controllers.
+        Route::get('/approvals', [GrowthAiPagesController::class, 'approvals'])->middleware('store.can:ai.approve')->name('approvals.index');
         Route::middleware('store.can:ai.approve')->prefix('approvals')->name('approvals.')->group(function () {
             Route::get('/list', [ApprovalController::class, 'index'])->name('list');
             Route::post('/{approval}/approve', [ApprovalController::class, 'approve'])->whereNumber('approval')->name('approve');
@@ -131,10 +132,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/morning-brief', [InsightController::class, 'morningBrief'])->name('morning-brief');
         });
         Route::middleware('store.can:products.view')->group(function () {
-            Route::inertia('/categories', 'categories/index')->name('categories.index');
-            Route::inertia('/inventory', 'products/inventory')->name('inventory.index');
+            Route::get('/categories', [CommercePagesController::class, 'categories'])->name('categories.index');
+            Route::get('/inventory', [CommercePagesController::class, 'inventory'])->name('inventory.index');
         });
         Route::middleware('store.can:products.manage')->group(function () {
+            Route::post('/inventory/{product}/adjust', [CommercePagesController::class, 'adjustStock'])->whereNumber('product')->name('inventory.adjust');
             Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
             Route::put('/categories/{category}', [CategoryController::class, 'update'])->whereNumber('category')->name('categories.update');
             Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->whereNumber('category')->name('categories.destroy');
@@ -146,19 +148,21 @@ Route::middleware('auth')->group(function () {
             Route::get('/inbox', [StaticPageController::class, 'inbox'])->name('inbox.index');
             Route::post('/inbox/{message}/read', [StaticPageController::class, 'markRead'])->whereNumber('message')->name('inbox.read');
         });
-        Route::inertia('/returns', 'orders/returns')->middleware('store.can:refunds.view')->name('returns.index');
+        Route::get('/returns', [CommercePagesController::class, 'returns'])->middleware('store.can:refunds.view')->name('returns.index');
         Route::middleware('store.can:refunds.manage')->group(function () {
             Route::post('/returns', [ReturnController::class, 'store'])->name('returns.store');
             Route::post('/returns/{returnRequest}/approve', [ReturnController::class, 'approve'])->whereNumber('returnRequest')->name('returns.approve');
             Route::post('/returns/{returnRequest}/reject', [ReturnController::class, 'reject'])->whereNumber('returnRequest')->name('returns.reject');
         });
-        Route::inertia('/analytics', 'analytics/index')->middleware('store.can:orders.view,ledger.view')->name('analytics.index');
+        Route::get('/analytics', [GrowthAiPagesController::class, 'analytics'])->middleware('store.can:orders.view,ledger.view')->name('analytics.index');
         Route::get('/analytics/summary', [AnalyticsController::class, 'index'])->middleware('store.can:orders.view,ledger.view')->name('analytics.summary');
         Route::middleware('store.can:marketing.manage')->prefix('marketing')->name('marketing.')->group(function () {
-            Route::inertia('/', 'marketing/index')->name('index');
-            Route::inertia('/campaigns', 'marketing/campaigns')->name('campaigns');
-            Route::inertia('/discounts', 'marketing/discounts')->name('discounts');
-            Route::inertia('/abandoned', 'marketing/abandoned')->name('abandoned');
+            Route::get('/', [GrowthAiPagesController::class, 'marketing'])->name('index');
+            Route::get('/campaigns', [GrowthAiPagesController::class, 'campaigns'])->name('campaigns');
+            Route::get('/discounts', [GrowthAiPagesController::class, 'discounts'])->name('discounts');
+            Route::post('/discounts', [GrowthAiPagesController::class, 'storeDiscount'])->name('discounts.store');
+            Route::delete('/discounts/{discount}', [GrowthAiPagesController::class, 'destroyDiscount'])->whereNumber('discount')->name('discounts.destroy');
+            Route::get('/abandoned', [GrowthAiPagesController::class, 'abandoned'])->name('abandoned');
             Route::get('/pixels', [PixelController::class, 'show'])->name('pixels.show');
             Route::put('/pixels', [PixelController::class, 'update'])->name('pixels.update');
             Route::get('/subscribers', [SubscriberController::class, 'index'])->name('subscribers.index');
@@ -166,7 +170,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/campaigns/verdicts', [CampaignController::class, 'index'])->name('campaigns.verdicts');
             Route::post('/ad-spends', [AdSpendController::class, 'store'])->name('ad-spends.store');
         });
-        Route::inertia('/seo', 'seo/index')->middleware('store.can:marketing.manage,design.manage')->name('seo.index');
+        Route::get('/seo', [BuilderSeoPagesController::class, 'seo'])->middleware('store.can:marketing.manage,design.manage')->name('seo.index');
         Route::middleware('store.can:marketing.manage,design.manage')->prefix('seo')->name('seo.')->group(function () {
             Route::get('/redirects', [SeoController::class, 'redirects'])->name('redirects.index');
             Route::post('/redirects', [SeoController::class, 'storeRedirect'])->name('redirects.store');
@@ -175,9 +179,10 @@ Route::middleware('auth')->group(function () {
             Route::post('/audit', [SeoController::class, 'audit'])->name('audit');
         });
         Route::middleware('store.can:design.manage')->prefix('builder')->name('builder.')->group(function () {
-            Route::inertia('/', 'builder/editor')->name('pages');
-            Route::inertia('/theme', 'builder/theme')->name('theme');
-            Route::inertia('/media', 'builder/media')->name('media');
+            Route::get('/', [BuilderSeoPagesController::class, 'editor'])->name('pages');
+            Route::get('/theme', [BuilderSeoPagesController::class, 'theme'])->name('theme');
+            Route::get('/media', [BuilderSeoPagesController::class, 'media'])->name('media');
+            Route::post('/template', [BuilderSeoPagesController::class, 'applyTemplate'])->name('template');
             Route::post('/pages', [PageController::class, 'store'])->name('pages.store');
             Route::post('/pages/{page}/sections', [PageController::class, 'addSection'])->whereNumber('page')->name('sections.store');
             Route::put('/sections/{section}', [PageController::class, 'updateSection'])->whereNumber('section')->name('sections.update');
@@ -235,7 +240,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/settings/account/delete-request', [AccountSettingsController::class, 'requestDeletion'])->name('account.delete-request');
         // Display and accessibility preferences live on the device; notifications & alerts.
         Route::inertia('/settings/accessibility', 'settings/accessibility')->name('settings.accessibility');
-        Route::inertia('/settings/notifications', 'settings/notifications')->name('settings.notifications');
+        Route::get('/settings/notifications', [CommercePagesController::class, 'notifications'])->name('settings.notifications');
         Route::get('/alerts', [AlertController::class, 'index'])->name('alerts.index');
         Route::post('/alerts/{alert}/read', [AlertController::class, 'markRead'])->whereNumber('alert')->name('alerts.read');
         Route::post('/settings/notifications/test-email', [AlertController::class, 'sendTestEmail'])->middleware('throttle:6,1')->name('settings.notifications.test-email');
@@ -245,12 +250,13 @@ Route::middleware('auth')->group(function () {
             Route::put('/settings/general', [StoreSettingsController::class, 'updateGeneral'])->name('settings.general.update');
             Route::put('/settings/storefront-password', [StoreSettingsController::class, 'updateStorefrontPassword'])->name('settings.password.update');
             Route::get('/settings/activity', [ActivityController::class, 'index'])->name('settings.activity');
-            Route::inertia('/settings/payments', 'settings/payments')->name('settings.payments');
-            Route::inertia('/settings/shipping', 'settings/shipping')->name('settings.shipping');
+            Route::get('/settings/payments', [CommercePagesController::class, 'payments'])->name('settings.payments');
+            Route::get('/settings/shipping', [CommercePagesController::class, 'shipping'])->name('settings.shipping');
             Route::post('/settings/shipping/zones', [ShippingZoneController::class, 'store'])->name('settings.shipping.zones.store');
             Route::put('/settings/shipping/zones/{zone}', [ShippingZoneController::class, 'update'])->whereNumber('zone')->name('settings.shipping.zones.update');
             Route::delete('/settings/shipping/zones/{zone}', [ShippingZoneController::class, 'destroy'])->whereNumber('zone')->name('settings.shipping.zones.destroy');
-            Route::inertia('/settings/domain', 'settings/domain')->name('settings.domain');
+            Route::get('/settings/domain', [CommercePagesController::class, 'domain'])->name('settings.domain');
+            Route::put('/settings/domain/maintenance', [CommercePagesController::class, 'updateMaintenance'])->name('settings.domain.maintenance');
         });
 
         Route::middleware('store.can:design.manage')->group(function () {

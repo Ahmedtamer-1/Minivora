@@ -1,104 +1,177 @@
-// Analytics: KPIs, sales trend, traffic sources and demand. FR-ANA-01 to FR-ANA-05. Preview with sample data.
+// Live Analytics dashboard: KPIs (visitors, orders, revenue, conversion, AOV, returning buyers)
+// and Product Demand ranking with Sold out & wanted signal. FR-ANA-01 to FR-ANA-05.
+import { router } from '@inertiajs/react';
 import { Eye, MousePointerClick, Percent, Receipt, Repeat, ShoppingBag } from 'lucide-react';
-import { useState } from 'react';
 import { FilterTabs, StatTile } from '@/components/commerce';
-import { Meter, PlannedNotice, PreviewCard, PreviewTable } from '@/components/planned';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { DashboardLayout, PageHeader } from '@/layouts/dashboard-layout';
 import { formatNumber, useLocale, useT } from '@/lib/i18n';
-import { formatPounds } from '@/lib/money';
-import { sampleDaily, sampleTopProducts, useBi } from '@/lib/samples';
+import { formatPiasters } from '@/lib/money';
 
 type Range = '7d' | '30d' | '90d';
 
-const sources = [
-    { key: 'instagram', visits: 1840, conv: 2.1 },
-    { key: 'facebook', visits: 1210, conv: 1.4 },
-    { key: 'search', visits: 760, conv: 3.6 },
-    { key: 'direct', visits: 520, conv: 4.2 },
-    { key: 'whatsapp', visits: 310, conv: 5.0 },
-];
-
-/** Bar chart with one bar per day. Decorative bars, with the summary given to screen readers. */
-function DailyBars({ values, label }: { values: number[]; label: string }) {
-    const max = Math.max(...values);
-    return (
-        <div role="img" aria-label={label} className="flex h-40 items-end gap-1.5 sm:gap-2">
-            {values.map((v, i) => (
-                <div key={i} className="flex-1 rounded-t-md bg-chart-1 opacity-80 transition-opacity hover:opacity-100" style={{ height: `${(v / max) * 100}%` }} />
-            ))}
-        </div>
-    );
+interface KpiSummary {
+    period: { from: string; to: string };
+    visitors: number;
+    page_views: number;
+    orders: number;
+    revenue: number;
+    conversion_rate: number;
+    aov: number;
+    returning_buyer_rate: number;
 }
 
-export default function Analytics() {
+interface DemandRow {
+    product_id: number;
+    name: string;
+    stock: number;
+    price: number;
+    views: number;
+    cart_adds: number;
+    units_sold: number;
+    demand_score: number;
+    sold_out_wanted: boolean;
+}
+
+interface AnalyticsProps {
+    days?: number;
+    kpis: KpiSummary;
+    demand: DemandRow[];
+}
+
+const rangeToDays: Record<Range, number> = { '7d': 7, '30d': 30, '90d': 90 };
+
+function daysToRange(days?: number): Range {
+    if (days === 7) return '7d';
+    if (days === 90) return '90d';
+    return '30d';
+}
+
+export default function Analytics({ days = 30, kpis, demand = [] }: AnalyticsProps) {
     const t = useT();
-    const bi = useBi();
     const locale = useLocale();
-    const [range, setRange] = useState<Range>('30d');
-    const total = sampleDaily.reduce((a, b) => a + b, 0);
-    const maxVisits = Math.max(...sources.map((s) => s.visits));
+    const activeRange = daysToRange(days);
+
+    const handleRangeChange = (next: Range) => {
+        router.get('/analytics', { days: rangeToDays[next] }, { preserveState: true, preserveScroll: true, replace: true });
+    };
+
+    const periodHint = kpis?.period ? `${kpis.period.from} → ${kpis.period.to}` : undefined;
 
     return (
         <DashboardLayout title={t('nav.analytics')}>
             <PageHeader title={t('analytics.title')} description={t('analytics.subtitle')} />
-            <PlannedNotice requirements={['FR-ANA-01', 'FR-ANA-02', 'FR-ANA-04', 'FR-ANA-05']} />
 
-            <FilterTabs label={t('analytics.range')} active={range} onChange={setRange} options={(['7d', '30d', '90d'] as Range[]).map((k) => ({ key: k, label: t(`analytics.range_${k}`) }))} />
+            <FilterTabs
+                label={t('analytics.range')}
+                active={activeRange}
+                onChange={handleRangeChange}
+                options={(['7d', '30d', '90d'] as Range[]).map((k) => ({ key: k, label: t(`analytics.range_${k}`) }))}
+            />
 
             <div className="mb-6 grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-3 2xl:grid-cols-6">
-                <StatTile icon={Eye} label={t('analytics.visitors')} value={formatNumber(4640)} hint="+12%" />
-                <StatTile icon={ShoppingBag} label={t('analytics.orders')} value="118" hint="+8%" />
-                <StatTile icon={Receipt} label={t('analytics.revenue')} value={formatPounds(9020000, locale)} hint="+15%" />
-                <StatTile icon={Percent} label={t('analytics.conversion')} value="2.5%" hint="−0.2" />
-                <StatTile icon={MousePointerClick} label={t('analytics.aov')} value={formatPounds(76400, locale)} hint="+4%" />
-                <StatTile icon={Repeat} label={t('analytics.returning')} value="31%" hint="+3" />
-            </div>
-
-            <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-                <PreviewCard title={t('analytics.sales_trend')} description={t('analytics.sales_trend_hint')}>
-                    <DailyBars values={sampleDaily} label={t('analytics.chart_label', { total: formatNumber(Math.round(total * 1000)) })} />
-                    <div className="mt-2 flex justify-between text-caption text-ink-muted">
-                        <span>{t('analytics.days_ago', { count: 14 })}</span>
-                        <span>{t('analytics.today')}</span>
-                    </div>
-                </PreviewCard>
-
-                <PreviewCard title={t('analytics.sources')} description={t('analytics.sources_hint')}>
-                    <ul className="space-y-4">
-                        {sources.map((s) => (
-                            <li key={s.key}>
-                                <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
-                                    <span>{t(`analytics.source_${s.key}`)}</span>
-                                    <span className="tabular text-caption text-ink-muted">
-                                        {formatNumber(s.visits)} · {s.conv}%
-                                    </span>
-                                </div>
-                                <Meter value={(s.visits / maxVisits) * 100} label={t(`analytics.source_${s.key}`)} />
-                            </li>
-                        ))}
-                    </ul>
-                </PreviewCard>
-            </div>
-
-            <PreviewCard title={t('analytics.demand')} description={t('analytics.demand_hint')}>
-                <PreviewTable
-                    caption={t('analytics.demand')}
-                    columns={[
-                        { key: 'name', label: t('analytics.col_product') },
-                        { key: 'units', label: t('analytics.col_units'), align: 'end' },
-                        { key: 'revenue', label: t('analytics.col_revenue'), align: 'end' },
-                        { key: 'flag', label: t('analytics.col_signal'), align: 'end' },
-                    ]}
-                    rows={sampleTopProducts.map((p, i) => ({
-                        id: p.id,
-                        name: <span className="font-medium">{bi(p.name)}</span>,
-                        units: formatNumber(p.units),
-                        revenue: formatPounds(p.revenue, locale),
-                        flag: i === 0 ? <Badge tone="warning">{t('analytics.signal_low')}</Badge> : i === 2 ? <Badge tone="info">{t('analytics.signal_viewed')}</Badge> : <span className="text-ink-muted">—</span>,
-                    }))}
+                <StatTile
+                    icon={Eye}
+                    label={t('analytics.visitors')}
+                    value={formatNumber(kpis?.visitors ?? 0)}
+                    hint={`${formatNumber(kpis?.page_views ?? 0)} page views`}
                 />
-            </PreviewCard>
+                <StatTile
+                    icon={ShoppingBag}
+                    label={t('analytics.orders')}
+                    value={formatNumber(kpis?.orders ?? 0)}
+                    hint={periodHint}
+                />
+                <StatTile
+                    icon={Receipt}
+                    label={t('analytics.revenue')}
+                    value={formatPiasters(kpis?.revenue ?? 0, locale)}
+                    hint={periodHint}
+                />
+                <StatTile
+                    icon={Percent}
+                    label={t('analytics.conversion')}
+                    value={`${(kpis?.conversion_rate ?? 0).toFixed(2)}%`}
+                />
+                <StatTile
+                    icon={MousePointerClick}
+                    label={t('analytics.aov')}
+                    value={formatPiasters(kpis?.aov ?? 0, locale)}
+                />
+                <StatTile
+                    icon={Repeat}
+                    label={t('analytics.returning')}
+                    value={`${(kpis?.returning_buyer_rate ?? 0).toFixed(1)}%`}
+                />
+            </div>
+
+            <Card>
+                <CardHeader title={t('analytics.demand')} description={t('analytics.demand_hint')} />
+                <CardBody>
+                    {demand.length === 0 ? (
+                        <p className="py-8 text-center text-sm text-ink-muted">
+                            No product demand signals yet. Once shoppers browse, add to cart, or order products, they will be ranked here.
+                        </p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-start text-sm">
+                                <caption className="sr-only">{t('analytics.demand')}</caption>
+                                <thead className="border-b border-line text-caption text-ink-muted">
+                                    <tr>
+                                        <th scope="col" className="pb-3 pe-4 text-start font-medium">
+                                            {t('analytics.col_product')}
+                                        </th>
+                                        <th scope="col" className="pb-3 px-3 text-end font-medium">
+                                            Price
+                                        </th>
+                                        <th scope="col" className="pb-3 px-3 text-end font-medium">
+                                            Stock
+                                        </th>
+                                        <th scope="col" className="pb-3 px-3 text-end font-medium">
+                                            Views
+                                        </th>
+                                        <th scope="col" className="pb-3 px-3 text-end font-medium">
+                                            Cart adds
+                                        </th>
+                                        <th scope="col" className="pb-3 px-3 text-end font-medium">
+                                            {t('analytics.col_units')}
+                                        </th>
+                                        <th scope="col" className="pb-3 ps-3 text-end font-medium">
+                                            {t('analytics.col_signal')}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-line">
+                                    {demand.map((row) => (
+                                        <tr key={row.product_id}>
+                                            <td className="py-3 pe-4 font-medium text-ink">{row.name}</td>
+                                            <td className="tabular py-3 px-3 text-end text-ink-muted">{formatPiasters(row.price, locale)}</td>
+                                            <td className="tabular py-3 px-3 text-end">
+                                                <span className={row.stock === 0 ? 'font-semibold text-danger' : 'text-ink'}>{formatNumber(row.stock)}</span>
+                                            </td>
+                                            <td className="tabular py-3 px-3 text-end text-ink-muted">{formatNumber(row.views)}</td>
+                                            <td className="tabular py-3 px-3 text-end text-ink-muted">{formatNumber(row.cart_adds)}</td>
+                                            <td className="tabular py-3 px-3 text-end font-medium text-ink">{formatNumber(row.units_sold)}</td>
+                                            <td className="py-3 ps-3 text-end">
+                                                {row.sold_out_wanted ? (
+                                                    <Badge tone="danger">Sold out &amp; wanted</Badge>
+                                                ) : row.stock > 0 && row.stock <= 5 && row.demand_score > 0 ? (
+                                                    <Badge tone="warning">{t('analytics.signal_low')}</Badge>
+                                                ) : row.views > 0 && row.units_sold === 0 ? (
+                                                    <Badge tone="info">{t('analytics.signal_viewed')}</Badge>
+                                                ) : (
+                                                    <span className="text-ink-muted">—</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </CardBody>
+            </Card>
         </DashboardLayout>
     );
 }
