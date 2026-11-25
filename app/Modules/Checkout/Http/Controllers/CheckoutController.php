@@ -10,7 +10,10 @@ use App\Modules\Checkout\Data\CheckoutData;
 use App\Modules\Checkout\Models\Payment;
 use App\Modules\Checkout\Services\CheckoutService;
 use App\Modules\Orders\Services\ShippingService;
+use App\Core\Tenancy\StoreUrl;
+use App\Modules\Orders\Models\Order;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -72,14 +75,45 @@ class CheckoutController extends Controller
         return response()->json(['lead' => $lead], 201);
     }
 
-    public function store(Request $request): JsonResponse
+    /** Session key listing the orders this browser placed, so only it can open their confirmation. */
+    public const SESSION_ORDERS = 'checkout.placed_orders';
+
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
         $data = CheckoutData::validateAndCreate($request->all());
         $cart = $this->carts->resolve($request->user(), $request->session()->getId());
 
         $result = $this->checkout->placeOrder($data, $cart, $request->ip());
 
-        return response()->json($result, 201);
+        if ($request->expectsJson()) {
+            return response()->json($result, 201);
+        }
+
+        // Plain form post: remember the order for this browser and show the confirmation page. FR-NTF-01
+        $placed = (array) $request->session()->get(self::SESSION_ORDERS, []);
+        $placed[] = $result['order']->id;
+        $request->session()->put(self::SESSION_ORDERS, array_slice($placed, -20));
+
+        $store = $this->current->getOrFail();
+        $locale = in_array($request->input('locale'), config('minivora.locales'), true) ? (string) $request->input('locale') : $store->default_locale;
+
+        return redirect(StoreUrl::prefix($store->subdomain).'/'.$locale.'/orders/'.$result['order']->number.'/thank-you');
+    }
+
+    /** Order confirmation (screen S7), visible only to the browser that placed the order. */
+    public function confirmation(Request $request, string $locale, int $number): View
+    {
+        $order = Order::query()->with('items')->where('number', $number)->firstOrFail();
+        abort_unless(in_array($order->id, (array) $request->session()->get(self::SESSION_ORDERS, []), true), 404);
+
+        $payment = Payment::query()->where('order_id', $order->id)->latest('id')->first();
+
+        return view('storefront.pages.order-confirmation', [
+            'store' => $this->current->getOrFail(),
+            'order' => $order,
+            'payment' => $payment,
+            'instructions' => is_array($payment?->payload) ? $payment->payload : [],
+        ]);
     }
 
     public function verifyInstaPay(Request $request, Payment $payment): JsonResponse

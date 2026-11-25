@@ -7,7 +7,10 @@ use App\Modules\Orders\Models\Order;
 use App\Modules\Orders\Models\OrderItem;
 use App\Modules\Orders\Models\OrderStatusHistory;
 use App\Modules\Orders\Services\OrderService;
+use App\Core\Tenancy\CurrentStore;
+use App\Modules\Builder\Storefront\StorefrontView;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 
 /**
@@ -17,6 +20,15 @@ use Illuminate\Http\Request;
 class TrackOrderController extends Controller
 {
     public function __construct(private readonly OrderService $orders) {}
+
+    /** Track-order page (screen S8); the form calls lookup() below. */
+    public function page(Request $request, CurrentStore $current, StorefrontView $view): Response
+    {
+        $store = $current->getOrFail();
+        $sf = $view->context($store, StorefrontView::locale($request, $store), false, 'track');
+
+        return $view->make($sf, 'storefront.pages.track-order', ['number' => (string) $request->query('order', '')]);
+    }
 
     public function lookup(Request $request): JsonResponse
     {

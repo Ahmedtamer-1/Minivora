@@ -635,6 +635,7 @@ test('FR-PAY-01 FR-PAY-09 CheckoutController and WebhookController handle reques
         'payment_method' => 'kashier',
     ]);
     $storeReq->setLaravelSession($session);
+    $storeReq->headers->set('Accept', 'application/json');
     $storeResp = $checkoutController->store($storeReq);
     expect($storeResp->getStatusCode())->toBe(201);
 

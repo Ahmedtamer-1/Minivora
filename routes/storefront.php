@@ -67,6 +67,8 @@ $group
         // Single-page guest checkout & lead capture (FR-PAY-01..12, NFR-USE-03)
         Route::get('/{locale}/checkout', [CheckoutController::class, 'show'])->whereIn('locale', config('minivora.locales'))->name('checkout.show');
         Route::post('/checkout/lead', [CheckoutController::class, 'captureLead'])->middleware('throttle:30,1')->name('checkout.lead');
+        Route::get('/{locale}/orders/{number}/thank-you', [CheckoutController::class, 'confirmation'])->whereIn('locale', config('minivora.locales'))->whereNumber('number')->name('checkout.confirmation');
+        Route::get('/{locale}/track-order', [TrackOrderController::class, 'page'])->whereIn('locale', config('minivora.locales'))->name('orders.track.page');
         Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:20,1')->name('checkout.store');
 
         // Payment webhooks (FR-PAY-09, NFR-SEC-14)

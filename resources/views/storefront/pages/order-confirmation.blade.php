@@ -63,7 +63,7 @@
     $address = data_get($order ?? null, 'address');
 
     $trackUrl = data_get($order ?? null, 'tracking_url')
-        ?: ((isset($store->subdomain) ? \App\Core\Tenancy\StoreUrl::prefix($store->subdomain) : '').'/track-order'.($orderNumber !== '' ? '?order='.urlencode((string) $orderNumber) : ''));
+        ?: ((isset($store->subdomain) ? \App\Core\Tenancy\StoreUrl::prefix($store->subdomain) : '').'/'.$locale.'/track-order'.($orderNumber !== '' ? '?order='.urlencode((string) $orderNumber) : ''));
 
     $statusBadgeClass = match ($statusValue) {
         'paid', 'delivered' => 'bg-success-subtle text-success',

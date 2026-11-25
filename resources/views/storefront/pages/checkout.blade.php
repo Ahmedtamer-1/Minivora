@@ -16,7 +16,6 @@
     $freeShippingRemaining = $summary['free_shipping_remaining'] ?? null;
     $notices = is_iterable($summary['notices'] ?? null) ? $summary['notices'] : [];
 
-    $zonesList = is_iterable($zones ?? null) ? $zones : [];
     $selectedGovernorate = old('governorate', $selectedGovernorate ?? '');
     $selectedPaymentMethod = old('payment_method', 'cod');
 
@@ -88,6 +87,7 @@
                 <div class="card p-6 sm:p-8 lg:col-span-7">
                     <form method="POST" action="{{ \App\Core\Tenancy\StoreUrl::prefix($store->subdomain) }}/checkout" class="space-y-6" novalidate>
                         @csrf
+                        <input type="hidden" name="locale" value="{{ $locale }}">
 
                         <fieldset class="space-y-4">
                             <legend class="font-display text-lg font-semibold text-ink">
@@ -187,16 +187,11 @@
                                     class="mt-1.5 block w-full rounded-md border-line bg-elevated text-ink focus:border-line-focus focus:ring-line-focus @error('governorate') border-danger @enderror"
                                 >
                                     <option value="">{{ $isAr ? 'اختر المحافظة' : 'Select governorate' }}</option>
-                                    @foreach ($zonesList as $zone)
-                                        @php
-                                            $zoneName = is_string($zone) ? $zone : (string) data_get($zone, 'governorate', '');
-                                            $zoneRate = is_string($zone) ? null : data_get($zone, 'rate');
-                                        @endphp
-                                        @if ($zoneName !== '')
-                                            <option value="{{ $zoneName }}" @selected($selectedGovernorate === $zoneName)>
-                                                {{ $zoneName }}@if ($zoneRate !== null) — {{ $formatEgp((int) $zoneRate) }}@endif
-                                            </option>
-                                        @endif
+                                    {{-- Every governorate: the store's own zone rate where set, otherwise the default rate. --}}
+                                    @foreach ((is_array($shippingRates ?? null) ? $shippingRates : []) as $gov => $rate)
+                                        <option value="{{ $gov }}" @selected($selectedGovernorate === $gov)>
+                                            {{ \Illuminate\Support\Facades\Lang::has('gov.'.$gov) ? __('gov.'.$gov) : ucwords(str_replace('_', ' ', $gov)) }} — {{ $formatEgp((int) ($rate['rate'] ?? 0)) }}
+                                        </option>
                                     @endforeach
                                 </select>
                                 @error('governorate')
