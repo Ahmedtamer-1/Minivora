@@ -3,15 +3,15 @@
 namespace App\Modules\Checkout\Http\Controllers;
 
 use App\Core\Tenancy\CurrentStore;
+use App\Core\Tenancy\StoreUrl;
 use App\Http\Controllers\Controller;
 use App\Modules\Accounts\Models\User;
 use App\Modules\Cart\Services\CartService;
 use App\Modules\Checkout\Data\CheckoutData;
 use App\Modules\Checkout\Models\Payment;
 use App\Modules\Checkout\Services\CheckoutService;
-use App\Modules\Orders\Services\ShippingService;
-use App\Core\Tenancy\StoreUrl;
 use App\Modules\Orders\Models\Order;
+use App\Modules\Orders\Services\ShippingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

@@ -11,7 +11,7 @@ use App\Modules\Builder\Models\PageVersion;
 use App\Modules\Builder\Services\PageBuilderService;
 use App\Modules\Builder\Services\SectionRegistry;
 use App\Modules\Builder\Services\ThemeService;
-use App\Modules\Builder\Storefront\StorefrontRenderer;
+use App\Modules\Builder\Storefront\StorefrontCatalog;
 use App\Modules\Builder\Storefront\StorefrontView;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
@@ -54,7 +54,7 @@ class BuilderEditorController extends Controller
             'theme' => $this->themes->current()->only(['primary_color', 'accent_color', 'font_heading', 'font_body', 'corner_radius', 'color_mode', 'custom_css']) + ['settings' => $this->themes->current()->resolvedSettings()],
             'storeUrl' => $store->url('/'.$store->default_locale),
             'catalog' => [
-                'products' => Product::query()->latest('id')->limit(500)->get(['id', 'name', 'name_ar', 'price', 'images'])->map(fn (Product $p) => ['id' => $p->id, 'name' => $p->name, 'image' => \App\Modules\Builder\Storefront\StorefrontCatalog::images($p)[0] ?? null])->values(),
+                'products' => Product::query()->latest('id')->limit(500)->get(['id', 'name', 'name_ar', 'price', 'images'])->map(fn (Product $p) => ['id' => $p->id, 'name' => $p->name, 'image' => StorefrontCatalog::images($p)[0] ?? null])->values(),
                 'categories' => Category::query()->orderBy('sort_order')->get(['id', 'name', 'name_ar'])->values(),
             ],
         ]);

@@ -4,8 +4,8 @@
 // Reserved names (app, www, ...) never match here, so they fall through to the platform routes.
 
 use App\Core\Tenancy\ReservedSubdomains;
-use App\Core\Tenancy\StoreUrl;
 use App\Core\Tenancy\ResolveStoreFromHost;
+use App\Core\Tenancy\StoreUrl;
 use App\Modules\Analytics\Http\Controllers\TrackController;
 use App\Modules\Cart\Http\Controllers\CartController;
 use App\Modules\Checkout\Http\Controllers\CheckoutController;

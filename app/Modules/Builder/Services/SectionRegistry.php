@@ -587,7 +587,7 @@ class SectionRegistry
                 ],
                 'max_blocks' => 8,
                 'default_blocks' => [
-                    ['type' => 'link_list', 'settings' => ['heading' => 'Shop', 'heading_ar' => 'المتجر', 'links' => "All products | /shop", 'links_ar' => "كل المنتجات | /shop"]],
+                    ['type' => 'link_list', 'settings' => ['heading' => 'Shop', 'heading_ar' => 'المتجر', 'links' => 'All products | /shop', 'links_ar' => 'كل المنتجات | /shop']],
                     ['type' => 'link_list', 'settings' => ['heading' => 'Help', 'heading_ar' => 'المساعدة', 'links' => "Shipping | /pages/shipping\nReturns | /pages/returns\nTrack order | /track-order", 'links_ar' => "الشحن | /pages/shipping\nالاسترجاع | /pages/returns\nتتبع الطلب | /track-order"]],
                     ['type' => 'newsletter', 'settings' => ['heading' => 'Newsletter', 'heading_ar' => 'النشرة البريدية']],
                 ],
