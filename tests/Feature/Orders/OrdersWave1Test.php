@@ -312,7 +312,7 @@ test('FR-ORD-09 invoice and packing slip data and HTML include order details and
 
         $invoiceHtml = $invoices->renderInvoiceHtml($order);
         expect($invoiceHtml)->toContain('INV-'.$order->number)
-            ->and($invoiceHtml)->toContain($store->name)
+            ->and($invoiceHtml)->toContain(e($store->name)) // HTML-escaped: names like "O'Kon" appear as O&#039;Kon
             ->and($invoiceHtml)->toContain('Wool Coat')
             ->and($invoiceHtml)->toContain('EGP')
             ->and($invoiceHtml)->not->toContain('DO NOT PRINT');
