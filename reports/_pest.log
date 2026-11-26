@@ -1,0 +1,424 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.3.6
+Configuration: /home/user/Minivora/phpunit.xml
+
+....
+   PASS  Tests\Unit\Ai\FunctionRegistryTest
+  ✓ FR-AI-06 modules register AI functions with a permission             0.20s  
+  ✓ FR-AI-06 agents call functions with the asking user's permissions,…  0.04s  
+  ✓ FR-AI-06 a user outside the store, or an agent outside the scope, i… 0.02s  
+  ✓ FR-AI-06 the functions visible to a user follow their role           0.01s  
+...
+   PASS  Tests\Unit\Core\ActivityLogTest
+  ✓ FR-ACC-05 actions are logged with who did them, including AI agents  0.01s  
+  ✓ NFR-SEC-10 the activity log is append-only                           0.01s  
+  ✓ NFR-SEC-10 the verify command reports edited and deleted entries     0.02s  
+................
+   PASS  Tests\Unit\Core\PermissionMatrixTest
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.02s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.01s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.03s  
+  ✓ FR-ACC-03 the permission matrix matches SRS section 7.2 with datase… 0.03s  
+...
+   PASS  Tests\Unit\Core\PiastersTest
+  ✓ money is integer piasters, parsed without floats                     0.02s  
+  ✓ invalid amounts are rejected                                         0.01s  
+  ✓ NFR-USE-05 amounts show as EGP with Western digits in both language… 0.01s  
+......
+   PASS  Tests\Unit\Core\SetAiKeysTest
+  ✓ the deploy writes AI keys into .env, replacing or adding lines       0.02s  
+  ✓ empty secrets never wipe a key that was set by hand                  0.01s  
+  ✓ only AI settings can be changed, and values cannot inject lines      0.01s  
+  ✓ bad input fails without touching .env                                0.01s  
+  ✓ the deploy sets the storefront mode, accepting only path or subdoma… 0.02s  
+  ✓ the deploy can switch email verification off, on or auto             0.03s  
+..................
+   PASS  Tests\Unit\Core\SubdomainServiceTest
+  ✓ FR-ONB-02 names become valid addresses with ('Brown Tote', 'brown-t… 0.02s  
+  ✓ FR-ONB-02 names become valid addresses with (' Adorna EG!! ', 'ador… 0.01s  
+  ✓ FR-ONB-02 names become valid addresses with ('Café & Co', 'cafe-co'… 0.02s  
+  ✓ FR-ONB-02 names become valid addresses with ('UPPER--case', 'upper-… 0.01s  
+  ✓ FR-ONB-02 reserved names are never available with ('app')            0.01s  
+  ✓ FR-ONB-02 reserved names are never available with ('api')            0.01s  
+  ✓ FR-ONB-02 reserved names are never available with ('www')            0.01s  
+  ✓ FR-ONB-02 reserved names are never available with ('mail')           0.01s  
+  ✓ FR-ONB-02 reserved names are never available with ('admin')          0.01s  
+  ✓ FR-ONB-02 reserved names are never available with ('status')         0.01s  
+  ✓ FR-ONB-02 suggestions are available addresses                        0.02s  
+  ✓ FR-ONB-02 format rules with ('ab', false)                            0.02s  
+  ✓ FR-ONB-02 format rules with ('abc', true)                            0.01s  
+  ✓ FR-ONB-02 format rules with ('-abc', false)                          0.01s  
+  ✓ FR-ONB-02 format rules with ('abc-', false)                          0.01s  
+  ✓ FR-ONB-02 format rules with ('a--b', false)                          0.01s  
+  ✓ FR-ONB-02 format rules with ('shop-2026', true)                      0.01s  
+  ✓ FR-ONB-02 format rules with ('aaaaaaaaaaaaaaaaaaaaaaaaaaaaa…aaaaaa'… 0.01s  
+......
+   PASS  Tests\Unit\Ledger\BalancedEntryTest
+  ✓ FR-LED-03 an unbalanced entry is refused and nothing is written      0.04s  
+  ✓ FR-LED-03 one-line, two-sided and negative lines are refused         0.03s  
+  ✓ FR-LED-03 the model refuses an unbalanced header even outside the s… 0.02s  
+  ✓ a balanced entry is posted once per source key and reverses cleanly  0.04s  
+  ✓ FR-LED-07 a closed month refuses manual entries; automatic ones mov… 0.04s  
+  ✓ exponential smoothing and break-even follow the documented formulas  0.02s  
+.......  63 / 319 ( 19%)
+.
+   PASS  Tests\Unit\Ledger\PostingRulesTest
+  ✓ online payment debits gateway clearing, COD debits cash, InstaPay d… 0.02s  
+  ✓ a sale balances and splits items, shipping and discount              0.01s  
+  ✓ a VAT-registered sale carves 14% VAT out of the inclusive total      0.01s  
+  ✓ VAT larger than the item subtotal comes out of shipping, never belo… 0.01s  
+  ✓ VAT rounding is half up and zero for zero amounts                    0.01s  
+  ✓ gateway fee is percent plus fixed, never more than the payment       0.01s  
+  ✓ cost of goods, restock, refund, expense, bill payment and transfer…  0.01s  
+  ✓ an unknown payment method is refused                                 0.01s  
+....
+   PASS  Tests\Feature\Accounts\AccountSettingsTest
+  ✓ every member can open their own account settings                     0.08s  
+  ✓ changing name and language saves; changing email asks to verify aga… 0.05s  
+  ✓ the email must not belong to someone else                            0.03s  
+  ✓ changing the password needs the current one                          0.04s  
+....
+   PASS  Tests\Feature\Accounts\LoginTest
+  ✓ NFR-SEC-02 users sign in with email and password; passwords are has… 0.03s  
+  ✓ NFR-SEC-02 sign-in locks for 15 minutes after 5 failures per accoun… 1.05s  
+  ✓ NFR-SEC-01 pages send security headers                               0.02s  
+  ✓ FR-ONB-07 the emailed link verifies the address even when signed ou… 0.02s  
+........
+   PASS  Tests\Feature\Accounts\MembersTest
+  ✓ FR-ACC-04 owners invite staff by email with a role; a new person jo… 0.07s  
+  ✓ FR-ACC-04 an existing user accepts an invitation after signing in    0.05s  
+  ✓ FR-ACC-04 owners change roles and revoke access, and a store keeps…  0.04s  
+  ✓ FR-ACC-04 owners cannot touch members of another store               0.02s  
+  ✓ FR-ACC-03 only owners manage staff, settings and the activity log w… 0.04s  
+  ✓ FR-ACC-03 only owners manage staff, settings and the activity log w… 0.04s  
+  ✓ FR-ACC-03 only owners manage staff, settings and the activity log w… 0.04s  
+  ✓ FR-ACC-03 staff and accountants cannot publish; managers can         0.03s  
+.......
+   PASS  Tests\Feature\Accounts\TwoFactorAndPrivacyTest
+  ✓ FR-ACC-06: owner and manager can setup, confirm, and disable TOTP 2… 0.04s  
+  ✓ FR-ACC-06: owner and manager can setup, confirm, and disable TOTP 2… 0.04s  
+  ✓ FR-ACC-06: non-JSON 2FA setup redirects back with flash data         0.02s  
+  ✓ FR-ACC-06: staff and accountant receive 403 on all 2FA endpoints wi… 0.02s  
+  ✓ FR-ACC-06: staff and accountant receive 403 on all 2FA endpoints wi… 0.03s  
+  ✓ FR-ACC-09: any signed-in user can download their PDPL data export w… 0.03s  
+  ✓ FR-ACC-09: any signed-in user can submit a 30-day account deletion…  0.03s  
+........
+   PASS  Tests\Feature\Ai\AiTeamAndProactiveTest
+  ✓ FR-AI-05 all 9 executive agent descriptors are defined with distinc… 0.02s  
+  ✓ FR-AI-01 FR-AI-02 FR-AI-03 FR-AI-04 QuestionRouter maps Arabic/Engl… 0.02s  
+  ✓ NFR-PRV-01 V-17 PiiMasker strips Egyptian phones, emails, cards, an… 0.02s  
+  ✓ FR-AI-11 NFR-REL-02 V-14 KeyRotator fails over across providers and… 0.05s  
+  ✓ FR-AI-07 FR-AI-10 NFR-AIQ-08 V-15 every act-level function is refus… 0.04s  
+  ✓ FR-PRO-01 FR-PRO-02 FR-PRO-03 FR-AI-09 hourly, daily, weekly, and e… 0.03s  
+  ✓ FR-PRO-04 FR-PRO-05 FR-PRO-06 FR-PRO-09 FeedRanker enforces daily c… 0.04s  
+  ✓ NFR-AIQ-01 V-09 EvalRunner achieves >=85% routing accuracy, 100% ex… 0.01s  
+..........
+   PASS  Tests\Feature\Ai\ChatTest
+  ✓ the AI page opens inside the selected store                          0.03s  
+  ✓ without model keys the assistant answers from store data             0.06s  
+  ✓ FR-AI-03 sales answers come from the ledger with their period; othe… 0.05s  
+  ✓ "add …" offers a product draft only to members who can manage produ… 0.07s  
+  ✓ with a key the model phrases the reply from the store facts          0.06s  
+  ✓ a failing model falls back to built-in replies                       0.05s  
+  ✓ questions are capped per store per day                               0.06s  
+  ✓ guests cannot use the assistant                                      0.01s  
+  ✓ FR-AI-11 a retired or paid model is swapped for a free one the key…  0.03s  
+  ✓ FR-AI-11 a bad key is not treated as a model problem                 0.04s  
+...........
+   PASS  Tests\Feature\Analytics\AnalyticsAndMarketingTest
+  ✓ FR-ANA-01 FR-ANA-06 records page views and sessions only when conse… 0.02s  
+  ✓ FR-ANA-02 computes visitors, orders, revenue, conversion rate, AOV,… 0.02s  
+  ✓ FR-ANA-04 ranks products by views, cart adds, and units sold and fl… 0.02s  
+  ✓ FR-MKT-01 lists open abandoned checkouts and generates localized Wh… 0.02s  
+  ✓ FR-MKT-03 manages per-store pixel IDs via PixelService and PixelCon… 0.01s  
+  ✓ FR-MKT-04 builds hashed CAPI event payload with deterministic brows… 0.01s  
+  ✓ FR-MKT-05 subscribes newsletter emails idempotently and exports UTF… 0.01s  
+  ✓ FR-MI-02 FR-MI-03 connects read-only Meta ad account and imports da… 0.01s  
+  ✓ FR-MI-04 FR-MI-05 FR-MI-06 computes store-verified profit/ROAS and…  0.03s  
+  ✓ FR-MI-07 FR-MI-08 builds code-computed campaign proposal awaiting o… 0.01s  
+  ✓ FR-MI-01 read-only AnalyticsFunctions, MarketingFunctions, and AdSp… 0.02s  
+.........
+   PASS  Tests\Feature\Builder\BuilderTest
+  ✓ FR-BLD-01 section registry defines all 15 SRS section types with de… 0.01s  
+  ✓ FR-BLD-02 page builder adds, updates, toggles visibility, reorders,… 0.03s  
+  ✓ FR-BLD-03 theme service manages defaults, updates, CSS variables, a… 0.02s  
+  ✓ FR-BLD-04 media service stores files with AR/EN alt text and suppor… 0.04s  
+  ✓ FR-BLD-05 computePriceFromMargin enforces pure-code half-up formula… 0.01s  
+  ✓ FR-BLD-05 FR-BLD-06 AI draft creates draft homepage, theme, and cod… 0.03s  
+  ✓ FR-BLD-07 publishing creates sequential version snapshots and resto… 0.03s  
+  ✓ FR-BLD-08 starter templates support fashion, food, handmade, and el… 0.04s  
+  ✓ FR-BLD-02 FR-BLD-03 FR-BLD-04 builder controllers handle page, them… 0.03s  
+. 126 / 319 ( 39%)
+..........
+   PASS  Tests\Feature\Builder\StorefrontBuilderTest
+  ✓ FR-BLD-01 every section type has a storefront view that renders wit… 0.09s  
+  ✓ FR-BLD-06 FR-BLD-07 shoppers see only the published version, drafts… 0.06s  
+  ✓ FR-BLD-02 the editor saves a whole page, keeps ids, deletes removed… 0.04s  
+  ✓ FR-BLD-02 live preview renders one section from unsaved settings wi… 0.03s  
+  ✓ storefront shop, category, product and custom pages render live pro… 0.06s  
+  ✓ the header and footer groups are created once and render on every p… 0.04s  
+  ✓ path mode serves stores at /s/<store> without wildcard subdomains           0.03s  
+  ✓ sanitizers strip script vectors but keep safe markup                 0.01s  
+  ✓ inline-edit markers appear in the editor preview only, never on the… 0.03s  
+  ✓ the Preview button shows the draft like a shopper would: no editing… 0.03s  
+  ✓ several sections render in one request for in-place preview updates  0.03s  
+........
+   PASS  Tests\Feature\Cart\CartTest
+  ✓ FR-CRT-01 guest cart persists by session and user cart persists by…  0.02s  
+  ✓ FR-CRT-01 guest cart merges into user cart on login capped at stock… 0.02s  
+  ✓ FR-CRT-02 add, quantity change, and remove each log an accurate Car… 0.02s  
+  ✓ FR-CRT-02 updating quantity to zero removes the item and logs a rem… 0.02s  
+  ✓ FR-CRT-03 out-of-stock, exceeding-stock, and non-live adds are refu… 0.02s  
+  ✓ FR-CRT-03 reconcile adjusts reduced stock, removes sold-out and unp… 0.02s  
+  ✓ FR-CRT-04 summary computes subtotal, shipping estimate from Shippin… 0.02s  
+  ✓ FR-CRT-02 AddToCartData and CartController handle show, store, upda… 0.03s  
+..........
+   PASS  Tests\Feature\Catalog\CatalogWave1Test
+  ✓ FR-CAT-02 variants sync parent product stock and adjustStock update… 0.02s  
+  ✓ FR-CAT-17 adjustStock dispatches StockBelowReorder when stock reach… 0.07s  
+  ✓ FR-CAT-03 categories can be created, listed, updated, reordered, an… 0.02s  
+  ✓ FR-CAT-04 shopQuery filters by category, price range, stock and sor… 0.01s  
+  ✓ FR-CAT-05 Arabic normalization and live search suggestions match no… 0.01s  
+  ✓ FR-CAT-07 relatedProducts returns up to 4 active products in the sa… 0.01s  
+  ✓ FR-CAT-10 and FR-CAT-18 reviews require a delivered order and remai… 0.03s  
+  ✓ FR-CAT-11 static pages can be upserted for allowed slugs and reject… 0.03s  
+  ✓ FR-CAT-13 contact message inbox lists messages with unread count an… 0.02s  
+  ✓ wishlists support both authenticated users and guest sessions withi… 0.02s  
+...
+   PASS  Tests\Feature\Catalog\ProductOptionsTest
+  ✓ FR-CAT-02 sizes and colours become variants; product stock is their… 0.06s  
+  ✓ a typed category links the product to that category (matching names… 0.04s  
+  ✓ FR-CAT-02 the cart needs an option, charges its price and respects…  0.05s  
+.............
+   PASS  Tests\Feature\Catalog\ProductsTest
+  ✓ FR-CAT-01 an owner starts a draft from a short note and lands on th… 0.02s  
+  ✓ FR-CAT-01 photos start a draft and are stored on the public disk     0.02s  
+  ✓ FR-CAT-01 saving and publishing from the review step                 0.02s  
+  ✓ FR-CAT-01 a product cannot go live without a price                   0.02s  
+  ✓ FR-CAT-01 bad amounts are rejected with a clear message              0.02s  
+  ✓ FR-CAT-01 the list filters by status, stock and search, with counts  0.04s  
+  ✓ NFR-SEC-05 another store's product is a 404                          0.02s  
+  ✓ FR-ACC-03 staff can view products but not change them                0.02s  
+  ✓ FR-CAT-01 CSV import creates drafts                                  0.02s  
+  ✓ FR-CAT-01 deleting a product removes it and its photos               0.03s  
+  ✓ FR-ONB-10 adding a product completes the checklist step and the das… 0.03s  
+  ✓ the note parser reads Arabic notes and Eastern digits                0.01s  
+  ✓ the note parser understands "for 1,250 pounds"                       0.01s  
+..
+   PASS  Tests\Feature\Checkout\CheckoutPageTest
+  ✓ NFR-USE-03 FR-PAY-01 storefront checkout renders at most 8 visible…  0.05s  
+  ✓ NFR-USE-03 FR-PAY-01 storefront checkout renders at most 8 visible…  0.03s  
+...........
+   PASS  Tests\Feature\Checkout\CheckoutTest
+  ✓ FR-PAY-02 normalizes valid Egyptian mobile numbers and rejects inva… 0.02s  
+  ✓ FR-PAY-01 guest single-page checkout places an order without an acc… 0.03s  
+  ✓ FR-PAY-03 shipping fee comes from store governorate zone and honors… 0.03s  
+  ✓ FR-PAY-05 COD supports optional cod_fee and posts balanced journal…  0.04s  
+  ✓ FR-PAY-06 InstaPay stores receipt, keeps order pending until staff…  0.07s  
+  ✓ FR-PAY-08 Fawry generates deterministic 10-digit reference code in…  0.08s  
+  ✓ FR-PAY-10 lead capture normalizes phone, upserts open lead, and mar… 0.04s  
+  ✓ FR-PAY-11 FR-CRT-05 discount codes support percentage half-up round… 0.06s  
+  ✓ FR-PAY-12 risk service flags prior refused COD, >3 orders in 24h by… 0.05s  
+  ✓ V-04 FR-PAY-04 FR-PAY-07 FR-PAY-09 NFR-SEC-14 NFR-OPS-03 Kashier an… 0.10s  
+  ✓ FR-PAY-01 FR-PAY-09 CheckoutController and WebhookController handle… 0.08s  
+...
+   PASS  Tests\Feature\Checkout\StorefrontCheckoutFlowTest
+  ✓ FR-PAY-01 FR-NTF-01 the checkout form places the order and shows th… 0.08s  
+  ✓ FR-PAY-01 checkout form errors go back to the form instead of retur… 0.02s  
+  ✓ FR-ORD-05 the track-order page renders in the store layout           0.03s  
+... 189 / 319 ( 59%)
+
+   PASS  Tests\Feature\Fpa\FpaWave4Test
+  ✓ FR-FPA-01 FR-FPA-02 monthly variance compares per-account budgets a… 0.06s  
+  ✓ FR-FPA-03 what-if scenario simulates price, discount, volume, ad sp… 0.03s  
+  ✓ FR-FPA-05 FR-FPA-06 commentary accepts grounded draft and rejects h… 0.02s  
+...
+   PASS  Tests\Feature\Importers\AdornaImportTest
+  ✓ FR-ONB-09 AdornaImporter converts EGP to integer piasters half-up a… 0.07s  
+  ✓ V-07 AdornaImporter::reconcile verifies piaster-exact parity across… 0.05s  
+  ✓ NFR-REL-08 RunNightlyAdornaImport attaches WithoutOverlapping middl… 0.05s  
+..........
+   PASS  Tests\Feature\Ledger\FinanceFlowTest
+  ✓ FR-LED-02 a card order posts sale and fee when paid, cost of goods…  0.10s  
+  ✓ FR-LED-02 cash on delivery is revenue when delivered; a return refu… 0.11s  
+  ✓ a COD order cancelled before payment posts nothing                   0.06s  
+  ✓ FR-LED-05 expenses post now or as bills, bills get paid, voiding re… 0.09s  
+  ✓ FR-LED-06 manual entries must balance; transfers move a gateway pay… 0.08s  
+  ✓ FR-LED-07 last month can be closed after confirming the bank; then…  0.10s  
+  ✓ FR-FPA-01 budgets save and compare with actuals                      0.09s  
+  ✓ UC-11 the finance pages render with figures from the ledger          0.29s  
+  ✓ finance settings change VAT treatment of new sales                   0.08s  
+  ✓ NFR-SEC staff cannot see finance; managers can read but not post     0.08s  
+..
+   PASS  Tests\Feature\Ledger\LedgerVerificationTest
+  ✓ FR-LED-03 NFR-SEC-12 posted journal entries and lines refuse edits…  0.05s  
+  ✓ FR-LED-01 FR-LED-02 FR-LED-04 V-05 seeded month trial balance balan… 0.09s  
+.....
+   PASS  Tests\Feature\Notifications\NotificationsTest
+  ✓ FR-NTF-01 shopper receives branded order confirmation, lifecycle, a… 0.06s  
+  ✓ FR-NTF-02 shopper order emails render bilingual AR/EN copy and RTL/… 0.04s  
+  ✓ FR-NTF-03 diagnostic test email includes store name, timestamp, sen… 0.03s  
+  ✓ FR-NTF-04 owner alerts persist store-scoped alerts, email only owne… 0.14s  
+  ✓ FR-NTF-05 click-to-WhatsApp URL normalizes Egyptian phone formats a… 0.13s  
+...............
+   PASS  Tests\Feature\Orders\OrderStatusTest
+  ✓ FR-ORD-04 staff take a manual order: prices snapshot, stock comes o… 0.05s  
+  ✓ FR-ORD-04 a second order from the same phone joins the same custome… 0.06s  
+  ✓ FR-ORD-04 an order cannot take more than is in stock                 0.03s  
+  ✓ FR-ORD-01 orders follow the allowed status moves only                0.10s  
+  ✓ FR-ORD-02 every status change is logged with who did it, and the sh… 0.08s  
+  ✓ FR-ORD-03 cancelling an order puts its items back on the shelf, onc… 0.06s  
+  ✓ FR-ORD-03 a returned order restocks too                              0.07s  
+  ✓ FR-ORD-10 bulk status moves the orders that can and skips the rest   0.08s  
+  ✓ FR-ORD-10 orders export to CSV with a BOM so Arabic names survive E… 0.06s  
+  ✓ FR-ORD-07 FR-ORD-11 courier, tracking link, notes and tags are save… 0.05s  
+  ✓ the orders list filters and searches, and the detail page shows nex… 0.10s  
+  ✓ the home page shows today's sales and what is waiting to ship        0.07s  
+  ✓ customers list and phone lookup                                      0.07s  
+  ✓ an accountant can read orders but not change them                    0.05s  
+  ✓ another store's order is a 404                                       0.04s  
+.......
+   PASS  Tests\Feature\Orders\OrdersWave1Test
+  ✓ FR-ORD-01 partial refund posts a balanced journal entry without cha… 0.10s  
+  ✓ FR-ORD-05 public order tracking matches by order number + phone or…  0.07s  
+  ✓ FR-ORD-06 shipping zones CRUD per governorate with rate, delivery d… 0.03s  
+  ✓ FR-ORD-08 shopper return request on delivered order approved by own… 0.10s  
+  ✓ FR-ORD-08 owner can reject a pending return request without restock… 0.07s  
+  ✓ FR-ORD-09 invoice and packing slip data and HTML include order deta… 0.04s  
+  ✓ FR-ORD-12 orders export produces UTF-8 BOM CSV with Arabic names in… 0.05s  
+..........
+   PASS  Tests\Feature\Platform\CreateStoreTest
+  ✓ FR-ONB-01 the landing page offers one create-your-store form to gue… 0.03s  
+  ✓ FR-ONB-01 submitting the form creates the account and the store tog… 0.06s  
+  ✓ FR-ONB-03 the owner lands inside the new store dashboard right away  0.07s  
+  ✓ FR-ONB-02 reserved and taken addresses are refused                   0.03s  
+  ✓ FR-ONB-02 the address check answers as the owner types, with sugges… 0.03s  
+  ✓ FR-ONB-07 the verification email goes out in the background          0.03s  
+  ✓ FR-ONB-07 an unverified owner can build but cannot publish           0.06s  
+  ✓ FR-ONB-08 a signed-in owner creates another store with the same acc… 0.04s  
+  ✓ FR-ONB-08 users cannot switch into a store they do not belong to     0.03s  
+  ✓ FR-ACC-07 there is no separate sign-up page                          0.04s  
+........... 252 / 319 ( 78%)
+..................
+   PASS  Tests\Feature\Platform\DashboardSectionsTest
+  ✓ owners can open every dashboard area with ('/approvals', 'approvals… 0.05s  
+  ✓ owners can open every dashboard area with ('/categories', 'categori… 0.04s  
+  ✓ owners can open every dashboard area with ('/inventory', 'products/… 0.04s  
+  ✓ owners can open every dashboard area with ('/returns', 'orders/retu… 0.04s  
+  ✓ owners can open every dashboard area with ('/analytics', 'analytics… 0.04s  
+  ✓ owners can open every dashboard area with ('/marketing', 'marketing… 0.05s  
+  ✓ owners can open every dashboard area with ('/marketing/campaigns',…  0.04s  
+  ✓ owners can open every dashboard area with ('/marketing/discounts',…  0.04s  
+  ✓ owners can open every dashboard area with ('/marketing/abandoned',…  0.04s  
+  ✓ owners can open every dashboard area with ('/seo', 'seo/index')      0.04s  
+  ✓ owners can open every dashboard area with ('/builder', 'builder/edi… 0.06s  
+  ✓ owners can open every dashboard area with ('/builder/theme', 'build… 0.04s  
+  ✓ owners can open every dashboard area with ('/builder/media', 'build… 0.05s  
+  ✓ owners can open every dashboard area with ('/finance', 'finance/ind… 0.07s  
+  ✓ owners can open every dashboard area with ('/finance/reports', 'fin… 0.06s  
+  ✓ owners can open every dashboard area with ('/finance/expenses', 'fi… 0.06s  
+  ✓ owners can open every dashboard area with ('/finance/budgets', 'fin… 0.06s  
+  ✓ owners can open every dashboard area with ('/finance/ledger', 'fina… 0.06s  
+  ✓ owners can open every dashboard area with ('/settings/payments', 's… 0.04s  
+  ✓ owners can open every dashboard area with ('/settings/shipping', 's… 0.05s  
+  ✓ owners can open every dashboard area with ('/settings/domain', 'set… 0.04s  
+  ✓ owners can open every dashboard area with ('/settings/notifications… 0.04s  
+  ✓ owners can open every dashboard area with ('/settings/accessibility… 0.04s  
+  ✓ FR-ACC-03 previews follow the permission matrix: staff see neither…  0.10s  
+  ✓ a route listing several permissions lets in a member with any one o… 0.13s  
+  ✓ managers reach finance and budgets, but not the owner-only payment…  0.12s  
+  ✓ home "This week" sums the last 7 Cairo days and compares them with…  0.08s  
+  ✓ home "This week" stays empty until the store has a sale              0.04s  
+  ✓ translations are sent once per language, not with every click        0.07s  
+.........
+   PASS  Tests\Feature\Platform\MustFrClosureTest
+  ✓ FR-CAT-08 ImageService generates WebP/AVIF srcset, lazy-loaded pict… 0.05s  
+  ✓ FR-CAT-14 maintenance mode returns 503 with custom message to guest… 0.04s  
+  ✓ FR-ACC-01 shoppers register with email/password or sign in with Goo… 0.04s  
+  ✓ FR-ACC-02 shopper account overview returns order history, saved add… 0.03s  
+  ✓ FR-ONB-05 BuildInitialStoreDraft queues asynchronously and builds a… 0.03s  
+  ✓ FR-LED-08 ledger reports export produces Excel UTF-8 BOM CSV and pr… 0.05s  
+  ✓ FR-LED-09 FR-LED-10 ledger enforces consistent COGS valuation on sh… 0.07s  
+  ✓ FR-LED-11 FR-LED-12 money is EGP-only, stored as integer piasters,…  0.01s  
+  ✓ FR-SEO-21 CustomDomainService normalizes canonical host and resolve<->… 0.01s  
+....
+   PASS  Tests\Feature\Platform\OnboardingTest
+  ✓ FR-ONB-04 the owner answers up to three optional questions and the…  0.04s  
+  ✓ FR-ONB-04 every question can be skipped                              0.04s  
+  ✓ FR-ONB-04 the language answer must be Arabic or English              0.02s  
+  ✓ FR-ONB-10 the dashboard shows the setup checklist with the next ste… 0.03s  
+....
+   PASS  Tests\Feature\Platform\OwnerAccessTest
+  ✓ FR-ONB-06 a signed-in member sees their opening-soon store; strange… 0.03s  
+  ✓ user:verify-email verifies an account so its owner can publish       0.01s  
+  ✓ resending the verification email says so when mail cannot be sent    0.02s  
+  ✓ FR-ONB-01 with no outgoing mail set up, accounts count as verified…  0.02s  
+....
+   PASS  Tests\Feature\Platform\PlatformAdminTest
+  ✓ FR-ACC-08 platform admins list stores with usage                     0.04s  
+  ✓ FR-ACC-08 platform admins suspend and restore stores, and it is log… 0.02s  
+  ✓ FR-ACC-08 store owners are not platform admins                       0.02s  
+  ✓ FR-ACC-08 a platform admin with no store of their own lands on the…  0.01s  
+.
+   PASS  Tests\Feature\Platform\PublicStorageTest
+  ✓ uploaded images load even when the host could not create the public… 0.05s  
+......
+   PASS  Tests\Feature\Platform\StorefrontTest
+  ✓ FR-ONB-06 a new store shows an opening-soon page until it is publis… 0.02s  
+  ✓ FR-ONB-06 the store password unlocks the opening-soon page           0.03s  
+  ✓ FR-ONB-06 the owner previews the draft store through a signed link   0.04s  
+  ✓ FR-ACC-08 a suspended store is unavailable to shoppers               0.02s  
+  ✓ FR-CAT-15 FR-SEO-22 storefront pages set lang and dir, defaulting t… 0.03s  
+  ✓ FR-ONB-02 unknown and reserved subdomains are never storefronts      0.02s  
+...
+   PASS  Tests\Feature\Reliability\ReliabilityAndOpsTest
+  ✓ V-13 NFR-REL-05 NFR-REL-06 backup and restore drill preserves store… 0.48s  
+  ✓ V-16 NFR-MNT-01 NFR-MNT-03 NFR-REL-01 fresh install schema and prod… 0.01s  
+  ✓ V-18 NFR-REL-07 NFR-OPS-01 NFR-OPS-02 health monitor endpoint and e… 0.03s  
+....
+   PASS  Tests\Feature\Security\SecurityHardeningTest
+  ✓ V-11 NFR-SEC-05 prompt injection payloads cannot trigger unapproved… 0.02s  
+  ✓ V-11 NFR-SEC-05 tenant cache keys are isolated between Store A and…  0.01s  
+  ✓ V-11 NFR-SEC-01 responses include required security headers          0.03s  
+  ✓ V-11 NFR-SEC-06 NFR-SEC-08 NFR-SEC-10 NFR-SEC-15 PermissionMatrix e… 0.04s  
+.......... 315 / 319 ( 98%)
+..
+   PASS  Tests\Feature\Seo\SeoTest
+  ✓ FR-SEO-01 generates readable Arabic and English slugs and localized… 0.02s  
+  ✓ FR-SEO-02 FR-SEO-06 FR-SEO-08 builds meta tags with length limits,…  0.01s  
+  ✓ FR-SEO-03 strips filter, sort, utm, fbclid, and gclid parameters fr… 0.01s  
+  ✓ FR-SEO-04 generates ar, en, and x-default hreflang links             0.01s  
+  ✓ FR-SEO-05 FR-SEO-09 generates valid bilingual XML sitemap with live… 0.02s  
+  ✓ FR-SEO-06 generates robots.txt linking sitemap and disallowing priv… 0.02s  
+  ✓ FR-SEO-15 generates llms.txt structured Markdown summary for AI sea… 0.01s  
+  ✓ FR-SEO-07 FR-SEO-10 builds JSON-LD for Organization, WebSite, Produ… 0.01s  
+  ✓ FR-SEO-16 generates Google Merchant RSS 2.0 XML and Meta Catalog TS… 0.01s  
+  ✓ FR-SEO-12 FR-SEO-23 FR-SEO-24 manages automatic and manual redirect… 0.02s  
+  ✓ FR-SEO-13 FR-SEO-19 audits on-page SEO checks and computes 0..100 s… 0.01s  
+  ✓ V-06 end-to-end SEO engine verification across sitemap, feeds, JSON… 0.02s  
+..                                                            319 / 319 (100%)
+   PASS  Tests\Isolation\StoreIsolationTest
+  ✓ NFR-SEC-05 no store-owned table can be read across stores            0.10s  
+  ✓ NFR-SEC-05 every table with a store_id has a model that is scoped    0.03s  
+
+  Tests:    319 passed (4355 assertions)
+  Duration: 13.60s
+
+
+
+Time: 00:13.492, Memory: 91.00 MB
+
+OK (319 tests, 4355 assertions)
