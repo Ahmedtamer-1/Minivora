@@ -65,3 +65,11 @@ test('the deploy sets the storefront mode, accepting only path or subdomain', fu
     [, $env] = runSetAiKeys("APP_NAME=Minivora\n", ['STOREFRONT_MODE' => 'everything']);
     expect($env)->not->toContain('STOREFRONT_MODE');
 });
+
+test('the deploy can switch email verification off, on or auto', function () {
+    [, $env] = runSetAiKeys("APP_NAME=Minivora\n", ['EMAIL_VERIFICATION' => 'off']);
+    expect($env)->toContain("EMAIL_VERIFICATION=off\n");
+
+    [, $env] = runSetAiKeys("APP_NAME=Minivora\n", ['EMAIL_VERIFICATION' => 'maybe']);
+    expect($env)->not->toContain('EMAIL_VERIFICATION');
+});

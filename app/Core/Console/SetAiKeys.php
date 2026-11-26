@@ -9,19 +9,20 @@ use Symfony\Component\Console\Input\StreamableInputInterface;
  * Writes the AI provider keys and models into the server's .env. Used by the deploy workflow, which
  * pipes them in from GitHub secrets as JSON on stdin (never on the command line, where other users
  * of a shared host could see them). Only the AI settings below can be changed; empty values are
- * skipped so a missing secret never wipes a key set by hand. Also sets STOREFRONT_MODE (path|subdomain).
+ * skipped so a missing secret never wipes a key set by hand. Also sets STOREFRONT_MODE (path|subdomain) and EMAIL_VERIFICATION (auto|on|off).
  */
 class SetAiKeys extends Command
 {
     public const ALLOWED = [
         'GROQ_API_KEYS', 'OPENROUTER_API_KEYS', 'GEMINI_API_KEYS',
         'GROQ_MODEL', 'OPENROUTER_MODEL', 'GEMINI_MODEL',
-        'STOREFRONT_MODE',
+        'STOREFRONT_MODE', 'EMAIL_VERIFICATION',
     ];
 
     /** Settings that only accept fixed values. */
     private const CHOICES = [
         'STOREFRONT_MODE' => ['path', 'subdomain'],
+        'EMAIL_VERIFICATION' => ['auto', 'on', 'off'],
     ];
 
     protected $signature = 'ai:set-keys {--path= : .env file to update (defaults to the app\'s .env)}';
