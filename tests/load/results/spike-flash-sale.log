@@ -1,0 +1,24 @@
+
+     ✓ flash sale home 200
+     ✓ flash sale shop 200
+
+   ✓ checks.........................: 100.00% 14830 out of 14830
+     data_received..................: 195 MB  1.1 MB/s
+     data_sent......................: 6.9 MB  37 kB/s
+     http_req_blocked...............: avg=239.04µs min=33.74µs  med=177.93µs max=21.39ms p(90)=362.46µs p(95)=447.62µs
+     http_req_connecting............: avg=164.42µs min=19.08µs  med=113.73µs max=20.72ms p(90)=254.27µs p(95)=320.45µs
+   ✓ http_req_duration..............: avg=326.5ms  min=11.5ms   med=331.58ms max=1.5s    p(90)=595.1ms  p(95)=692.49ms
+       { expected_response:true }...: avg=326.5ms  min=11.5ms   med=331.58ms max=1.5s    p(90)=595.1ms  p(95)=692.49ms
+     http_req_failed................: 0.00%   0 out of 14830
+     http_req_receiving.............: avg=1ms      min=34.21µs  med=788.48µs max=36.47ms p(90)=1.4ms    p(95)=2.34ms  
+     http_req_sending...............: avg=46.34µs  min=5.69µs   med=30.11µs  max=10.49ms p(90)=85.15µs  p(95)=105.7µs 
+     http_req_tls_handshaking.......: avg=0s       min=0s       med=0s       max=0s      p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=325.45ms min=10.86ms  med=330.48ms max=1.5s    p(90)=594.21ms p(95)=691.42ms
+     http_reqs......................: 14830   79.941618/s
+     iteration_duration.............: avg=1.55s    min=536.31ms med=1.58s    max=3.16s   p(90)=2.12s    p(95)=2.26s   
+     iterations.....................: 7415    39.970809/s
+   ✓ spike_5xx_rate.................: 0.00%   0 out of 14830
+     spike_ttfb_ms..................: avg=325.45ms min=10.86ms  med=330.48ms max=1.5s    p(90)=594.21ms p(95)=691.42ms
+     vus............................: 1       min=1              max=150
+     vus_max........................: 150     min=150            max=150
+

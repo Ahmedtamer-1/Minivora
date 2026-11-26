@@ -1,0 +1,25 @@
+
+     ✓ soak home 200
+     ✓ soak shop 200
+     ✓ soak search 200
+
+   ✓ checks.........................: 100.00% 42420 out of 42420
+     data_received..................: 488 MB  239 kB/s
+     data_sent......................: 25 MB   12 kB/s
+     http_req_blocked...............: avg=350.34µs min=69.06µs med=326.95µs max=68.32ms p(90)=458.63µs p(95)=503.12µs
+     http_req_connecting............: avg=248.16µs min=36.37µs med=229.27µs max=9.79ms  p(90)=334.4µs  p(95)=370.26µs
+     http_req_duration..............: avg=26.36ms  min=11.97ms med=17.58ms  max=779.5ms p(90)=22.18ms  p(95)=25.05ms 
+       { expected_response:true }...: avg=26.36ms  min=11.97ms med=17.58ms  max=779.5ms p(90)=22.18ms  p(95)=25.05ms 
+     http_req_failed................: 0.00%   0 out of 42420
+     http_req_receiving.............: avg=759.96µs min=57.37µs med=722.08µs max=13.04ms p(90)=959.07µs p(95)=1.04ms  
+     http_req_sending...............: avg=64.65µs  min=8.12µs  med=58.52µs  max=8.52ms  p(90)=95.04µs  p(95)=109.94µs
+     http_req_tls_handshaking.......: avg=0s       min=0s      med=0s       max=0s      p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=25.53ms  min=11.43ms med=16.77ms  max=778.8ms p(90)=21.16ms  p(95)=23.93ms 
+     http_reqs......................: 42420   20.77768/s
+     iteration_duration.............: avg=4.08s    min=3.05s   med=4.07s    max=5.66s   p(90)=4.88s    p(95)=4.98s   
+     iterations.....................: 14140   6.925893/s
+   ✓ soak_error_rate................: 0.00%   0 out of 42420
+   ✓ soak_ttfb_ms...................: avg=25.53ms  min=11.43ms med=16.77ms  max=778.8ms p(90)=21.16ms  p(95)=23.93ms 
+     vus............................: 1       min=1              max=30
+     vus_max........................: 30      min=30             max=30
+

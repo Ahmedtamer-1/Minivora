@@ -1,0 +1,246 @@
+{
+    "metrics": {
+        "http_req_receiving": {
+            "max": 6.235606,
+            "p(90)": 1.3207617999999999,
+            "p(95)": 1.6435293999999998,
+            "avg": 0.9964225762561114,
+            "min": 0.12311,
+            "med": 0.92605
+        },
+        "vus": {
+            "value": 1,
+            "min": 0,
+            "max": 15
+        },
+        "http_req_failed": {
+            "passes": 139,
+            "fails": 2110,
+            "value": 0.061805246776345045
+        },
+        "group_duration": {
+            "p(95)": 7426.231116950001,
+            "avg": 6272.168862878125,
+            "min": 4620.194395,
+            "med": 6273.21809,
+            "max": 7982.394924,
+            "p(90)": 7166.9288824000005
+        },
+        "iteration_duration": {
+            "avg": 7285.33495311562,
+            "min": 5633.448556,
+            "med": 7285.1070660000005,
+            "max": 8992.952963,
+            "p(90)": 8176.7436992,
+            "p(95)": 8439.002884700001
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(95)": 83.84743529999999,
+            "avg": 38.1978007109005,
+            "min": 10.011365,
+            "med": 27.5928125,
+            "max": 646.598634,
+            "p(90)": 41.192520800000004
+        },
+        "http_req_sending": {
+            "avg": 0.06723278612716765,
+            "min": 0.012164,
+            "med": 0.062949,
+            "max": 1.754005,
+            "p(90)": 0.0982552,
+            "p(95)": 0.11452799999999999
+        },
+        "minivora_dashboard_duration_ms": {
+            "avg": 40.069595461979155,
+            "min": 18.158144,
+            "med": 28.3506315,
+            "max": 646.598634,
+            "p(90)": 43.2670728,
+            "p(95)": 85.38273194999998,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "http_req_waiting": {
+            "p(90)": 39.1841934,
+            "p(95)": 81.33141739999999,
+            "avg": 35.366154506447266,
+            "min": 6.567165,
+            "med": 25.93567,
+            "max": 644.253895
+        },
+        "http_req_duration": {
+            "max": 646.598634,
+            "p(90)": 40.280441800000006,
+            "p(95)": 83.09131099999999,
+            "avg": 36.429809868830645,
+            "min": 7.109569,
+            "med": 26.917496
+        },
+        "minivora_dashboard_error_rate": {
+            "passes": 0,
+            "fails": 1920,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "data_received": {
+            "count": 289159521,
+            "rate": 1525099.2850767623
+        },
+        "iterations": {
+            "count": 320,
+            "rate": 1.687759647466576
+        },
+        "http_req_tls_handshaking": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0
+        },
+        "checks": {
+            "passes": 2258,
+            "fails": 0,
+            "thresholds": {
+                "rate>0.99": false
+            },
+            "value": 1
+        },
+        "http_reqs": {
+            "count": 2249,
+            "rate": 11.861785772351029
+        },
+        "http_req_connecting": {
+            "min": 0.065501,
+            "med": 0.250317,
+            "max": 6.066982,
+            "p(90)": 0.3517266,
+            "p(95)": 0.38870699999999997,
+            "avg": 0.2680325188972881
+        },
+        "data_sent": {
+            "count": 1848148,
+            "rate": 9747.592552956428
+        },
+        "http_req_blocked": {
+            "p(95)": 0.5283518,
+            "avg": 0.37430938683859466,
+            "min": 0.092049,
+            "med": 0.355628,
+            "max": 6.168453,
+            "p(90)": 0.4799502
+        },
+        "vus_max": {
+            "value": 15,
+            "min": 15,
+            "max": 15
+        }
+    },
+    "setup_data": {
+        "sessions": {
+            "owner0@minivora.test": {
+                "XSRF-TOKEN": "eyJpdiI6InczSU56UUZvYzRnMVdodXhtbEFHMnc9PSIsInZhbHVlIjoiNjhGVmdZNDcyaHhFTGdGekV3aThqOGUrVnhJOXJjbHlDUjlMUUEzeUY5MkE5TUdtNWZmOTFyK3FOYXY5RndaNmdzUWVxa2M5OWgxZ3NKWEdLRnFkc29nMDhpaHFZZkYvRHpyaXFLNVFZY3JJejdSUjM5eldNUU1SZEs4WTF3NDAiLCJtYWMiOiJhODYwMzRiNzQ1NDgxMjQ4YTE2OTNhMzNlNjUxNGQyM2JkZjIyMmNjMjZjZmExYzIwN2JmMTdhMzVjMmQ4MWJmIiwidGFnIjoiIn0%3D",
+                "minivora_session": "eyJpdiI6Ink2cWhnR2xwQlVleEk3aExQYml2YkE9PSIsInZhbHVlIjoiWS9lZVhaZ1BHOU5YdVFoVW5MRThlZ1R3RXJvOFZuNWpkUmpNVzFtd3p6R1ZYZUp5WWxFV1NxQWxJYmFGNnVmMmtWZkpvMm9kVzVpanlRQUw1YnZEY2kyLzc3TGVscWdaSXlpQ0VhOU9tRGlsL3k3YTBkQnQvS1Bab1BiRzhYM0giLCJtYWMiOiIyNGRkZTUxZmQyNjQ4YjhhYzRmMmZlZWIxZWRlMmJmYmM5MjIyMmM4NmY0MDBmYTUyNTVmNDE3OGVjMDFkNzJjIiwidGFnIjoiIn0%3D"
+            },
+            "owner1@minivora.test": {
+                "XSRF-TOKEN": "eyJpdiI6ImxUcG5ZcWd4NG85clRYcEh5WnVUeVE9PSIsInZhbHVlIjoiREpDMjRUd2ozWnczNGRqa3pzZHJtUTRMVWlJdk11Um5sL0tPbXI1L1ZnT2V1RjFQL3o0NGFsVnRJK0RISnJOWlVWdXE0YjRMcTFEc3dMdlYrSVIxeVBoeUJyWXlWTURBSlhtcHlTdWhPUElqYmdDYndDRWtjWGsvRC81K0k2NkciLCJtYWMiOiIzMzkzNTk2MTk2OWQ2ZTFkNDY5YmUwOTQxZGZlNmEzZWIzYzdmODE1YjQyMjMyNzM2MmI0NjY5NjU4MjBiNWUxIiwidGFnIjoiIn0%3D",
+                "minivora_session": "eyJpdiI6IkdQUXJMZDBiMU81VHYxMjZmY1F5TkE9PSIsInZhbHVlIjoiZUlsR0t2Q2RoSnEvVGxHVDk2dTNLVlNiSHcvQ2NNTTcxNnU3NE8yaHZONGNwNzFZdHNNNDhObzRoZTVqaUtOaGpWUkpUeTR6Z2w1alZUazNqbDRVanZoQjNEbWhNRlRFUjJmcngwYmw2R2FidzF1bjdnNjY2cW93Y3lsK3JtaWMiLCJtYWMiOiJlMDkxMGUwOTgxMDU1MWIxMGJlYTQxODkyZDRlYTc0ZjM4NzU2MDYzNmYyMTQxNDk0YWU0ZDkwODFiOGU0Yjg1IiwidGFnIjoiIn0%3D"
+            },
+            "owner2@minivora.test": {
+                "XSRF-TOKEN": "eyJpdiI6IkY2akJWSzUrQ3BNejFlQ1BJTTJYNmc9PSIsInZhbHVlIjoiZ1BNK0VxWFI0S1B0YnVDNHF3T3F3THZPWUZsM2FSdEV3T1hsb1FQMDdZSDc4TFJxakxaQWVRL0RTNEZPWS9LNi9tWmtQUWRrSXpwcFY2cFpRTWlGaFN4dDRuajFNUTVsV2VWM3kva1lXcnZKZmxvZWJMWEFmaG1aa3p3ZzN5VmYiLCJtYWMiOiIzNjljMjdmOGZhMmMzNWQwZDE2YjgwYzY1MDY0MTMwYWEzNGJkMjNmZjVmZDVkNzIyY2E4YzA4Y2JlNTQ4NGNmIiwidGFnIjoiIn0%3D",
+                "minivora_session": "eyJpdiI6IitVRXdBU0hBSHgzMmpReGpuSmxpR3c9PSIsInZhbHVlIjoickNRcXNEamViVEJEWi9zbHJrOUNYbTlhZXRHWE5EcVY1NWdKSDRPVUxnMDNwZzMxSEJLVU52aGNVWGxhWFNQMW4rYUw4NEQ1cXQ0cXBZRTNxK3hiSUtjWkczRVY5UG84ZDJwcE8yT0FEM2RsSVh0YnZaSlBxZVZOY2FGUDFnZjUiLCJtYWMiOiI1ZWJhMTU3MmI4MGU4MTA2ZTJjZmVkYjVmYTlhZjJkYzRjNzM1ZjA5YWIwOGRjNjBjOGEwZjc3NjZlM2E4NjBkIiwidGFnIjoiIn0%3D"
+            }
+        }
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {},
+                "checks": {
+                        "owner login succeeded": {
+                            "id": "de281e1b4ed778de07fa81ea6aa1cab0",
+                            "passes": 3,
+                            "fails": 0,
+                            "name": "owner login succeeded",
+                            "path": "::setup::owner login succeeded"
+                        }
+                    }
+            },
+            "Authenticated_Dashboard_Pages": {
+                "name": "Authenticated_Dashboard_Pages",
+                "path": "::Authenticated_Dashboard_Pages",
+                "id": "ce09cd201e7e99d2e48b9999d43cdc1f",
+                "groups": {},
+                "checks": {
+                        "dashboard_home returns 200": {
+                            "passes": 320,
+                            "fails": 0,
+                            "name": "dashboard_home returns 200",
+                            "path": "::Authenticated_Dashboard_Pages::dashboard_home returns 200",
+                            "id": "c9791ea364dd0d08ff653bee105afd63"
+                        },
+                        "dashboard_products returns 200": {
+                            "passes": 320,
+                            "fails": 0,
+                            "name": "dashboard_products returns 200",
+                            "path": "::Authenticated_Dashboard_Pages::dashboard_products returns 200",
+                            "id": "83605c01474d99b739e0fcc2c990c086"
+                        },
+                        "dashboard_orders returns 200": {
+                            "name": "dashboard_orders returns 200",
+                            "path": "::Authenticated_Dashboard_Pages::dashboard_orders returns 200",
+                            "id": "2664570831fb5ec0a7a272462aff46b2",
+                            "passes": 320,
+                            "fails": 0
+                        },
+                        "dashboard_analytics returns 200": {
+                            "name": "dashboard_analytics returns 200",
+                            "path": "::Authenticated_Dashboard_Pages::dashboard_analytics returns 200",
+                            "id": "c5285a52cfa246ec220f1917674e304f",
+                            "passes": 320,
+                            "fails": 0
+                        },
+                        "dashboard_finance returns 200": {
+                            "id": "e08012135ba412adf765d51f818d15bc",
+                            "passes": 320,
+                            "fails": 0,
+                            "name": "dashboard_finance returns 200",
+                            "path": "::Authenticated_Dashboard_Pages::dashboard_finance returns 200"
+                        },
+                        "dashboard_finance_reports returns 200": {
+                            "name": "dashboard_finance_reports returns 200",
+                            "path": "::Authenticated_Dashboard_Pages::dashboard_finance_reports returns 200",
+                            "id": "91add2fe27e0e5266f05d8dec4658220",
+                            "passes": 320,
+                            "fails": 0
+                        }
+                    }
+            }
+        },
+        "checks": {
+            "owner session available": {
+                "path": "::owner session available",
+                "id": "ad0beca57397d45432d57a8d3f91f61c",
+                "passes": 15,
+                "fails": 0,
+                "name": "owner session available"
+            },
+            "subdomain API 200 or 429": {
+                "name": "subdomain API 200 or 429",
+                "path": "::subdomain API 200 or 429",
+                "id": "0b24e41dba0ebd7301ab5dc0f2721dde",
+                "passes": 320,
+                "fails": 0
+            }
+        }
+    }
+}
