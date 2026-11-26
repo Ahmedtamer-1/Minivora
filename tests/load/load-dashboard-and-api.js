@@ -103,7 +103,7 @@ export default function () {
 
     // Also test public subdomain check API under concurrent dashboard load
     const sub = `test-shop-${__VU}-${__ITER}`;
-    const apiRes = http.get(`${app}/api/v1/subdomains/check?subdomain=${sub}`, {
+    const apiRes = http.get(`${app}/api/v1/subdomains/check?name=${sub}`, {
         headers: { Accept: 'application/json' },
         tags: { endpoint: 'api_subdomain_check' },
     });

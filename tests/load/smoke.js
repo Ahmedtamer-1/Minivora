@@ -30,7 +30,7 @@ export default function () {
     const landing = http.get(`${app}/`, { tags: { endpoint: 'landing' } });
     check(landing, { 'landing returns 200': (r) => r.status === 200 });
 
-    const subCheck = http.get(`${app}/api/v1/subdomains/check?subdomain=smoke-check-shop`, {
+    const subCheck = http.get(`${app}/api/v1/subdomains/check?name=smoke-check-shop`, {
         headers: { Accept: 'application/json' },
         tags: { endpoint: 'api_subdomain_check' },
     });

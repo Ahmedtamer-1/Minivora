@@ -23,8 +23,10 @@ test('FR-ONB-03 owner creates a store and reaches its dashboard', async ({ page,
     await page.waitForURL('**/dashboard');
     expect(Date.now() - started).toBeLessThan(60_000);
 
-    await expect(page.getByRole('heading', { name: `Welcome to E2E ${name}` })).toBeVisible();
-    await expect(page.getByText('Setup checklist')).toBeVisible();
+    // The Today page greets the owner by first name; the store name shows in the header.
+    await expect(page.getByRole('heading', { level: 1, name: /^Good (morning|afternoon|evening), E2E$/ })).toBeVisible();
+    await expect(page.getByRole('banner').getByText(`E2E ${name}`)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Store setup' })).toBeVisible();
 
     // Shoppers see "opening soon" until the store is published.
     const shopper = await browser.newPage();

@@ -23,3 +23,8 @@ Thumbs.db
 /test-results
 /playwright-report
 /storage/framework/testing
+
+# Local test-run noise
+reports/_server.log
+test-results/
+playwright-report/
