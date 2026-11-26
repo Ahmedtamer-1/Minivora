@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $order_id
  * @property int|null $product_id
+ * @property int|null $variant_id
  * @property string $name
  * @property string|null $variant
  * @property int $unit_price
@@ -23,12 +24,13 @@ class OrderItem extends Model
 {
     use BelongsToStore;
 
-    protected $fillable = ['store_id', 'product_id', 'name', 'variant', 'unit_price', 'unit_cost', 'quantity', 'line_total'];
+    protected $fillable = ['store_id', 'product_id', 'variant_id', 'name', 'variant', 'unit_price', 'unit_cost', 'quantity', 'line_total'];
 
     protected function casts(): array
     {
         return [
             'product_id' => 'integer',
+            'variant_id' => 'integer',
             'unit_price' => 'integer',
             'unit_cost' => 'integer',
             'quantity' => 'integer',

@@ -90,6 +90,56 @@ class ProductService
         return $product;
     }
 
+    /**
+     * Replace a product's sizes/colours with these rows; product stock becomes their total.
+     * No rows removes all variants (the product's own stock field is kept). FR-CAT-02
+     *
+     * @param  list<array{color: ?string, size: ?string, stock: int, price: ?int, sku: ?string}>  $rows
+     */
+    public function syncVariants(Product $product, array $rows): void
+    {
+        DB::transaction(function () use ($product, $rows) {
+            // Match existing rows by their options so ids stay stable for carts and orders.
+            // Key order is normalised: MySQL's JSON type may store object keys in a different order.
+            $keyOf = function (array $options): string {
+                ksort($options);
+
+                return (string) json_encode($options);
+            };
+            $existing = $product->variants()->get()->keyBy(fn ($v) => $keyOf((array) $v->options));
+
+            $kept = [];
+            foreach ($rows as $row) {
+                $options = array_filter([
+                    'Color' => trim((string) ($row['color'] ?? '')),
+                    'Size' => trim((string) ($row['size'] ?? '')),
+                ], fn ($v) => $v !== '');
+                $key = $keyOf($options);
+                if ($options === [] || isset($kept[$key])) {
+                    continue;
+                }
+
+                $variant = $existing->get($key) ?? $product->variants()->make(['options' => $options]);
+                $variant->fill([
+                    'stock' => max(0, (int) $row['stock']),
+                    'price' => $row['price'] ?? $product->price,
+                    'cost' => $product->cost,
+                    'sku' => $row['sku'] ?? null,
+                ]);
+                $variant->store_id = $product->store_id;
+                $variant->save();
+                $kept[$key] = $variant->id;
+            }
+
+            $product->variants()->whereNotIn('id', array_values($kept) ?: [0])->delete();
+
+            if ($kept !== []) {
+                $product->stock = (int) $product->variants()->sum('stock');
+                $product->save();
+            }
+        });
+    }
+
     public function publish(Product $product): Product
     {
         if (trim($product->name) === '' || $product->price <= 0) {

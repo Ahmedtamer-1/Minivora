@@ -31,11 +31,24 @@ interface Product {
     status: 'draft' | 'live';
     has_options: boolean;
     colors: Color[];
+    sizes: string[];
+    variants: VariantRow[];
     images: { path: string; url: string }[];
     seo_title: string | null;
     seo_description: string | null;
     source: 'manual' | 'note' | 'photos' | 'csv';
 }
+
+/** One colour × size combination with its own stock and optional price (pounds). FR-CAT-02 */
+interface VariantRow {
+    color: string | null;
+    size: string | null;
+    stock: number | string;
+    price: string;
+    sku?: string | null;
+}
+
+const variantKey = (color: string | null, size: string | null) => `${color ?? ''}|${size ?? ''}`;
 
 interface Props {
     product: Product;
@@ -100,6 +113,8 @@ export default function EditProduct({ product, maxPhotos, categories }: Props) {
         stock: String(product.stock),
         has_options: product.has_options,
         colors: product.colors,
+        sizes: product.sizes ?? [],
+        variants: (product.variants ?? []).map((v) => ({ ...v, price: v.price === null || v.price === undefined ? '' : piastersToInput(Number(v.price)) })) as VariantRow[],
         description: product.description ?? '',
         category: product.category ?? '',
         seo_title: product.seo_title ?? '',
@@ -117,6 +132,39 @@ export default function EditProduct({ product, maxPhotos, categories }: Props) {
     const [adding, setAdding] = useState(false);
     const [newColor, setNewColor] = useState<Color>({ name: '', hex: '#8B5A2B' });
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [newSize, setNewSize] = useState('');
+
+    // Every colour × size combination, keeping stock/price already typed for it.
+    const combos = useMemo(() => {
+        const colors = data.colors.length ? data.colors.map((c) => c.name) : [null];
+        const sizes = data.sizes.length ? data.sizes : [null];
+        if (!data.colors.length && !data.sizes.length) return [];
+        const byKey = new Map(data.variants.map((v) => [variantKey(v.color, v.size), v]));
+        // A product saved before per-option stock existed keeps its stock on the first option
+        // instead of every option starting at 0 (which would sell it out on save).
+        const legacyStock = product.variants?.length ? 0 : product.stock;
+        return colors.flatMap((color, ci) => sizes.map((size, si) => {
+            const existing = byKey.get(variantKey(color, size));
+            if (existing) return existing;
+            // Adding the second axis (e.g. sizes after colours): the first new row of each colour
+            // or size inherits what was typed for that colour or size alone.
+            const parent = (si === 0 ? byKey.get(variantKey(color, null)) : undefined) ?? (ci === 0 ? byKey.get(variantKey(null, size)) : undefined);
+            if (parent) return { ...parent, color, size };
+            return { color, size, stock: ci === 0 && si === 0 && data.variants.length === 0 ? legacyStock : 0, price: '' };
+        }));
+    }, [data.colors, data.sizes, data.variants, product.variants, product.stock]);
+    useEffect(() => {
+        const same = combos.length === data.variants.length && combos.every((c, i) => variantKey(c.color, c.size) === variantKey(data.variants[i]?.color ?? null, data.variants[i]?.size ?? null));
+        if (!same) setData('variants', combos);
+    }, [combos]); // eslint-disable-line react-hooks/exhaustive-deps
+    const usesVariants = data.has_options && combos.length > 0;
+    const variantTotal = combos.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+    const setVariant = (i: number, patch: Partial<VariantRow>) => setData('variants', data.variants.map((v, j) => (j === i ? { ...v, ...patch } : v)));
+    const addSizes = (raw: string) => {
+        const next = raw.split(/[,،\n]/).map((x) => x.trim()).filter(Boolean).filter((x) => !data.sizes.includes(x));
+        if (next.length) setData('sizes', [...data.sizes, ...next].slice(0, 30));
+        setNewSize('');
+    };
 
     // Keep the server's order of saved photos; new ones get object URLs for previews.
     const savedByPath = useMemo(() => new Map(product.images.map((i) => [i.path, i.url])), [product.images]);
@@ -130,7 +178,14 @@ export default function EditProduct({ product, maxPhotos, categories }: Props) {
     const submit = (intent: Intent) => (e?: FormEvent) => {
         e?.preventDefault();
         // Files need multipart, which needs POST + _method spoofing.
-        transform((d) => ({ ...d, intent, stock: Number(d.stock || 0), _method: 'put' }));
+        transform((d) => ({
+            ...d,
+            intent,
+            stock: usesVariants ? variantTotal : Number(d.stock || 0),
+            sizes: d.has_options ? d.sizes : [],
+            variants: usesVariants ? d.variants.map((v) => ({ ...v, stock: Number(v.stock) || 0 })) : [],
+            _method: 'put',
+        }));
         post(`/products/${product.id}`, {
             forceFormData: data.photos.length > 0,
             preserveScroll: true,
@@ -280,7 +335,8 @@ export default function EditProduct({ product, maxPhotos, categories }: Props) {
                                 <Input id="price" inputMode="decimal" value={data.price} onChange={(e) => setData('price', e.target.value)} placeholder="0" invalid={!!errors.price} dir="ltr" />
                             </Field>
                             <Field label={t('edit.stock')} htmlFor="stock" error={errors.stock}>
-                                <Input id="stock" type="number" min={0} inputMode="numeric" value={data.stock} onChange={(e) => setData('stock', e.target.value)} invalid={!!errors.stock} dir="ltr" />
+                                <Input id="stock" type="number" min={0} inputMode="numeric" value={usesVariants ? String(variantTotal) : data.stock} readOnly={usesVariants} onChange={(e) => setData('stock', e.target.value)} invalid={!!errors.stock} dir="ltr" className={usesVariants ? 'bg-secondary' : undefined} />
+                                {usesVariants ? <p className="mt-1 text-caption text-ink-muted">{t('edit.stock_total')}</p> : null}
                             </Field>
                         </div>
                         {price !== null && price > 0 ? (
@@ -292,7 +348,7 @@ export default function EditProduct({ product, maxPhotos, categories }: Props) {
 
                         {/* Colors */}
                         <div className="mt-6 rounded-2xl bg-elevated p-4 shadow-sm">
-                            <div className="flex items-center justify-between gap-3">
+                            <div className="flex cursor-pointer items-center justify-between gap-3" onClick={(e) => { if (!(e.target as HTMLElement).closest('button')) setData('has_options', !data.has_options); }}>
                                 <span id="options-label" className="text-sm">
                                     {t('edit.options')}
                                 </span>
@@ -342,6 +398,77 @@ export default function EditProduct({ product, maxPhotos, categories }: Props) {
                                         </button>
                                     )}
                                 </div>
+                            ) : null}
+                            {data.has_options ? (
+                                <>
+                                    {/* Sizes */}
+                                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                                        <span className="text-caption text-ink-muted">{t('edit.sizes')}</span>
+                                        {data.sizes.map((size) => (
+                                            <span key={size} className="inline-flex h-8 items-center gap-1 rounded-full bg-secondary pe-1 ps-3 text-caption">
+                                                {size}
+                                                <button type="button" onClick={() => setData('sizes', data.sizes.filter((x) => x !== size))} className="grid h-6 w-6 place-items-center rounded-full hover:bg-elevated" aria-label={t('edit.remove_size', { name: size })}>
+                                                    <X className="h-3 w-3" aria-hidden />
+                                                </button>
+                                            </span>
+                                        ))}
+                                        <label className="sr-only" htmlFor="size-name">{t('edit.size_placeholder')}</label>
+                                        <input
+                                            id="size-name"
+                                            value={newSize}
+                                            onChange={(e) => setNewSize(e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSizes(newSize); } }}
+                                            onBlur={() => newSize.trim() && addSizes(newSize)}
+                                            placeholder={t('edit.size_placeholder')}
+                                            className="h-8 w-40 rounded-full border-line-control bg-elevated px-3 text-caption focus:border-line-focus focus:ring-1 focus:ring-line-focus"
+                                            maxLength={120}
+                                        />
+                                        {data.sizes.length === 0 ? (
+                                            <>
+                                                <button type="button" onClick={() => addSizes('S, M, L, XL')} className="inline-flex h-8 items-center rounded-full border border-dashed border-line-control px-3 text-caption text-ink-muted hover:bg-secondary">S · M · L · XL</button>
+                                                <button type="button" onClick={() => addSizes('38, 39, 40, 41, 42, 43, 44')} className="inline-flex h-8 items-center rounded-full border border-dashed border-line-control px-3 text-caption text-ink-muted hover:bg-secondary">38–44</button>
+                                            </>
+                                        ) : null}
+                                    </div>
+
+                                    {/* Stock and price per combination */}
+                                    {combos.length > 0 ? (
+                                        <div className="mt-4 overflow-hidden rounded-xl border border-line">
+                                            <table className="w-full text-sm">
+                                                <thead className="bg-secondary text-caption text-ink-muted">
+                                                    <tr>
+                                                        <th className="px-3 py-2 text-start font-medium">{t('edit.variant')}</th>
+                                                        <th className="w-28 px-3 py-2 text-start font-medium">{t('edit.variant_stock')}</th>
+                                                        <th className="w-36 px-3 py-2 text-start font-medium">{t('edit.variant_price')}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {data.variants.map((v, i) => {
+                                                        const hex = data.colors.find((c) => c.name === v.color)?.hex;
+                                                        const name = [v.color, v.size].filter(Boolean).join(' / ');
+                                                        return (
+                                                            <tr key={variantKey(v.color, v.size)} className="border-t border-line">
+                                                                <td className="px-3 py-2">
+                                                                    <span className="inline-flex items-center gap-2">
+                                                                        {hex ? <span className="h-3 w-3 rounded-full ring-1 ring-black/10" style={{ background: hex }} aria-hidden /> : null}
+                                                                        {name}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-3 py-1.5">
+                                                                    <Input type="number" min={0} inputMode="numeric" value={String(v.stock)} onChange={(e) => setVariant(i, { stock: e.target.value })} aria-label={t('edit.variant_stock_of', { name })} dir="ltr" className="h-9" />
+                                                                </td>
+                                                                <td className="px-3 py-1.5">
+                                                                    <Input inputMode="decimal" value={v.price} onChange={(e) => setVariant(i, { price: e.target.value })} placeholder={data.price || '0'} aria-label={t('edit.variant_price_of', { name })} dir="ltr" className="h-9" />
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                            <p className="border-t border-line px-3 py-2 text-caption text-ink-muted">{t('edit.variants_hint')}</p>
+                                        </div>
+                                    ) : null}
+                                </>
                             ) : null}
                         </div>
 

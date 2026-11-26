@@ -158,7 +158,8 @@ function carouselNav(section: HTMLElement) {
 /* ── Product form: variants, quantity, add to cart ── */
 function productForm(form: HTMLFormElement) {
     const variants = JSON.parse(form.dataset.variants ?? '[]') as { id: number; options: Record<string, string>; price: string; stock: number }[];
-    const price = form.querySelector<HTMLElement>('[data-price]');
+    // The price sits above the form, inside the product info column.
+    const price = (form.closest('.mv-product__info') ?? form).querySelector<HTMLElement>('[data-price]');
     const submit = form.querySelector<HTMLButtonElement>('[type="submit"]');
     const qty = form.querySelector<HTMLInputElement>('input[name="quantity"]');
     const variantInput = form.querySelector<HTMLInputElement>('input[name="variant_id"]');

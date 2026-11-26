@@ -1368,5 +1368,15 @@
   "a11y.effects_light": "Light",
   "a11y.effects_hint": "Light keeps the same look but stands still: no drifting background, parallax or smooth scrolling. Faster on older computers and phones.",
   "a11y.effects_auto_light": "This device looks low-powered, so light effects are on.",
-  "a11y.effects_auto_full": "Full effects on this device. Motion pauses by itself when you stop using the page."
+  "a11y.effects_auto_full": "Full effects on this device. Motion pauses by itself when you stop using the page.",
+  "edit.sizes": "Sizes",
+  "edit.remove_size": "Remove size {name}",
+  "edit.size_placeholder": "Add sizes: S, M, L",
+  "edit.variant": "Option",
+  "edit.variant_stock": "In stock",
+  "edit.variant_price": "Price (optional)",
+  "edit.variant_stock_of": "Stock for {name}",
+  "edit.variant_price_of": "Price for {name}",
+  "edit.variants_hint": "Leave price empty to use the main price. Shoppers can't buy options with 0 in stock.",
+  "edit.stock_total": "Total of all sizes and colours below."
 }

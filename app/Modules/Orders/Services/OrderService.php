@@ -229,6 +229,7 @@ class OrderService
 
             if ($to->restocks() && $order->stock_deducted) {
                 $this->inventory->restock($this->quantities($order));
+                $this->inventory->restockVariants($this->variantQuantities($order));
                 $order->stock_deducted = false;
             }
             $order->save();
@@ -431,6 +432,19 @@ class OrderService
         foreach ($order->items as $item) {
             if ($item->product_id !== null) {
                 $quantities[$item->product_id] = ($quantities[$item->product_id] ?? 0) + $item->quantity;
+            }
+        }
+
+        return $quantities;
+    }
+
+    /** @return array<int, int> variant id => quantity, for items bought as a size/colour */
+    private function variantQuantities(Order $order): array
+    {
+        $quantities = [];
+        foreach ($order->items as $item) {
+            if ($item->variant_id !== null) {
+                $quantities[$item->variant_id] = ($quantities[$item->variant_id] ?? 0) + $item->quantity;
             }
         }
 

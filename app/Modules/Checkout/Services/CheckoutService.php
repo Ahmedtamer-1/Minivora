@@ -7,6 +7,7 @@ use App\Core\AuditLog\ActorType;
 use App\Modules\Accounts\Models\User;
 use App\Modules\Cart\Models\Cart;
 use App\Modules\Cart\Services\CartService;
+use App\Modules\Catalog\Models\ProductVariant;
 use App\Modules\Catalog\Services\InventoryService;
 use App\Modules\Checkout\Data\CheckoutData;
 use App\Modules\Checkout\Gateways\CodGateway;
@@ -123,6 +124,8 @@ class CheckoutService
 
         $items = [];
         $deduct = [];
+        $deductVariants = [];
+        $variants = ProductVariant::query()->whereIn('id', $cartItems->pluck('variant_id')->filter()->unique()->all())->get()->keyBy('id');
 
         foreach ($cartItems as $cartItem) {
             $product = $products[$cartItem->product_id] ?? null;
@@ -134,8 +137,21 @@ class CheckoutService
 
             $qty = max(1, $cartItem->quantity);
             $unitPrice = (int) $product['price'];
+            $variant = $cartItem->variant_id !== null ? $variants->get($cartItem->variant_id) : null;
+            if ($cartItem->variant_id !== null && ($variant === null || $variant->product_id !== $product['id'])) {
+                throw ValidationException::withMessages([
+                    'cart' => 'One or more options in your cart are no longer available.',
+                ]);
+            }
+            if ($variant !== null) {
+                // The chosen size/colour sets the price and has its own stock. FR-CAT-02
+                $unitPrice = (int) ($variant->price ?: $unitPrice);
+                $deductVariants[$variant->id] = ($deductVariants[$variant->id] ?? 0) + $qty;
+            }
             $items[] = [
                 'product_id' => $product['id'],
+                'variant_id' => $variant?->id,
+                'variant' => $variant !== null ? mb_substr($variant->label(), 0, 80) : null,
                 'name' => mb_substr((string) $product['name'], 0, 255),
                 'unit_price' => $unitPrice,
                 'unit_cost' => $product['cost'] ?? null,
@@ -185,6 +201,7 @@ class CheckoutService
             $gateway,
             $items,
             $deduct,
+            $deductVariants,
             $subtotal,
             $effectiveShipping,
             $discountAmount,
@@ -196,6 +213,7 @@ class CheckoutService
             $ip,
         ): array {
             $this->inventory->deduct($deduct);
+            $this->inventory->deductVariants($deductVariants);
 
             $customer = $this->matchCustomer($data, $normalizedPhone);
             $now = Carbon::now();

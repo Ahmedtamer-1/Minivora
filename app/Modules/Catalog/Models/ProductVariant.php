@@ -58,4 +58,27 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    /** Option names in display order (other names follow, alphabetically). */
+    public const OPTION_ORDER = ['Color', 'Size'];
+
+    /** @return array<string, string> options in display order (databases may reorder JSON keys) */
+    public function orderedOptions(): array
+    {
+        $options = array_map('strval', (array) $this->options);
+        uksort($options, function ($a, $b) {
+            $ia = array_search($a, self::OPTION_ORDER, true);
+            $ib = array_search($b, self::OPTION_ORDER, true);
+
+            return [$ia === false ? 99 : $ia, $a] <=> [$ib === false ? 99 : $ib, $b];
+        });
+
+        return $options;
+    }
+
+    /** "Black / M" */
+    public function label(): string
+    {
+        return implode(' / ', array_values($this->orderedOptions()));
+    }
 }

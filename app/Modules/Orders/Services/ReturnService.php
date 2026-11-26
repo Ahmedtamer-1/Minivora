@@ -96,6 +96,13 @@ class ReturnService
                 if ($quantities !== []) {
                     $this->inventory->restock($quantities);
                 }
+                $variantQuantities = [];
+                foreach ($order->items as $item) {
+                    if ($item->variant_id !== null) {
+                        $variantQuantities[$item->variant_id] = ($variantQuantities[$item->variant_id] ?? 0) + $item->quantity;
+                    }
+                }
+                $this->inventory->restockVariants($variantQuantities);
                 $order->stock_deducted = false;
                 $order->save();
             }

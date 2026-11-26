@@ -18,6 +18,7 @@
                             @include('storefront.partials.media', ['src' => $item['cover'] ?? null, 'ratio' => 'portrait'])
                             <div>
                                 <p style="margin:0;font-weight:600">{{ $sf->isAr() && ! empty($item['name_ar']) ? $item['name_ar'] : $item['name'] }}</p>
+                                @if (! empty($item['variant']))<p class="mv-muted" style="margin:2px 0 0;font-size:13px">{{ $item['variant'] }}</p>@endif
                                 <p class="mv-muted" style="margin:4px 0 10px;font-size:14px">{{ $sf->money((int) $item['unit_price']) }}</p>
                                 <div class="mv-qty">
                                     <button type="button" data-line-qty="-1" aria-label="{{ $sf->isAr() ? 'تقليل' : 'Decrease' }}">−</button>

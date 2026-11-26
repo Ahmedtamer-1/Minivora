@@ -7,6 +7,7 @@ use App\Modules\Cart\Models\Cart;
 use App\Modules\Cart\Models\CartEvent;
 use App\Modules\Cart\Models\CartItem;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductVariant;
 use App\Modules\Orders\Models\ShippingZone;
 use App\Modules\Orders\Services\ShippingService;
 use Illuminate\Support\Facades\DB;
@@ -137,25 +138,27 @@ class CartService
             ]);
         }
 
+        ['stock' => $stock, 'price' => $price] = $this->availability($product, $variantId);
+
         $existing = $this->findCartItem($cart, $productId, $variantId);
         $newQuantity = ($existing?->quantity ?? 0) + $quantity;
 
-        if ($product->stock <= 0) {
+        if ($stock <= 0) {
             throw ValidationException::withMessages([
                 'quantity' => 'This product is out of stock.',
             ]);
         }
 
-        if ($newQuantity > $product->stock) {
+        if ($newQuantity > $stock) {
             throw ValidationException::withMessages([
-                'quantity' => "Only {$product->stock} left in stock.",
+                'quantity' => "Only {$stock} left in stock.",
             ]);
         }
 
         if ($existing !== null) {
             $existing->update([
                 'quantity' => $newQuantity,
-                'unit_price_snapshot' => $product->price,
+                'unit_price_snapshot' => $price,
             ]);
 
             $this->recordEvent(
@@ -165,7 +168,7 @@ class CartService
                 eventType: CartEvent::TYPE_QUANTITY_CHANGE,
                 delta: $quantity,
                 quantityAfter: $newQuantity,
-                unitPrice: $product->price,
+                unitPrice: $price,
             );
 
             return $existing->refresh();
@@ -175,7 +178,7 @@ class CartService
             'product_id' => $product->id,
             'variant_id' => $variantId,
             'quantity' => $quantity,
-            'unit_price_snapshot' => $product->price,
+            'unit_price_snapshot' => $price,
         ]);
 
         $this->recordEvent(
@@ -185,7 +188,7 @@ class CartService
             eventType: CartEvent::TYPE_ADD,
             delta: $quantity,
             quantityAfter: $quantity,
-            unitPrice: $product->price,
+            unitPrice: $price,
         );
 
         return $item;
@@ -214,15 +217,17 @@ class CartService
             ]);
         }
 
-        if ($product->stock <= 0) {
+        ['stock' => $stock, 'price' => $price] = $this->availability($product, $item->variant_id);
+
+        if ($stock <= 0) {
             throw ValidationException::withMessages([
                 'quantity' => 'This product is out of stock.',
             ]);
         }
 
-        if ($quantity > $product->stock) {
+        if ($quantity > $stock) {
             throw ValidationException::withMessages([
-                'quantity' => "Only {$product->stock} left in stock.",
+                'quantity' => "Only {$stock} left in stock.",
             ]);
         }
 
@@ -230,7 +235,7 @@ class CartService
 
         $item->update([
             'quantity' => $quantity,
-            'unit_price_snapshot' => $product->price,
+            'unit_price_snapshot' => $price,
         ]);
 
         $this->recordEvent(
@@ -240,7 +245,7 @@ class CartService
             eventType: CartEvent::TYPE_QUANTITY_CHANGE,
             delta: $delta,
             quantityAfter: $quantity,
-            unitPrice: $product->price,
+            unitPrice: $price,
         );
 
         return $item->refresh();
@@ -329,7 +334,14 @@ class CartService
                 continue;
             }
 
-            if ($product->stock <= 0) {
+            // The chosen size/colour's stock and price; a removed option counts as out of stock.
+            try {
+                $avail = $this->availability($product, $item->variant_id);
+            } catch (ValidationException) {
+                $avail = ['stock' => 0, 'price' => (int) $item->unit_price_snapshot];
+            }
+
+            if ($avail['stock'] <= 0) {
                 $oldQuantity = $item->quantity;
 
                 $item->delete();
@@ -341,7 +353,7 @@ class CartService
                     eventType: CartEvent::TYPE_REMOVE,
                     delta: -$oldQuantity,
                     quantityAfter: 0,
-                    unitPrice: $product->price,
+                    unitPrice: $avail['price'],
                 );
 
                 $notices[] = [
@@ -356,9 +368,9 @@ class CartService
                 continue;
             }
 
-            if ($item->quantity > $product->stock) {
+            if ($item->quantity > $avail['stock']) {
                 $oldQuantity = $item->quantity;
-                $newQuantity = $product->stock;
+                $newQuantity = $avail['stock'];
 
                 $item->update(['quantity' => $newQuantity]);
 
@@ -369,7 +381,7 @@ class CartService
                     eventType: CartEvent::TYPE_QUANTITY_CHANGE,
                     delta: $newQuantity - $oldQuantity,
                     quantityAfter: $newQuantity,
-                    unitPrice: $product->price,
+                    unitPrice: $avail['price'],
                 );
 
                 $notices[] = [
@@ -382,9 +394,9 @@ class CartService
                 ];
             }
 
-            if ($item->unit_price_snapshot !== $product->price) {
+            if ($item->unit_price_snapshot !== $avail['price']) {
                 $oldPrice = $item->unit_price_snapshot;
-                $newPrice = $product->price;
+                $newPrice = $avail['price'];
 
                 $item->update(['unit_price_snapshot' => $newPrice]);
 
@@ -449,6 +461,8 @@ class CartService
         $items = [];
         $subtotal = 0;
 
+        $variants = ProductVariant::query()->whereIn('id', $cartItems->pluck('variant_id')->filter()->unique()->all())->get()->keyBy('id');
+
         foreach ($cartItems as $item) {
             /** @var Product|null $product */
             $product = $products->get($item->product_id);
@@ -462,10 +476,11 @@ class CartService
                 'variant_id' => $item->variant_id,
                 'name' => $product?->name ?? "Product #{$item->product_id}",
                 'name_ar' => $product?->name_ar,
+                'variant' => $item->variant_id !== null ? $variants->get($item->variant_id)?->label() : null,
                 'quantity' => $item->quantity,
                 'unit_price' => $unitPrice,
                 'line_total' => $lineTotal,
-                'stock' => $product?->stock ?? 0,
+                'stock' => $item->variant_id !== null ? ($variants->get($item->variant_id)->stock ?? 0) : ($product?->stock ?? 0),
                 'cover' => $product?->imageUrls()[0] ?? null,
             ];
         }
@@ -547,5 +562,31 @@ class CartService
         $shipping = $this->shipping ?? app(ShippingService::class);
 
         return $shipping->feeFor(strtolower($governorate));
+    }
+
+    /**
+     * Stock and price for a product, or for its chosen size/colour. A product with variants must
+     * have one chosen, and it must belong to that product. FR-CAT-02
+     *
+     * @return array{stock: int, price: int}
+     */
+    private function availability(Product $product, ?int $variantId): array
+    {
+        $hasVariants = $product->variants()->exists();
+
+        if ($variantId === null) {
+            if ($hasVariants) {
+                throw ValidationException::withMessages(['variant_id' => 'Please choose an option first.']);
+            }
+
+            return ['stock' => (int) $product->stock, 'price' => (int) $product->price];
+        }
+
+        $variant = ProductVariant::query()->where('product_id', $product->id)->find($variantId);
+        if ($variant === null) {
+            throw ValidationException::withMessages(['variant_id' => 'This option is not available.']);
+        }
+
+        return ['stock' => (int) $variant->stock, 'price' => (int) ($variant->price ?: $product->price)];
     }
 }

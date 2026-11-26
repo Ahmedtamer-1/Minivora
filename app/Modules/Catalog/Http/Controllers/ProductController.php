@@ -5,10 +5,13 @@ namespace App\Modules\Catalog\Http\Controllers;
 use App\Core\Money\Piasters;
 use App\Http\Controllers\Controller;
 use App\Modules\Catalog\Enums\ProductStatus;
+use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductVariant;
 use App\Modules\Catalog\Services\ProductService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -90,7 +93,8 @@ class ProductController extends Controller
 
     public function edit(int $product): Response
     {
-        $product = Product::query()->findOrFail($product);
+        $product = Product::query()->with('variants')->findOrFail($product);
+        $variants = $product->variants->sortBy('id')->values();
 
         return Inertia::render('products/edit', [
             'product' => [
@@ -106,6 +110,15 @@ class ProductController extends Controller
                 'status' => $product->status->value,
                 'has_options' => $product->has_options,
                 'colors' => $product->colors ?? [],
+                // Sizes in first-seen order, and one row per colour × size. FR-CAT-02
+                'sizes' => $variants->map(fn (ProductVariant $v) => $v->options['Size'] ?? null)->filter()->unique()->values(),
+                'variants' => $variants->map(fn (ProductVariant $v) => [
+                    'color' => $v->options['Color'] ?? null,
+                    'size' => $v->options['Size'] ?? null,
+                    'stock' => $v->stock,
+                    'price' => $v->price !== $product->price ? $v->price : null,
+                    'sku' => $v->sku,
+                ])->values(),
                 'images' => array_map(
                     fn ($path, $url) => ['path' => $path, 'url' => $url],
                     $product->images ?? [],
@@ -116,7 +129,9 @@ class ProductController extends Controller
                 'source' => $product->source,
             ],
             'maxPhotos' => ProductService::MAX_IMAGES,
-            'categories' => Product::query()->whereNotNull('category')->distinct()->orderBy('category')->limit(30)->pluck('category'),
+            'categories' => Category::query()->orderBy('sort_order')->orderBy('name')->pluck('name')
+                ->merge(Product::query()->whereNotNull('category')->distinct()->pluck('category'))
+                ->unique()->values()->take(60),
         ]);
     }
 
@@ -138,6 +153,14 @@ class ProductController extends Controller
             'colors' => ['array', 'max:20'],
             'colors.*.name' => ['required', 'string', 'max:40'],
             'colors.*.hex' => ['required', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'sizes' => ['array', 'max:30'],
+            'sizes.*' => ['required', 'string', 'max:30', 'distinct'],
+            'variants' => ['array', 'max:200'],
+            'variants.*.color' => ['nullable', 'string', 'max:40'],
+            'variants.*.size' => ['nullable', 'string', 'max:30'],
+            'variants.*.stock' => ['required', 'integer', 'min:0', 'max:1000000'],
+            'variants.*.price' => ['nullable', 'string', 'max:20'],
+            'variants.*.sku' => ['nullable', 'string', 'max:64'],
             'seo_title' => ['nullable', 'string', 'max:70'],
             'seo_description' => ['nullable', 'string', 'max:320'],
             'keep_images' => ['array'],
@@ -162,7 +185,23 @@ class ProductController extends Controller
             'seo_description' => $data['seo_description'] ?? null,
         ];
 
+        $fields['category_id'] = $this->categoryIdFor($fields['category']);
+
         $this->products->update($product, $fields, $data['keep_images'] ?? [], $request->file('photos', []));
+
+        $variantRows = [];
+        if ($fields['has_options']) {
+            foreach ($data['variants'] ?? [] as $i => $row) {
+                $variantRows[] = [
+                    'color' => $row['color'] ?? null,
+                    'size' => $row['size'] ?? null,
+                    'stock' => (int) $row['stock'],
+                    'price' => $this->piastersOrNull($row['price'] ?? null, "variants.{$i}.price"),
+                    'sku' => $row['sku'] ?? null,
+                ];
+            }
+        }
+        $this->products->syncVariants($product, $variantRows);
 
         $intent = $data['intent'] ?? 'save';
         if ($intent === 'publish') {
@@ -204,5 +243,39 @@ class ProductController extends Controller
     private function piastersOrNull(?string $pounds, string $field): ?int
     {
         return $pounds === null || trim($pounds) === '' ? null : $this->piasters($pounds, $field);
+    }
+
+    /**
+     * The typed category, matched to a category by English or Arabic name (case-insensitive),
+     * created when new, so the product shows on its category page and in the shop filter.
+     */
+    private function categoryIdFor(?string $name): ?int
+    {
+        $name = trim((string) $name);
+        if ($name === '') {
+            return null;
+        }
+
+        $match = Category::query()
+            ->whereRaw('lower(name) = ?', [mb_strtolower($name)])
+            ->orWhereRaw('lower(name_ar) = ?', [mb_strtolower($name)])
+            ->first();
+        if ($match !== null) {
+            return $match->id;
+        }
+
+        $base = Str::slug($name) ?: mb_strtolower((string) preg_replace('/\s+/u', '-', $name));
+        $slug = $base;
+        for ($n = 2; Category::query()->where('slug', $slug)->exists(); $n++) {
+            $slug = $base.'-'.$n;
+        }
+        $arabic = (bool) preg_match('/\p{Arabic}/u', $name);
+
+        return Category::query()->create([
+            'name' => $name,
+            'name_ar' => $arabic ? $name : null,
+            'slug' => $slug,
+            'sort_order' => (int) Category::query()->max('sort_order') + 1,
+        ])->id;
     }
 }

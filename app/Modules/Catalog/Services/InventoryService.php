@@ -177,6 +177,52 @@ class InventoryService
     }
 
     /**
+     * Take stock off the chosen sizes/colours (the product total is reduced by deduct()). FR-CAT-02
+     *
+     * @param  array<int, int>  $quantities  variant id => quantity
+     */
+    public function deductVariants(array $quantities): void
+    {
+        if ($quantities === []) {
+            return;
+        }
+        DB::transaction(function () use ($quantities) {
+            $variants = ProductVariant::query()->whereIn('id', array_keys($quantities))->lockForUpdate()->get()->keyBy('id');
+            foreach ($quantities as $id => $qty) {
+                $variant = $variants->get($id);
+                if ($variant === null) {
+                    continue;
+                }
+                if ($variant->stock < $qty) {
+                    throw ValidationException::withMessages([
+                        'items' => __('products.not_enough_stock', ['name' => $variant->label(), 'count' => $variant->stock]),
+                    ]);
+                }
+                $variant->stock -= $qty;
+                $variant->save();
+            }
+        });
+    }
+
+    /**
+     * Put stock back on sizes/colours after a cancellation or return. FR-CAT-02, FR-ORD-03
+     *
+     * @param  array<int, int>  $quantities  variant id => quantity
+     */
+    public function restockVariants(array $quantities): void
+    {
+        if ($quantities === []) {
+            return;
+        }
+        DB::transaction(function () use ($quantities) {
+            foreach (ProductVariant::query()->whereIn('id', array_keys($quantities))->lockForUpdate()->get() as $variant) {
+                $variant->stock += $quantities[$variant->id] ?? 0;
+                $variant->save();
+            }
+        });
+    }
+
+    /**
      * Keep parent product stock equal to the sum of its variants' stock when variants exist. FR-CAT-02
      */
     public function syncProductStock(Product $product): int

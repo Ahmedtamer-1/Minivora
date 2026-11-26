@@ -5,9 +5,17 @@
     $images = StorefrontCatalog::images($product);
     $name = $sf->field($product, 'name');
     $onSale = $product->compare_at_price !== null && $product->compare_at_price > $product->price;
-    $variants = $product->variants->map(fn ($v) => ['id' => $v->id, 'options' => array_map('strval', (array) $v->options), 'price' => $sf->money($v->price ?: $product->price), 'stock' => $v->stock])->values();
+    $variants = $product->variants->sortBy('id')->map(fn ($v) => ['id' => $v->id, 'options' => $v->orderedOptions(), 'price' => $sf->money($v->price ?: $product->price), 'stock' => $v->stock])->values();
     $optionValues = [];
-    foreach ($product->variants as $v) { foreach ((array) $v->options as $k => $val) { $optionValues[$k][(string) $val] = true; } }
+    foreach ($product->variants->sortBy('id') as $v) { foreach ($v->orderedOptions() as $k => $val) { $optionValues[$k][$val] = true; } }
+    $optionLabels = ['Color' => $sf->isAr() ? 'اللون' : 'Colour', 'Size' => $sf->isAr() ? 'المقاس' : 'Size'];
+    // Options whose every combination is sold out are shown crossed out.
+    $soldOutValues = [];
+    foreach ($optionValues as $k => $vals) {
+        foreach (array_keys($vals) as $val) {
+            $soldOutValues[$k][$val] = $variants->filter(fn ($v) => ($v['options'][$k] ?? null) === $val)->every(fn ($v) => $v['stock'] <= 0);
+        }
+    }
     $swatches = collect($product->colors ?? [])->keyBy('name');
     $from = now()->addDays(2); $to = now()->addDays(5);
     $soldOut = $variants->isEmpty() ? $product->stock <= 0 : $variants->every(fn ($v) => $v['stock'] <= 0);
@@ -38,11 +46,12 @@
                         <div class="mv-options">
                             @foreach ($optionValues as $option => $values)
                                 <fieldset style="border:0;padding:0;margin:0">
-                                    <legend class="mv-label">{{ $option }}</legend>
+                                    <legend class="mv-label">{{ $optionLabels[$option] ?? $option }}</legend>
                                     <div class="mv-swatches">
                                         @foreach (array_keys($values) as $j => $value)
+                                            @php($firstOpen = collect(array_keys($values))->first(fn ($v) => ! ($soldOutValues[$option][$v] ?? false)) ?? array_key_first($values))
                                             <label class="mv-swatch">
-                                                <input type="radio" name="opt_{{ $loop->parent->index }}" value="{{ $value }}" data-option="{{ $option }}" @checked($j === 0)>
+                                                <input type="radio" name="opt_{{ $loop->parent->index }}" value="{{ $value }}" data-option="{{ $option }}" @checked($value === $firstOpen) @disabled($soldOutValues[$option][$value] ?? false)>
                                                 <span>@if ($swatches->has($value))<i style="background:{{ preg_match('/^#[0-9a-f]{3,8}$/i', (string) $swatches[$value]['hex']) ? $swatches[$value]['hex'] : 'transparent' }}"></i>@endif{{ $value }}</span>
                                             </label>
                                         @endforeach
