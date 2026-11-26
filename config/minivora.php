@@ -14,6 +14,10 @@ return [
     // or "path" (<APP_URL>/s/<store>, works on any single host such as a free Hostinger subdomain).
     'storefront_mode' => env('STOREFRONT_MODE', 'subdomain'),
 
+    // Email verification: "auto" (default) requires it only when the server can send mail,
+    // "on" always, "off" never. See App\Core\Mail\EmailVerification.
+    'email_verification' => env('EMAIL_VERIFICATION', 'auto'),
+
     // Port appended to generated store URLs in local development (e.g. 8000). Empty in production.
     'port' => env('APP_PORT_SUFFIX', ''),
 

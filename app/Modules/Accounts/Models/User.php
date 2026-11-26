@@ -2,6 +2,7 @@
 
 namespace App\Modules\Accounts\Models;
 
+use App\Core\Mail\EmailVerification;
 use App\Core\Permissions\Permission;
 use App\Core\Permissions\PermissionMatrix;
 use App\Core\Permissions\Role;
@@ -69,10 +70,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return UserFactory::new();
     }
 
-    /** Verification goes out on the queue, never blocking store creation. FR-ONB-07 */
+    /**
+     * Verification goes out on the queue, never blocking store creation. FR-ONB-07
+     * Nothing is sent while verification is off: the link could not be delivered anyway.
+     */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new VerifyEmailQueued);
+        if (EmailVerification::required()) {
+            $this->notify(new VerifyEmailQueued);
+        }
     }
 
     /** @return BelongsToMany<Store, $this> */
@@ -98,5 +104,14 @@ class User extends Authenticatable implements MustVerifyEmail
         $role = $this->roleIn($store);
 
         return $role !== null && PermissionMatrix::allows($role, $permission);
+    }
+
+    /**
+     * Verified by link, or verification is not required on this server (no outgoing mail set
+     * up yet; see EmailVerification). FR-ONB-01
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified_at !== null || ! EmailVerification::required();
     }
 }

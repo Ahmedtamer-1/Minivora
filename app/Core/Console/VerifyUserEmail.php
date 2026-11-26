@@ -26,7 +26,7 @@ class VerifyUserEmail extends Command
             return self::FAILURE;
         }
 
-        if ($user->hasVerifiedEmail()) {
+        if ($user->email_verified_at !== null) {
             $this->info('Already verified.');
 
             return self::SUCCESS;

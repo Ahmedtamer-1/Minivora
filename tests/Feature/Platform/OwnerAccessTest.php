@@ -35,3 +35,21 @@ test('resending the verification email says so when mail cannot be sent', functi
 
     $this->post(route('verification.send'))->assertRedirect()->assertSessionHas('error');
 });
+
+test('FR-ONB-01 with no outgoing mail set up, accounts count as verified and owners can publish', function () {
+    config(['minivora.email_verification' => 'auto', 'mail.default' => 'smtp', 'mail.mailers.smtp.host' => '']);
+    Notification::fake();
+
+    [$owner, $store] = signedInMember(userState: ['email_verified_at' => null]);
+
+    expect($owner->hasVerifiedEmail())->toBeTrue();
+    $owner->sendEmailVerificationNotification();
+    Notification::assertNothingSent();
+
+    $this->post(route('settings.publish'))->assertSessionHasNoErrors();
+    expect($store->fresh()->published_at)->not->toBeNull();
+
+    // Once mail is configured, unverified accounts are asked to verify again.
+    config(['mail.mailers.smtp.host' => 'smtp.example.com']);
+    expect($owner->fresh()->hasVerifiedEmail())->toBeFalse();
+});
