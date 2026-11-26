@@ -50,7 +50,14 @@ class EmailVerificationController extends Controller
         $user = $request->user();
 
         if (! $user->hasVerifiedEmail()) {
-            $user->sendEmailVerificationNotification();
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $e) {
+                // Usually the server's mail (SMTP) settings are missing; say so instead of pretending.
+                report($e);
+
+                return back()->with('error', __('dashboard.verify.send_failed'));
+            }
         }
 
         return back()->with('success', __('dashboard.verify.sent'));

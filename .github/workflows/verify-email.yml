@@ -1,0 +1,33 @@
+# Manually mark an account's email as verified on the server (Actions → Verify an email → Run
+# workflow). For when the server cannot send email yet, so the verification link never arrives.
+# Uses the same SSH secrets as deploy.yml.
+name: Verify an email
+
+on:
+    workflow_dispatch:
+        inputs:
+            email:
+                description: Email address of the account to verify
+                required: true
+                type: string
+
+jobs:
+    verify:
+        runs-on: ubuntu-latest
+        environment: production
+        steps:
+            - name: Set up SSH
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+                  chmod 600 ~/.ssh/deploy_key
+                  ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+            - name: Verify the email
+              env:
+                  EMAIL: ${{ inputs.email }}
+              run: |
+                  # Passed as a quoted argument so the input can never become a shell command.
+                  case "$EMAIL" in *[!A-Za-z0-9.@_+-]*) echo "Not a valid email address."; exit 1;; esac
+                  ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+                    "cd '${{ secrets.DEPLOY_PATH }}' && php artisan user:verify-email '$EMAIL'"

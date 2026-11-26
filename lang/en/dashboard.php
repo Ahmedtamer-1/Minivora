@@ -24,6 +24,7 @@ return [
     ],
     'verify' => [
         'sent' => 'A new verification link is on its way.',
+        'send_failed' => 'We couldn\'t send the email: this server\'s outgoing mail isn\'t set up yet. Ask your developer to add SMTP settings, or verify from GitHub Actions → Verify an email.',
         'done' => 'Email verified.',
     ],
     'members' => [

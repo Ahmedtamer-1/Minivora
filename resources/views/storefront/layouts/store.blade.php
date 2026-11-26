@@ -58,6 +58,12 @@
             </span>
         </div>
     @endif
+    @if (! $sf->preview && $sf->store->status() === \App\Modules\Platform\Enums\StoreStatus::OpeningSoon)
+        <div class="mv-preview-bar" role="status">
+            <span><b>{{ $sf->isAr() ? 'المتجر لم يُفتح بعد' : 'Not open yet' }}</b> · {{ $sf->isAr() ? 'فريقك فقط يرى هذه الصفحة. العملاء يرون صفحة "قريباً".' : 'Only your team can see this. Shoppers see the "opening soon" page.' }}</span>
+            <span class="mv-preview-bar__actions"><a href="{{ rtrim((string) config('app.url'), '/') }}/dashboard">{{ $sf->isAr() ? 'لوحة التحكم' : 'Dashboard' }}</a></span>
+        </div>
+    @endif
     <a href="#main" class="mv-skip">{{ $sf->isAr() ? 'تخطَّ إلى المحتوى' : 'Skip to content' }}</a>
     <div class="mv-header-group" data-mv-group="header">{!! $headerHtml !!}</div>
     <main id="main" class="mv-main">

@@ -36,7 +36,9 @@ class StorefrontGate
 
         return match ($store->status()) {
             StoreStatus::Suspended => response()->view('storefront.pages.suspended', ['store' => $store], 503),
-            StoreStatus::OpeningSoon => $request->session()->get(self::sessionKey($store->id)) === true
+            // Unlocked by password or the owner's preview link, or a signed-in member of this store
+            // (the store's team always sees the real store; shoppers see "opening soon").
+            StoreStatus::OpeningSoon => $request->session()->get(self::sessionKey($store->id)) === true || $this->isTeamMember($request, $store)
                 ? $next($request)
                 : response()->view('storefront.pages.opening-soon', ['store' => $store]),
             StoreStatus::Live => $this->handleLiveStore($request, $next, $store),
@@ -49,8 +51,7 @@ class StorefrontGate
             return $next($request);
         }
 
-        $user = $request->user();
-        if ($user !== null && $user->roleIn($store) !== null) {
+        if ($this->isTeamMember($request, $store)) {
             return $next($request);
         }
 
@@ -58,6 +59,13 @@ class StorefrontGate
             'store' => $store,
             'message' => $store->maintenanceMessage(),
         ], 503);
+    }
+
+    private function isTeamMember(Request $request, Store $store): bool
+    {
+        $user = $request->user();
+
+        return $user !== null && $user->roleIn($store) !== null;
     }
 
     private function localeFor(Request $request, string $default): string

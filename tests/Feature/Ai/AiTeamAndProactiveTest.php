@@ -165,7 +165,7 @@ test('FR-AI-11 NFR-REL-02 V-14 KeyRotator fails over across providers and throws
 
     [$owner, $store] = signedInMember();
     $this->get(route('dashboard'))->assertOk();
-    $this->get("http://{$store->subdomain}.".config('minivora.domain'))->assertOk();
+    $this->followingRedirects()->get("http://{$store->subdomain}.".config('minivora.domain'))->assertOk();
 });
 
 test('FR-AI-07 FR-AI-10 NFR-AIQ-08 V-15 every act-level function is refused without approval, logged, and role-gated', function () {
