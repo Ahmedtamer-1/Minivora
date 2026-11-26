@@ -33,7 +33,9 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Private files are never web-served; /storage/... belongs to public uploads
+            // (PublicStorageController serves them when the host can't create public/storage).
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

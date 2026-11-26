@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function () {
+            // Uploaded files, when the host could not create public/storage (no sessions needed).
+            Route::get('/storage/{path}', [\App\Http\Controllers\PublicStorageController::class, 'show'])
+                ->where('path', '.*')->name('storage.public');
             // Storefront subdomains first; anything else is the platform host.
             Route::middleware('web')->group(base_path('routes/storefront.php'));
             Route::middleware(['web', SetLocale::class, HandleInertiaRequests::class])
