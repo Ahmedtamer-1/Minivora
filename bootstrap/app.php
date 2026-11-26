@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PublicStorageController;
 use App\Http\Middleware\EnsureStorePermission;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
@@ -16,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function () {
             // Uploaded files, when the host could not create public/storage (no sessions needed).
-            Route::get('/storage/{path}', [\App\Http\Controllers\PublicStorageController::class, 'show'])
+            Route::get('/storage/{path}', [PublicStorageController::class, 'show'])
                 ->where('path', '.*')->name('storage.public');
             // Storefront subdomains first; anything else is the platform host.
             Route::middleware('web')->group(base_path('routes/storefront.php'));
