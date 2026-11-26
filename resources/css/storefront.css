@@ -423,3 +423,11 @@ a { color: inherit; }
 .mv-edit-toolbar__color:hover { background: rgba(255,255,255,.14); }
 .mv-edit-toolbar__color span { width: 16px; height: 16px; border-radius: 999px; border: 2px solid #fff; }
 .mv-edit-toolbar__color input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
+
+/* Shareable draft preview bar */
+.mv-preview-bar { position: sticky; top: 0; z-index: 95; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;
+    padding: 10px var(--gutter); background: #111827; color: #f9fafb; font: 500 13px/1.4 system-ui, 'Noto Sans Arabic', sans-serif; letter-spacing: 0; text-transform: none; }
+.mv-preview-bar__actions { display: flex; gap: 8px; }
+.mv-preview-bar a { padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.12); color: inherit; text-decoration: none; font-weight: 600; }
+.mv-preview-bar a:hover { background: rgba(255,255,255,.22); }
+.mv-preview-bar ~ .mv-header-group .mv-section--header:has(> [data-sticky]) { top: 44px; }

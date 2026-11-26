@@ -134,32 +134,45 @@ class BuilderEditorController extends Controller
         ]);
     }
 
-    /** Render one section from unsaved editor state for the live preview. */
+    /**
+     * Render sections from editor state for the live preview without reloading it: one section
+     * (`section`, returns `html`) or several (`sections`, returns `htmls` keyed by id).
+     */
     public function renderSection(Request $request): JsonResponse
     {
         $data = $request->validate([
             'locale' => ['sometimes', Rule::in(config('minivora.locales'))],
             'template' => ['sometimes', 'string', 'max:20'],
-            'section' => ['required', 'array'],
-            'section.id' => ['required'],
-            'section.type' => ['required', 'string', Rule::in($this->registry->types())],
-            'section.is_visible' => ['sometimes', 'boolean'],
-            'section.settings' => ['sometimes', 'array'],
+            'section' => ['required_without:sections', 'array'],
+            'sections' => ['required_without:section', 'array', 'max:80'],
+            'section.id' => ['required_with:section'],
+            'section.type' => ['required_with:section', 'string', Rule::in($this->registry->types())],
+            'sections.*.id' => ['required'],
+            'sections.*.type' => ['required', 'string', Rule::in($this->registry->types())],
         ]);
 
         $store = $this->current->getOrFail();
         $locale = $data['locale'] ?? $store->default_locale;
         app()->setLocale($locale);
-        $sf = $this->storefront->context($store, $locale, true, $data['template'] ?? 'page');
+        $sf = $this->storefront->context($store, $locale, true, $data['template'] ?? 'page', true);
 
-        $html = $this->storefront->renderer()->renderOne([
-            'id' => $data['section']['id'],
-            'type' => $data['section']['type'],
-            'is_visible' => (bool) ($data['section']['is_visible'] ?? true),
-            'settings' => $data['section']['settings'] ?? [],
+        $render = fn (array $section): string => $this->storefront->renderer()->renderOne([
+            'id' => $section['id'],
+            'type' => $section['type'],
+            'is_visible' => (bool) ($section['is_visible'] ?? true),
+            'settings' => is_array($section['settings'] ?? null) ? $section['settings'] : [],
         ], $sf);
 
-        return response()->json(['html' => $html]);
+        if (isset($data['sections'])) {
+            $htmls = [];
+            foreach ($request->input('sections') as $section) {
+                $htmls[(string) $section['id']] = $render($section);
+            }
+
+            return response()->json(['htmls' => $htmls]);
+        }
+
+        return response()->json(['html' => $render($request->input('section'))]);
     }
 
     /** Full draft page for the editor's preview frame (same host as the dashboard). */
@@ -169,7 +182,15 @@ class BuilderEditorController extends Controller
         $store = $this->current->getOrFail();
         $locale = in_array($request->query('locale'), config('minivora.locales'), true) ? (string) $request->query('locale') : $store->default_locale;
         app()->setLocale($locale);
-        $sf = $this->storefront->context($store, $locale, true, $record->is_home ? 'home' : 'page');
+        // ?share=1 is the Preview button: the draft as shoppers would see it, without editing tools.
+        $share = $request->boolean('share');
+        $sf = $this->storefront->context($store, $locale, true, $record->is_home ? 'home' : 'page', ! $share);
+        if ($share) {
+            $sf->editorUrl = '/builder?page='.$record->id;
+            $sf->previewSwitchUrl = '/builder/preview/'.$record->id.'?share=1&locale='.($locale === 'ar' ? 'en' : 'ar');
+            $sf->previewLinks = Page::query()->where('slug', 'not like', '\_\_%')->get(['id', 'slug', 'is_home'])
+                ->mapWithKeys(fn (Page $p) => [$p->is_home ? '/' : '/pages/'.$p->slug => '/builder/preview/'.$p->id.'?share=1'])->all();
+        }
 
         $response = $this->storefront->make($sf, $record->is_home ? 'storefront.pages.home' : 'storefront.pages.page', [
             'page' => $record,

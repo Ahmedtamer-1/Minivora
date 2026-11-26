@@ -466,6 +466,48 @@ if (isPreview && window.parent !== window) {
             nodes.forEach((n) => n instanceof Element && n.querySelectorAll('[data-animate]').forEach((a) => a.classList.add('is-in')));
             mark();
         }
+        if (type === 'sync') {
+            const { group, ids, htmls } = e.data as { group: string; ids: string[]; htmls: Record<string, string> };
+            const container = group === 'template' ? document.getElementById('main') : document.querySelector<HTMLElement>(`[data-mv-group="${group}"]`);
+            if (!container) return;
+            if (editing && ids.includes(editing.section) && htmls[editing.section] !== undefined) delete htmls[editing.section];
+            // A section's DOM unit: optional anchor before it, the <section>, optional scoped <style> after it.
+            const unitOf = (sec: Element): Element[] => {
+                const unit: Element[] = [];
+                if (sec.previousElementSibling?.classList.contains('mv-anchor')) unit.push(sec.previousElementSibling);
+                unit.push(sec);
+                if (sec.nextElementSibling?.tagName === 'STYLE') unit.push(sec.nextElementSibling);
+                return unit;
+            };
+            const existing = new Map<string, Element[]>();
+            container.querySelectorAll(':scope > [data-mv-section]').forEach((sec) => existing.set((sec as HTMLElement).dataset.mvSection!, unitOf(sec)));
+            const fresh: Element[] = [];
+            const ordered: Element[] = [];
+            ids.forEach((id) => {
+                if (htmls[id] !== undefined) {
+                    existing.get(id)?.forEach((n) => { destroy(n); n.remove(); });
+                    const tpl = document.createElement('template');
+                    tpl.innerHTML = htmls[id];
+                    const nodes = Array.from(tpl.content.children);
+                    fresh.push(...nodes);
+                    ordered.push(...nodes);
+                } else {
+                    ordered.push(...(existing.get(id) ?? []));
+                }
+                existing.delete(id);
+            });
+            existing.forEach((unit) => unit.forEach((n) => { destroy(n); n.remove(); }));
+            if (group === 'template') {
+                // Drop the empty-page placeholder once real sections exist.
+                Array.from(container.children).forEach((c) => { if (!ordered.includes(c)) c.remove(); });
+            }
+            ordered.forEach((n) => container.appendChild(n));
+            fresh.forEach((n) => { init(n); n.querySelectorAll('[data-animate]').forEach((a) => a.classList.add('is-in')); if (n.matches('[data-animate]')) n.classList.add('is-in'); });
+            if (selected && !ids.includes(selected) && !document.querySelector(`[data-mv-section="${CSS.escape(selected)}"]`)) selected = null;
+            mark();
+            const added = fresh.find((n) => n.matches('[data-mv-section]'));
+            if (added && fresh.length < 4) added.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         if (type === 'theme-css' && typeof html === 'string') {
             let style = document.getElementById('mv-theme-css') as HTMLStyleElement | null;
             if (!style) {

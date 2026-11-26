@@ -10,7 +10,7 @@
 @endphp
 <div{!! $sf->ei('image') !!} class="mv-hero mv-h-{{ $s['height'] ?? 'large' }} {{ $image ? '' : 'is-empty' }}" style="{{ $sf->position((string) ($s['content_position'] ?? 'center')) }};{{ ($heading !== '' || $text !== '' || $btn !== '') ? $sf->overlay($s['overlay_opacity'] ?? 30) : '--overlay:0' }}">
     @include('storefront.partials.hero-media', ['image' => $image, 'mobile' => $sf->media($s['mobile_image'] ?? null), 'alt' => $alt, 'eager' => $index < 2])
-    @if ($wholeLink && ! $sf->preview)<a href="{{ $wholeLink }}" style="position:absolute;inset:0;z-index:1" aria-label="{{ $heading ?: $alt }}"></a>@endif
+    @if ($wholeLink && ! $sf->editing)<a href="{{ $wholeLink }}" style="position:absolute;inset:0;z-index:1" aria-label="{{ $heading ?: $alt }}"></a>@endif
     @if ($badge !== '')<span class="mv-badge-xl"{!! $sf->e('badge') !!}>{{ $badge }}</span>@endif
     @if ($heading !== '' || $text !== '' || $btn !== '')
         <div class="mv-hero__content" style="z-index:2">

@@ -20,9 +20,9 @@ final class StorefrontView
         private readonly CartService $carts,
     ) {}
 
-    public function context(Store $store, string $locale, bool $preview = false, string $template = 'page'): StorefrontContext
+    public function context(Store $store, string $locale, bool $preview = false, string $template = 'page', bool $editing = false): StorefrontContext
     {
-        return new StorefrontContext($store, $locale, $this->themes->current(), $preview, $template);
+        return new StorefrontContext($store, $locale, $this->themes->current(), $preview, $template, $editing && $preview);
     }
 
     /** @param  array<string, mixed>  $data */

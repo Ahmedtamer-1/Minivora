@@ -21,7 +21,19 @@ final class StorefrontContext
         public readonly Theme $theme,
         public readonly bool $preview = false,
         public readonly string $template = 'page',
+        // Inside the editor: click-to-select, inline-edit markers, hidden sections shown faded.
+        // A shareable preview has $preview (draft content) but not $editing.
+        public readonly bool $editing = false,
     ) {}
+
+    /** Shareable preview: "Back to editor" link, same preview in the other language, and store paths
+     *  ("/", "/pages/about") that should open their draft preview instead of the live page. */
+    public string $editorUrl = '/builder';
+
+    public string $previewSwitchUrl = '';
+
+    /** @var array<string, string> path => preview URL without locale */
+    public array $previewLinks = [];
 
     public function isAr(): bool
     {
@@ -38,6 +50,13 @@ final class StorefrontContext
     {
         $path = '/'.ltrim($path, '/');
         $first = explode('/', ltrim($path, '/'))[0];
+
+        if ($this->previewLinks !== []) {
+            $bare = in_array($first, config('minivora.locales'), true) ? (substr($path, strlen($first) + 1) ?: '/') : $path;
+            if (isset($this->previewLinks[rtrim($bare, '/') ?: '/'])) {
+                return $this->previewLinks[rtrim($bare, '/') ?: '/'].'&locale='.$this->locale;
+            }
+        }
 
         if (! in_array($first, config('minivora.locales'), true)) {
             $path = '/'.$this->locale.($path === '/' ? '' : $path);
@@ -206,7 +225,7 @@ final class StorefrontContext
      */
     public function e(string $key, ?string $blockId = null): string
     {
-        if (! $this->preview) {
+        if (! $this->editing) {
             return '';
         }
 
@@ -216,7 +235,7 @@ final class StorefrontContext
     /** Editor preview only: marks an element whose image (setting $key) can be swapped by double-clicking. */
     public function ei(string $key, ?string $blockId = null): string
     {
-        if (! $this->preview) {
+        if (! $this->editing) {
             return '';
         }
 
@@ -226,6 +245,6 @@ final class StorefrontContext
     /** Editor preview only: marks a block's wrapper so clicking it selects that block. */
     public function eb(?string $blockId): string
     {
-        return $this->preview && $blockId !== null && $blockId !== '' ? ' data-mv-block="'.e($blockId).'"' : '';
+        return $this->editing && $blockId !== null && $blockId !== '' ? ' data-mv-block="'.e($blockId).'"' : '';
     }
 }

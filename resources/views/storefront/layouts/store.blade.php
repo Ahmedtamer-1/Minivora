@@ -47,8 +47,17 @@
     @endif
     @stack('head')
 </head>
-<body class="mv-body mv-template-{{ $sf->template }} mv-buttons-{{ $ts['button_style'] }}{{ $sf->preview ? ' mv-preview' : '' }}" data-store="{{ $sf->store->subdomain }}" data-locale="{{ $sf->locale }}"
+<body class="mv-body mv-template-{{ $sf->template }} mv-buttons-{{ $ts['button_style'] }}{{ $sf->editing ? ' mv-preview' : '' }}" data-store="{{ $sf->store->subdomain }}" data-locale="{{ $sf->locale }}"
       data-cart-url="{{ $sf->raw('/cart/items') }}" data-cart-page="{{ $sf->url('/cart') }}">
+    @if ($sf->preview && ! $sf->editing)
+        <div class="mv-preview-bar" role="status">
+            <span><b>{{ $sf->isAr() ? 'معاينة' : 'Preview' }}</b> · {{ $sf->isAr() ? 'هذه مسودة لم تُنشر بعد. لا يراها العملاء.' : 'This is your unpublished draft. Shoppers can\'t see it yet.' }}</span>
+            <span class="mv-preview-bar__actions">
+                <a href="{{ $sf->previewSwitchUrl }}">{{ $sf->isAr() ? 'English' : 'العربية' }}</a>
+                <a href="{{ $sf->editorUrl }}">{{ $sf->isAr() ? 'العودة للمحرر' : 'Back to editor' }}</a>
+            </span>
+        </div>
+    @endif
     <a href="#main" class="mv-skip">{{ $sf->isAr() ? 'تخطَّ إلى المحتوى' : 'Skip to content' }}</a>
     <div class="mv-header-group" data-mv-group="header">{!! $headerHtml !!}</div>
     <main id="main" class="mv-main">

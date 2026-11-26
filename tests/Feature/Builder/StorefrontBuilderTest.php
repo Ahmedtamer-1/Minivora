@@ -159,3 +159,34 @@ test('inline-edit markers appear in the editor preview only, never on the live s
     $this->get('/builder/preview/'.$page->id)->assertSee('data-mv-field="headline"', false)->assertSee('data-mv-image="image"', false);
     $this->get(storeUrl($store->subdomain, '/en'))->assertSee('Hello')->assertDontSee('data-mv-field', false)->assertDontSee('data-mv-image', false);
 });
+
+test('the Preview button shows the draft like a shopper would: no editing tools, hidden sections hidden', function () {
+    [, , $page] = liveBuilderStore();
+    app(PageBuilderService::class)->syncSections($page, [
+        ['type' => 'hero', 'settings' => ['headline' => 'Draft headline']],
+        ['type' => 'text_block', 'is_visible' => false, 'settings' => ['heading' => 'Hidden one']],
+    ]);
+
+    $this->get('/builder/preview/'.$page->id.'?share=1&locale=en')
+        ->assertOk()
+        ->assertSee('Draft headline')
+        ->assertSee('mv-preview-bar', false)
+        ->assertSee('/builder?page='.$page->id, false)
+        ->assertDontSee('Hidden one')
+        ->assertDontSee('data-mv-field', false)
+        ->assertDontSee('data-mv-section', false);
+
+    // The editor frame still has its tools and shows hidden sections faded.
+    $this->get('/builder/preview/'.$page->id)->assertSee('Hidden one')->assertSee('data-mv-section', false);
+});
+
+test('several sections render in one request for in-place preview updates', function () {
+    liveBuilderStore();
+
+    $htmls = $this->postJson('/builder/render-section', ['locale' => 'en', 'sections' => [
+        ['id' => 7, 'type' => 'text_block', 'settings' => ['heading' => 'One']],
+        ['id' => 8, 'type' => 'spacer', 'settings' => []],
+    ]])->assertOk()->json('htmls');
+
+    expect(array_map('strval', array_keys($htmls)))->toBe(['7', '8'])->and($htmls['7'])->toContain('One')->toContain('data-mv-section="7"');
+});

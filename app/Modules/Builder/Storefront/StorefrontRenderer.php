@@ -100,7 +100,7 @@ final class StorefrontRenderer
             if (! $this->registry->isValid($section['type'])) {
                 continue;
             }
-            if (! $section['is_visible'] && ! $sf->preview) {
+            if (! $section['is_visible'] && ! $sf->editing) {
                 continue;
             }
             $html .= $this->renderOne($section, $sf, $index);
@@ -180,7 +180,7 @@ final class StorefrontRenderer
         if ($style['animation'] !== 'none') {
             $attrs .= ' data-animate="'.e((string) $style['animation']).'"';
         }
-        if ($sf->preview) {
+        if ($sf->editing) {
             $attrs .= ' data-mv-section="'.e((string) $section['id']).'" data-mv-label="'.e($sf->isAr() ? $def['label_ar'] : $def['label']).'"';
         }
 

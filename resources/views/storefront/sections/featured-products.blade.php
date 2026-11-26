@@ -14,7 +14,7 @@
                 <div class="mv-card">@include('storefront.partials.media', ['ratio' => $s['aspect'] ?? 'portrait'])<div><h3 class="mv-card__title">{{ $sf->isAr() ? 'اسم المنتج' : 'Product name' }}</h3><div class="mv-card__price mv-muted">—</div></div></div>
             @endfor
         </div>
-        @if ($sf->preview)<p class="mv-muted" style="margin-top:12px;font-size:13px">{{ $sf->isAr() ? 'تظهر المنتجات المنشورة هنا.' : 'Your live products will appear here.' }}</p>@endif
+        @if ($sf->editing)<p class="mv-muted" style="margin-top:12px;font-size:13px">{{ $sf->isAr() ? 'تظهر المنتجات المنشورة هنا.' : 'Your live products will appear here.' }}</p>@endif
     @else
         <div class="{{ $carousel ? 'mv-carousel' : 'mv-grid' }}" style="--cols:{{ $sf->num($s['columns'] ?? 4, 1, 6) }};--cols-m:{{ $sf->num($s['mobile_columns'] ?? 2, 1, 2) }}">
             @foreach ($products as $product)

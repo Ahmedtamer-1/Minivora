@@ -5,7 +5,7 @@
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import {
-    ArrowLeft, ChevronDown, ChevronRight, Code2, Copy, Eye, EyeOff, FilePlus2, GripVertical, History, Home, Layers, LayoutTemplate,
+    ArrowLeft, ExternalLink, ChevronDown, ChevronRight, Code2, Copy, Eye, EyeOff, FilePlus2, GripVertical, History, Home, Layers, LayoutTemplate,
     Loader2, Monitor, MoreHorizontal, Paintbrush, Plus, Redo2, RotateCcw, Search, Settings2, Smartphone, Sparkles, Trash2, Undo2, UploadCloud, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
@@ -127,13 +127,49 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
     }, [pageId, load]);
 
     /* ── Saving & preview ───────────────────────────── */
-    const persist = useCallback(async (group: GroupKey, reload: boolean) => {
+    const langRef = useRef(lang);
+    langRef.current = lang;
+    const isHomeRef = useRef(false);
+
+    /**
+     * Patch the preview in place after a structural change: reorder, drop removed sections and
+     * insert freshly rendered ones, so the frame never reloads and keeps its scroll position.
+     */
+    const syncFrame = async (group: GroupKey, sections: { id: number; type: string; is_visible: boolean; settings: Settings }[], renderIds: Set<number>, selectedId?: number) => {
+        if (group === 'template' && sections.length === 0) {
+            setFrameKey((k) => k + 1); // empty page: let the server show its placeholder
+            return;
+        }
+        const toRender = sections.filter((s) => renderIds.has(s.id));
+        let htmls: Record<string, string> = {};
+        if (toRender.length) {
+            const { data } = await axios.post<{ htmls: Record<string, string> }>('/builder/render-section', {
+                locale: langRef.current, template: isHomeRef.current ? 'home' : 'page', sections: toRender,
+            });
+            htmls = data.htmls;
+        }
+        const win = frame.current?.contentWindow;
+        win?.postMessage({ source: 'mv-editor', type: 'sync', group, ids: sections.map((s) => String(s.id)), htmls }, window.location.origin);
+        if (selectedId) win?.postMessage({ source: 'mv-editor', type: 'select', id: String(selectedId) }, window.location.origin);
+    };
+
+    /** sync: patch the preview in place; rerender: client keys whose HTML must be rebuilt. */
+    const persist = useCallback(async (group: GroupKey, opts: { sync?: boolean; rerender?: string[]; all?: boolean } = {}) => {
         const id = groupPageId[group];
         const list = docsRef.current[group];
         if (id === null || list === null) return;
         setSave('saving');
         try {
             const { data } = await axios.put<{ sections: { id: number; type: string; is_visible: boolean; settings: Settings }[]; page: PageSummary }>(`/builder/pages/${id}/sections`, { sections: toPayload(list) });
+            if (opts.sync) {
+                const renderIds = new Set<number>();
+                list.forEach((s, i) => {
+                    const saved = data.sections[i];
+                    if (saved && (opts.all || s.id === null || opts.rerender?.includes(s.key))) renderIds.add(saved.id);
+                });
+                const selIndex = selectionRef.current?.group === group ? list.findIndex((s) => s.key === selectionRef.current?.key) : -1;
+                void syncFrame(group, data.sections, renderIds, selIndex >= 0 ? data.sections[selIndex]?.id : undefined).catch(() => setFrameKey((k) => k + 1));
+            }
             // Attach server ids to new sections, keeping client keys stable.
             setDocs((d) => {
                 const current = d[group];
@@ -143,7 +179,6 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
             if (group === 'template') setPages((ps) => ps.map((p) => (p.id === id ? { ...p, ...data.page } : p)));
             else setPages((ps) => [...ps]);
             setSave('saved');
-            if (reload) setFrameKey((k) => k + 1);
         } catch (e) {
             setSave('error');
             flash(errorText(e), 'err');
@@ -153,7 +188,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
     const scheduleSave = useCallback((group: GroupKey, delay = 700) => {
         setSave('dirty');
         window.clearTimeout(saveTimers.current[group]);
-        saveTimers.current[group] = window.setTimeout(() => void persist(group, false), delay);
+        saveTimers.current[group] = window.setTimeout(() => void persist(group), delay);
     }, [persist]);
 
     const postToFrame = (msg: Record<string, unknown>) => frame.current?.contentWindow?.postMessage({ source: 'mv-editor', ...msg }, window.location.origin);
@@ -192,7 +227,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
         setDocs(next);
         docsRef.current = next;
         lastSnapshot.current = snap;
-        (['header', 'template', 'footer'] as GroupKey[]).forEach((g) => void persist(g, g === 'footer'));
+        (['header', 'template', 'footer'] as GroupKey[]).forEach((g) => void persist(g, { sync: true, all: true }));
     };
     const undo = () => {
         const prev = history.current.past.pop();
@@ -207,8 +242,8 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
         restoreSnapshot(next);
     };
 
-    /** Apply a change to one group's sections. structural = order/add/remove → save now and reload the preview. */
-    const mutate = (group: GroupKey, fn: (list: EditorSection[]) => EditorSection[], opts: { structural?: boolean; changed?: string } = {}) => {
+    /** Apply a change to one group's sections. structural = order/add/remove → save now and patch the preview in place. */
+    const mutate = (group: GroupKey, fn: (list: EditorSection[]) => EditorSection[], opts: { structural?: boolean; changed?: string; rerender?: string[] } = {}) => {
         const list = docsRef.current[group];
         if (!list) return;
         const next = fn(deepClone(list));
@@ -217,7 +252,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
         setDocs(updated);
         if (opts.structural) {
             window.clearTimeout(saveTimers.current[group]);
-            void persist(group, true);
+            void persist(group, { sync: true, rerender: opts.rerender });
         } else {
             scheduleSave(group);
             const changed = next.find((s) => s.key === opts.changed);
@@ -261,7 +296,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
             }
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
                 e.preventDefault();
-                (['header', 'template', 'footer'] as GroupKey[]).forEach((g) => void persist(g, false));
+                (['header', 'template', 'footer'] as GroupKey[]).forEach((g) => void persist(g));
             }
             if (e.key === 'Escape' && !typing) setSelection(null);
         };
@@ -403,7 +438,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
         }, { structural: true });
         setSelection({ group: sel.group, key: copyKey });
     };
-    const toggleSection = (sel: Selection) => mutate(sel.group, (list) => list.map((s) => (s.key === sel.key ? { ...s, is_visible: !s.is_visible } : s)), { structural: true });
+    const toggleSection = (sel: Selection) => mutate(sel.group, (list) => list.map((s) => (s.key === sel.key ? { ...s, is_visible: !s.is_visible } : s)), { structural: true, rerender: [sel.key] });
     const moveSection = (group: GroupKey, from: number, to: number) => mutate(group, (list) => {
         if (to < 0 || to >= list.length) return list;
         const [item] = list.splice(from, 1);
@@ -484,7 +519,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
     /* ── Publish, pages, theme ──────────────────────── */
     const flushAll = async () => {
         (['header', 'template', 'footer'] as GroupKey[]).forEach((g) => window.clearTimeout(saveTimers.current[g]));
-        await Promise.all((['header', 'template', 'footer'] as GroupKey[]).map((g) => persist(g, false)));
+        await Promise.all((['header', 'template', 'footer'] as GroupKey[]).map((g) => persist(g)));
     };
     const publish = async () => {
         if (!page) return;
@@ -518,6 +553,14 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
     const selectedBlockDef = selectedBlock && selectedDef ? blockDefs(selectedDef)[selectedBlock.type] : undefined;
 
     const previewSrc = page ? `/builder/preview/${page.id}?locale=${lang}` : null;
+    isHomeRef.current = Boolean(page?.is_home);
+    /** Opens the draft in a new tab as shoppers would see it (no editing tools), after saving. */
+    const openPreview = async () => {
+        if (!page) return;
+        const tab = window.open('about:blank', '_blank');
+        await flushAll();
+        if (tab) tab.location.href = `/builder/preview/${page.id}?share=1&locale=${lang}`;
+    };
     const liveUrl = page ? storeUrl.replace(/\/(ar|en)$/, `/${lang}`) + (page.is_home ? '' : `/pages/${page.slug}`) : storeUrl;
     const anyChanges = pages.find((p) => p.id === pageId)?.has_changes;
 
@@ -635,7 +678,8 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
                         <IconBtn label={L('Redo (Ctrl+Shift+Z)', 'إعادة')} onClick={redo} size="md"><Redo2 className="h-4 w-4" /></IconBtn>
                         <IconBtn label={L('Theme & custom CSS', 'المظهر و CSS')} onClick={() => { setSelection(null); setPanel('theme'); }} size="md" active={panel === 'theme'}><Paintbrush className="h-4 w-4" /></IconBtn>
                         <IconBtn label={L('Version history', 'سجل الإصدارات')} onClick={() => { setSelection(null); setPanel('versions'); }} size="md" active={panel === 'versions'}><History className="h-4 w-4" /></IconBtn>
-                        <a href={liveUrl} target="_blank" rel="noopener" className="hidden h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold hover:bg-secondary sm:inline-flex"><Eye className="h-4 w-4" />{L('View live', 'عرض المتجر')}</a>
+                        <a href={liveUrl} target="_blank" rel="noopener" title={L('The published store shoppers see now', 'المتجر المنشور كما يراه العملاء الآن')} className="hidden h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-ink-muted hover:bg-secondary hover:text-ink xl:inline-flex"><ExternalLink className="h-4 w-4" />{L('Live store', 'المتجر المنشور')}</a>
+                        <button type="button" onClick={openPreview} disabled={!page} title={L('Open your unpublished draft in a new tab', 'افتح المسودة غير المنشورة في تبويب جديد')} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm font-semibold hover:bg-secondary disabled:opacity-50"><Eye className="h-4 w-4" />{L('Preview', 'معاينة')}</button>
                         <button type="button" onClick={publish} disabled={publishing || !page} className="inline-flex h-9 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-fg hover:bg-primary-hover disabled:opacity-60">
                             {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
                             {L('Publish', 'نشر')}{anyChanges ? <span className="h-1.5 w-1.5 rounded-full bg-warning" aria-label={L('unpublished changes', 'تغييرات غير منشورة')} /> : null}
