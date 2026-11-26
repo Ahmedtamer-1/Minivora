@@ -5,7 +5,7 @@
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import {
-    ArrowLeft, ExternalLink, ChevronDown, ChevronRight, Code2, Copy, Eye, EyeOff, FilePlus2, GripVertical, History, Home, Layers, LayoutTemplate,
+    ArrowLeft, ExternalLink, ChevronDown, Image as ImageIcon, ChevronRight, Code2, Copy, Eye, EyeOff, FilePlus2, GripVertical, History, Home, Layers, LayoutTemplate,
     Loader2, Monitor, MoreHorizontal, Paintbrush, Plus, Redo2, RotateCcw, Search, Settings2, Smartphone, Sparkles, Trash2, Undo2, UploadCloud, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
@@ -677,6 +677,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
                         <IconBtn label={L('Undo (Ctrl+Z)', 'تراجع')} onClick={undo} size="md"><Undo2 className="h-4 w-4" /></IconBtn>
                         <IconBtn label={L('Redo (Ctrl+Shift+Z)', 'إعادة')} onClick={redo} size="md"><Redo2 className="h-4 w-4" /></IconBtn>
                         <IconBtn label={L('Theme & custom CSS', 'المظهر و CSS')} onClick={() => { setSelection(null); setPanel('theme'); }} size="md" active={panel === 'theme'}><Paintbrush className="h-4 w-4" /></IconBtn>
+                        <a href="/builder/media" title={L('Media library', 'مكتبة الوسائط')} aria-label={L('Media library', 'مكتبة الوسائط')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-secondary hover:text-ink"><ImageIcon className="h-4 w-4" /></a>
                         <IconBtn label={L('Version history', 'سجل الإصدارات')} onClick={() => { setSelection(null); setPanel('versions'); }} size="md" active={panel === 'versions'}><History className="h-4 w-4" /></IconBtn>
                         <a href={liveUrl} target="_blank" rel="noopener" title={L('The published store shoppers see now', 'المتجر المنشور كما يراه العملاء الآن')} className="hidden h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-ink-muted hover:bg-secondary hover:text-ink xl:inline-flex"><ExternalLink className="h-4 w-4" />{L('Live store', 'المتجر المنشور')}</a>
                         <button type="button" onClick={openPreview} disabled={!page} title={L('Open your unpublished draft in a new tab', 'افتح المسودة غير المنشورة في تبويب جديد')} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm font-semibold hover:bg-secondary disabled:opacity-50"><Eye className="h-4 w-4" />{L('Preview', 'معاينة')}</button>
