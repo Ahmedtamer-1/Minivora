@@ -28,3 +28,6 @@ Thumbs.db
 reports/_server.log
 test-results/
 playwright-report/
+tests/load/results/*.log
+tests/load/results/*.html
+tests/load/results/*-summary.json
