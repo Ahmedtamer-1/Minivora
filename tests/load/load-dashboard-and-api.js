@@ -34,12 +34,17 @@ export const options = {
     },
 };
 
-// Track per-VU authentication state so each VU logs in once instead of hitting login throttle:20,1
+// Each seeded owner logs in once, in setup(), and the virtual users reuse that session.
+// All k6 traffic comes from one IP, and Laravel's throttle:N,1 counts every throttled route
+// against the same per-IP key for guests. Logging in per VU while other VUs call the throttled
+// subdomain API pushed POST /login past its 20/min limit and produced 429s that real owners,
+// each on their own IP, would never see. Login time is not part of NFR-PER-04 either.
 let isLoggedIn = false;
 
-function loginOwner() {
+function loginOwner(email) {
     const app = appBaseUrl();
-    const email = CONFIG.ownerEmails[(__VU - 1) % CONFIG.ownerEmails.length];
+    const jar = http.cookieJar();
+    jar.clear(app);
 
     const loginPage = http.get(`${app}/login`, { tags: { endpoint: 'login_form' } });
     const csrf = extractCsrfToken(loginPage);
@@ -60,22 +65,38 @@ function loginOwner() {
     const ok = check(loginRes, {
         'owner login succeeded': (r) => r.status === 200 && !r.url.endsWith('/login'),
     });
+    if (!ok) return null;
 
-    if (ok) {
-        isLoggedIn = true;
-    }
-    return ok;
+    const cookies = {};
+    const all = jar.cookiesForURL(app);
+    for (const name of Object.keys(all)) cookies[name] = all[name][0];
+    return cookies;
 }
 
-export default function () {
+export function setup() {
+    const sessions = {};
+    for (const email of CONFIG.ownerEmails) {
+        const cookies = loginOwner(email);
+        if (cookies) sessions[email] = cookies;
+    }
+    return { sessions };
+}
+
+export default function (data) {
     const app = appBaseUrl();
 
     if (!isLoggedIn) {
-        if (!loginOwner()) {
+        const email = CONFIG.ownerEmails[(__VU - 1) % CONFIG.ownerEmails.length];
+        const cookies = data.sessions[email];
+        const ok = check(cookies, { 'owner session available': (c) => !!c });
+        if (!ok) {
             dashboardErrors.add(1);
             sleep(2);
             return;
         }
+        const jar = http.cookieJar();
+        for (const name of Object.keys(cookies)) jar.set(app, name, cookies[name]);
+        isLoggedIn = true;
     }
 
     const pages = [
@@ -93,9 +114,10 @@ export default function () {
                 tags: { endpoint: page.name },
             });
             dashboardDuration.add(res.timings.duration);
-            dashboardErrors.add(res.status >= 400);
+            const signedOut = res.url.endsWith('/login');
+            dashboardErrors.add(res.status >= 400 || signedOut);
             check(res, {
-                [`${page.name} returns 200`]: (r) => r.status === 200,
+                [`${page.name} returns 200`]: (r) => r.status === 200 && !signedOut,
             });
             sleep(Math.random() * 1.0 + 0.5);
         }
