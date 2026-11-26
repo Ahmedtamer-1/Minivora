@@ -256,7 +256,7 @@ export function init(root: ParentNode = document) {
         const items = Array.from(el.querySelectorAll<HTMLElement>(':scope [data-rotator-item]'));
         rotator(el, items, {
             interval: Number(el.dataset.interval || 5000),
-            autoplay: el.dataset.autoplay !== 'false',
+            autoplay: el.dataset.autoplay !== 'false' && !isPreview, // never move content away from someone editing it
             dots: Array.from(el.querySelectorAll<HTMLElement>('[data-rotator-dot]')),
             prev: el.querySelector<HTMLElement>('[data-rotator-prev]'),
             next: el.querySelector<HTMLElement>('[data-rotator-next]'),
@@ -284,23 +284,160 @@ function destroy(el: Element) {
 init();
 
 /* ── Editor preview bridge ────────────────────────── */
+// Click selects; double-click edits text in place, swaps an image or opens the background colour;
+// a floating toolbar on the selected section moves, duplicates, hides or deletes it.
 if (isPreview && window.parent !== window) {
     const post = (msg: Record<string, unknown>) => window.parent.postMessage({ source: 'mv-preview', ...msg }, window.location.origin);
     let selected: string | null = null;
+    let editing: { el: HTMLElement; original: string; section: string; block?: string; key: string } | null = null;
 
-    const mark = () => document.querySelectorAll('[data-mv-section]').forEach((s) => s.classList.toggle('mv-selected', (s as HTMLElement).dataset.mvSection === selected));
+    const sectionEl = (id: string | null) => (id ? document.querySelector<HTMLElement>(`[data-mv-section="${CSS.escape(id)}"]`) : null);
+    const blockOf = (el: HTMLElement | null) => el?.closest<HTMLElement>('[data-mv-block]')?.dataset.mvBlock;
+
+    /* Toolbar */
+    const icon = (d: string) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+    const toolbar = document.createElement('div');
+    toolbar.className = 'mv-edit-toolbar';
+    toolbar.setAttribute('role', 'toolbar');
+    const tools: [string, string, string][] = [
+        ['up', isAr ? 'لأعلى' : 'Move up', icon('<path d="m18 15-6-6-6 6"/>')],
+        ['down', isAr ? 'لأسفل' : 'Move down', icon('<path d="m6 9 6 6 6-6"/>')],
+        ['duplicate', isAr ? 'تكرار' : 'Duplicate', icon('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>')],
+        ['hide', isAr ? 'إخفاء' : 'Hide', icon('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><path d="m3 3 18 18"/>')],
+        ['delete', isAr ? 'حذف' : 'Delete', icon('<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>')],
+    ];
+    toolbar.innerHTML = `<label class="mv-edit-toolbar__color" title="${isAr ? 'لون الخلفية' : 'Background colour'}"><span></span><input type="color" aria-label="${isAr ? 'لون الخلفية' : 'Background colour'}"></label>`
+        + tools.map(([a, l, i]) => `<button type="button" data-tool="${a}" title="${l}" aria-label="${l}">${i}</button>`).join('');
+    const colorInput = toolbar.querySelector('input') as HTMLInputElement;
+    toolbar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-tool]');
+        if (btn && selected) post({ type: 'action', action: btn.dataset.tool, id: selected });
+    });
+    toolbar.addEventListener('dblclick', (e) => e.stopPropagation());
+    colorInput.addEventListener('input', () => {
+        if (!selected) return;
+        const sec = sectionEl(selected);
+        sec?.style.setProperty('--section-bg', colorInput.value);
+        (toolbar.querySelector('.mv-edit-toolbar__color span') as HTMLElement).style.background = colorInput.value;
+        post({ type: 'style', id: selected, key: 'background', value: colorInput.value });
+    });
+
+    const mark = () => {
+        document.querySelectorAll('[data-mv-section]').forEach((s) => s.classList.toggle('mv-selected', (s as HTMLElement).dataset.mvSection === selected));
+        const sec = sectionEl(selected);
+        if (sec) {
+            sec.appendChild(toolbar);
+            const bg = getComputedStyle(sec).backgroundColor;
+            const rgb = bg.match(/\d+/g);
+            const hex = rgb && rgb.length >= 3 && !(rgb.length === 4 && rgb[3] === '0')
+                ? '#' + rgb.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, '0')).join('')
+                : '#ffffff';
+            colorInput.value = hex;
+            (toolbar.querySelector('.mv-edit-toolbar__color span') as HTMLElement).style.background = hex;
+        } else {
+            toolbar.remove();
+        }
+    };
+
+    /* Inline text editing */
+    // The typed characters, not innerText: innerText applies CSS text-transform (uppercase headings).
+    const readText = (el: HTMLElement) => {
+        const clone = el.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+        clone.querySelectorAll('div, p').forEach((block, i) => i > 0 || block !== clone.firstElementChild ? block.prepend('\n') : undefined);
+        return (clone.textContent ?? '').replace(/\u00a0/g, ' ').replace(/\n$/, '');
+    };
+    const finishEdit = (cancel = false) => {
+        if (!editing) return;
+        const { el, original, section, block, key } = editing;
+        editing = null;
+        if (cancel) {
+            el.textContent = original;
+            post({ type: 'edit', id: section, blockId: block, key, value: original });
+        }
+        el.removeAttribute('contenteditable');
+        el.classList.remove('mv-editing');
+        post({ type: 'commit', id: section });
+    };
+
+    const startEdit = (el: HTMLElement) => {
+        const section = el.closest<HTMLElement>('[data-mv-section]')?.dataset.mvSection;
+        if (!section) return;
+        finishEdit();
+        editing = { el, original: readText(el), section, block: el.dataset.mvBlock, key: el.dataset.mvField! };
+        try {
+            el.contentEditable = 'plaintext-only';
+        } catch {
+            el.contentEditable = 'true';
+        }
+        if (el.contentEditable !== 'plaintext-only') el.contentEditable = 'true';
+        el.classList.add('mv-editing');
+        el.focus();
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+    };
+
+    document.addEventListener('input', (e) => {
+        if (!editing || e.target !== editing.el) return;
+        post({ type: 'edit', id: editing.section, blockId: editing.block, key: editing.key, value: readText(editing.el) });
+    });
+    document.addEventListener('keydown', (e) => {
+        if (!editing) return;
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            finishEdit(true);
+        } else if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            finishEdit();
+        }
+    });
+    document.addEventListener('focusout', (e) => {
+        if (editing && e.target === editing.el) finishEdit();
+    });
+    // Paste as plain text.
+    document.addEventListener('paste', (e) => {
+        if (!editing) return;
+        e.preventDefault();
+        document.execCommand('insertText', false, e.clipboardData?.getData('text/plain') ?? '');
+    });
 
     document.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
+        if (editing && editing.el.contains(target)) return;
         const link = target.closest('a');
         if (link && !link.hasAttribute('data-allow-preview')) e.preventDefault();
         const section = target.closest<HTMLElement>('[data-mv-section]');
         if (section) {
             selected = section.dataset.mvSection ?? null;
             mark();
-            post({ type: 'select', id: selected });
+            const field = target.closest<HTMLElement>('[data-mv-field]');
+            post({ type: 'select', id: selected, blockId: blockOf(target), field: field?.dataset.mvField });
         }
     }, true);
+
+    document.addEventListener('dblclick', (e) => {
+        const target = e.target as HTMLElement;
+        const section = target.closest<HTMLElement>('[data-mv-section]');
+        if (!section) return;
+        e.preventDefault();
+        const field = target.closest<HTMLElement>('[data-mv-field]');
+        if (field && section.contains(field)) {
+            startEdit(field);
+            return;
+        }
+        const image = target.closest<HTMLElement>('[data-mv-image]');
+        if (image && section.contains(image)) {
+            post({ type: 'pick-image', id: section.dataset.mvSection, blockId: image.dataset.mvBlock, key: image.dataset.mvImage });
+            return;
+        }
+        selected = section.dataset.mvSection ?? null;
+        mark();
+        colorInput.click();
+    });
     document.addEventListener('submit', (e) => e.preventDefault(), true);
 
     window.addEventListener('message', (e) => {
@@ -309,11 +446,11 @@ if (isPreview && window.parent !== window) {
         if (type === 'select') {
             selected = id ?? null;
             mark();
-            const el = document.querySelector(`[data-mv-section="${CSS.escape(String(id))}"]`);
-            el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            sectionEl(selected)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         if (type === 'replace' && id && typeof html === 'string') {
-            const old = document.querySelector(`[data-mv-section="${CSS.escape(id)}"]`);
+            if (editing && editing.section === id) return; // never pull text out from under the cursor
+            const old = sectionEl(id);
             if (!old) return;
             // A section is followed by its optional scoped <style>; replace both.
             const next = old.nextElementSibling;

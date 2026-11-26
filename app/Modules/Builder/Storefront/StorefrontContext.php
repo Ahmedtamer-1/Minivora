@@ -199,4 +199,33 @@ final class StorefrontContext
     {
         return max($min, min($max, (int) $value));
     }
+
+    /**
+     * Editor preview only: marks an element as the inline-editable text of setting $key (on the
+     * section, or on block $blockId). Prints nothing for shoppers.
+     */
+    public function e(string $key, ?string $blockId = null): string
+    {
+        if (! $this->preview) {
+            return '';
+        }
+
+        return ' data-mv-field="'.e($key).'"'.($blockId !== null && $blockId !== '' ? ' data-mv-block="'.e($blockId).'"' : '');
+    }
+
+    /** Editor preview only: marks an element whose image (setting $key) can be swapped by double-clicking. */
+    public function ei(string $key, ?string $blockId = null): string
+    {
+        if (! $this->preview) {
+            return '';
+        }
+
+        return ' data-mv-image="'.e($key).'"'.($blockId !== null && $blockId !== '' ? ' data-mv-block="'.e($blockId).'"' : '');
+    }
+
+    /** Editor preview only: marks a block's wrapper so clicking it selects that block. */
+    public function eb(?string $blockId): string
+    {
+        return $this->preview && $blockId !== null && $blockId !== '' ? ' data-mv-block="'.e($blockId).'"' : '';
+    }
 }

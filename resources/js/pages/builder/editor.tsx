@@ -9,7 +9,7 @@ import {
     Loader2, Monitor, MoreHorizontal, Paintbrush, Plus, Redo2, RotateCcw, Search, Settings2, Smartphone, Sparkles, Trash2, Undo2, UploadCloud, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
-import { FieldInput, FieldShell, inputCls, isFieldVisible } from '@/components/builder/field-input';
+import { FieldInput, FieldShell, inputCls, isFieldVisible, MediaPicker } from '@/components/builder/field-input';
 import {
     blockDefaults, blockDefs, blocksOf, deepClone, uid,
     type Block, type CatalogRefs, type EditorSection, type FieldDef, type PageSummary, type SectionDef, type Settings, type Version,
@@ -227,29 +227,16 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
         renderTimers.current.__history = window.setTimeout(remember, 400);
     };
 
-    // Messages from the preview frame.
+    // Messages from the preview frame. The listener is bound once and always calls the latest handler.
+    const onPreviewMessage = useRef<(data: Record<string, unknown>) => void>(() => undefined);
     useEffect(() => {
         const onMessage = (e: MessageEvent) => {
             if (e.origin !== window.location.origin || e.data?.source !== 'mv-preview') return;
-            if (e.data.type === 'select') {
-                const id = String(e.data.id);
-                for (const g of ['header', 'template', 'footer'] as GroupKey[]) {
-                    const found = docsRef.current[g]?.find((s) => String(s.id) === id);
-                    if (found) {
-                        setSelection({ group: g, key: found.key });
-                        setTab('content');
-                        return;
-                    }
-                }
-            }
-            if (e.data.type === 'ready' && selectionRef.current) {
-                const s = findSection(selectionRef.current);
-                if (s?.id) postToFrame({ type: 'select', id: String(s.id) });
-            }
+            onPreviewMessage.current(e.data as Record<string, unknown>);
         };
         window.addEventListener('message', onMessage);
         return () => window.removeEventListener('message', onMessage);
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
     const selectionRef = useRef(selection);
     selectionRef.current = selection;
@@ -306,24 +293,99 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
         setTab('content');
     };
 
-    const updateSection = (sel: Selection, fn: (s: EditorSection) => void) => {
+    /** preview=false when the preview already shows the change (typed inline), so it is not re-rendered under the cursor. */
+    const updateSection = (sel: Selection, fn: (s: EditorSection) => void, preview = true) => {
         mutate(sel.group, (list) => {
             const s = list.find((x) => x.key === sel.key);
             if (s) fn(s);
             return list;
-        }, { changed: sel.key });
+        }, preview ? { changed: sel.key } : {});
     };
 
-    const setSetting = (sel: Selection, key: string, value: unknown) => updateSection(sel, (s) => { s.settings[key] = value; });
-    const setStyle = (sel: Selection, key: string, value: unknown) => updateSection(sel, (s) => {
+    const setSetting = (sel: Selection, key: string, value: unknown, preview = true) => updateSection(sel, (s) => { s.settings[key] = value; }, preview);
+    const setStyle = (sel: Selection, key: string, value: unknown, preview = true) => updateSection(sel, (s) => {
         const style = (s.settings.style && typeof s.settings.style === 'object' ? s.settings.style : {}) as Settings;
         style[key] = value;
         s.settings.style = style;
-    });
-    const setBlock = (sel: Selection, blockId: string, key: string, value: unknown) => updateSection(sel, (s) => {
+    }, preview);
+    const setBlock = (sel: Selection, blockId: string, key: string, value: unknown, preview = true) => updateSection(sel, (s) => {
         const b = blocksOf(s.settings).find((x) => x.id === blockId);
         if (b) b.settings[key] = value;
-    });
+    }, preview);
+
+    /** Field id from the preview (e.g. "headline") → stored key ("headline_ar" when editing Arabic). */
+    const storedKey = (s: EditorSection, blockId: string | undefined, field: string) => {
+        const def = sectionTypes[s.type];
+        const fields = blockId ? blockDefs(def)[blocksOf(s.settings).find((b) => b.id === blockId)?.type ?? '']?.fields ?? [] : def?.fields ?? [];
+        return fields.find((f) => f.id === field)?.tr && lang === 'ar' ? `${field}_ar` : field;
+    };
+    const locate = (id: unknown): Selection | null => {
+        for (const g of ['header', 'template', 'footer'] as GroupKey[]) {
+            const found = docsRef.current[g]?.find((s) => String(s.id) === String(id));
+            if (found) return { group: g, key: found.key };
+        }
+        return null;
+    };
+    /** Bring a field into view in the right panel and focus it. */
+    const focusField = (sel: Selection, field?: string) => {
+        if (!field) return;
+        const s = findSection(sel);
+        if (!s) return;
+        const prefix = sel.blockId ? `b-${sel.blockId}` : `s-${s.key}`;
+        window.setTimeout(() => {
+            const input = document.getElementById(`${prefix}-${storedKey(s, sel.blockId, field)}`);
+            if (!input) return;
+            input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            input.classList.add('ring-2', 'ring-line-focus');
+            window.setTimeout(() => input.classList.remove('ring-2', 'ring-line-focus'), 1400);
+        }, 60);
+    };
+    const [imagePick, setImagePick] = useState<{ sel: Selection; key: string } | null>(null);
+
+    onPreviewMessage.current = (data) => {
+        const sel = locate(data.id);
+        const blockId = typeof data.blockId === 'string' && data.blockId ? data.blockId : undefined;
+        switch (data.type) {
+            case 'select': {
+                if (!sel) return;
+                const next = { ...sel, blockId };
+                setSelection(next);
+                setPanel(null);
+                setTab('content');
+                focusField(next, typeof data.field === 'string' ? data.field : undefined);
+                return;
+            }
+            case 'edit': {
+                const s = sel && findSection(sel);
+                if (!sel || !s || typeof data.key !== 'string') return;
+                const key = storedKey(s, blockId, data.key);
+                if (blockId) setBlock(sel, blockId, key, String(data.value ?? ''), false);
+                else setSetting(sel, key, String(data.value ?? ''), false);
+                return;
+            }
+            case 'style':
+                if (sel && typeof data.key === 'string') setStyle(sel, data.key, data.value, false);
+                return;
+            case 'pick-image':
+                if (sel && typeof data.key === 'string') setImagePick({ sel: { ...sel, blockId }, key: data.key });
+                return;
+            case 'action':
+                if (!sel) return;
+                if (data.action === 'up' || data.action === 'down') {
+                    const list = docsRef.current[sel.group] ?? [];
+                    const i = list.findIndex((x) => x.key === sel.key);
+                    moveSection(sel.group, i, data.action === 'up' ? i - 1 : i + 1);
+                } else if (data.action === 'duplicate') duplicateSection(sel);
+                else if (data.action === 'hide') toggleSection(sel);
+                else if (data.action === 'delete' && window.confirm(L('Remove this section?', 'حذف هذا القسم؟'))) removeSection(sel);
+                return;
+            case 'ready':
+                if (selectionRef.current) {
+                    const s = findSection(selectionRef.current);
+                    if (s?.id) postToFrame({ type: 'select', id: String(s.id) });
+                }
+        }
+    };
 
     const removeSection = (sel: Selection) => {
         mutate(sel.group, (list) => list.filter((s) => s.key !== sel.key), { structural: true });
@@ -592,7 +654,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
                         {renderGroup('header', L('Header', 'رأس الصفحة'))}
                         {renderGroup('template', L('Page', 'الصفحة'))}
                         {renderGroup('footer', L('Footer', 'التذييل'))}
-                        <p className="px-4 py-4 text-[0.6875rem] leading-relaxed text-ink-muted">{L('Tip: click anything in the preview to edit it. Drag ⋮⋮ to reorder. Ctrl+Z undoes.', 'نصيحة: اضغط على أي جزء في المعاينة لتعديله. اسحب ⋮⋮ لإعادة الترتيب. Ctrl+Z للتراجع.')}</p>
+                        <p className="px-4 py-4 text-[0.6875rem] leading-relaxed text-ink-muted">{L('In the preview: double-click text to type, double-click a picture to swap it, double-click empty space for the background colour. Drag ⋮⋮ to reorder. Ctrl+Z undoes.', 'في المعاينة: انقر مرتين على النص لتكتب، وعلى الصورة لتغييرها، وعلى المساحة الفارغة للون الخلفية. اسحب ⋮⋮ لإعادة الترتيب. Ctrl+Z للتراجع.')}</p>
                     </aside>
 
                     {/* Centre: preview */}
@@ -730,6 +792,18 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
                 </div>
             </div>
 
+            {imagePick ? (
+                <MediaPicker kind="image" isAr={isAr} onClose={() => setImagePick(null)} onPick={(url) => {
+                    const s = findSection(imagePick.sel);
+                    if (s) {
+                        const key = storedKey(s, imagePick.sel.blockId, imagePick.key);
+                        if (imagePick.sel.blockId) setBlock(imagePick.sel, imagePick.sel.blockId, key, url);
+                        else setSetting(imagePick.sel, key, url);
+                        setSelection(imagePick.sel);
+                    }
+                    setImagePick(null);
+                }} />
+            ) : null}
             {picker ? <SectionPicker group={picker} sectionTypes={sectionTypes} isAr={isAr} onClose={() => setPicker(null)} onPick={(type) => addSection(picker, type)} /> : null}
             {blockPicker ? (() => {
                 const s = findSection(blockPicker);

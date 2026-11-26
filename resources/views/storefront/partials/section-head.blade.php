@@ -4,8 +4,8 @@
 @if ($title !== '' || $sub !== '' || ! empty($action) || ! empty($arrows))
     <div class="mv-section-head">
         <div>
-            @if ($title !== '')<h2 class="mv-h2">{{ $title }}</h2>@endif
-            @if ($sub !== '')<p>{{ $sub }}</p>@endif
+            @if ($title !== '')<h2 class="mv-h2"{!! $sf->e('heading') !!}>{{ $title }}</h2>@endif
+            @if ($sub !== '')<p{!! $sf->e('subheading') !!}>{{ $sub }}</p>@endif
         </div>
         @if (! empty($action) || ! empty($arrows))
             <div class="mv-carousel-nav">

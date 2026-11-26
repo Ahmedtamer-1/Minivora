@@ -9,7 +9,7 @@
         @forelse ($blocks as $b)
             @php($bs = $b['settings'])
             <a class="mv-post" href="{{ $sf->link($bs['link_url'] ?? ($s['profile_url'] ?? '#')) }}" @if (str_starts_with((string) ($bs['link_url'] ?? ''), 'http')) target="_blank" rel="noopener" @endif>
-                @include('storefront.partials.media', ['src' => $sf->media($bs['image'] ?? null), 'alt' => $sf->t($bs, 'caption'), 'ratio' => $s['aspect'] ?? 'square'])
+                @include('storefront.partials.media', ['src' => $sf->media($bs['image'] ?? null), 'alt' => $sf->t($bs, 'caption'), 'ratio' => $s['aspect'] ?? 'square', 'edit' => $sf->ei('image', $b['id'])])
                 <span class="mv-post__cap">@if (! empty($bs['handle']))<b>{{ $bs['handle'] }}</b><br>@endif{{ $sf->t($bs, 'caption') }}</span>
             </a>
         @empty

@@ -150,3 +150,12 @@ test('sanitizers strip script vectors but keep safe markup', function () {
     expect(HtmlSanitizer::rich("Line one\nLine <b>two</b><script>x</script>"))->toContain('Line one<br>')->toContain('<b>two</b>')->not->toContain('script');
     expect(CssSanitizer::scope('& h2{color:red}</style>', '#s'))->toBe('#s h2{color:red}/style>');
 });
+
+test('inline-edit markers appear in the editor preview only, never on the live store', function () {
+    [$user, $store, $page] = liveBuilderStore();
+    app(PageBuilderService::class)->syncSections($page, [['type' => 'hero', 'settings' => ['headline' => 'Hello', 'image' => '/x.jpg']]]);
+    app(PageBuilderService::class)->publishPage($page, $user);
+
+    $this->get('/builder/preview/'.$page->id)->assertSee('data-mv-field="headline"', false)->assertSee('data-mv-image="image"', false);
+    $this->get(storeUrl($store->subdomain, '/en'))->assertSee('Hello')->assertDontSee('data-mv-field', false)->assertDontSee('data-mv-image', false);
+});

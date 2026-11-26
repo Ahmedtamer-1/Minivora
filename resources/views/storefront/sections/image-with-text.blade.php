@@ -6,13 +6,13 @@
 @endphp
 <div class="mv-container">
     <div class="mv-split {{ $reverse ? 'is-reverse' : '' }}" style="--split:{{ $w }};--va:{{ ['start' => 'start', 'end' => 'end'][$s['vertical'] ?? ''] ?? 'center' }}">
-        @include('storefront.partials.media', ['src' => $sf->media($s['image'] ?? null), 'alt' => $sf->t($s, 'heading'), 'ratio' => $s['aspect'] ?? 'portrait'])
+        @include('storefront.partials.media', ['src' => $sf->media($s['image'] ?? null), 'alt' => $sf->t($s, 'heading'), 'ratio' => $s['aspect'] ?? 'portrait', 'edit' => $sf->ei('image')])
         <div>
-            @if (($big = $sf->t($s, 'big_text')) !== '')<p class="mv-big-text">{{ $big }}</p>@endif
-            @if (($e = $sf->t($s, 'eyebrow')) !== '')<span class="mv-eyebrow">{{ $e }}</span>@endif
-            @if (($h = $sf->t($s, 'heading')) !== '')<h2 class="mv-h2">{{ $h }}</h2>@endif
-            <div class="mv-rte">{!! $sf->rich($sf->t($s, 'body')) !!}</div>
-            @if ($btn !== '')<div class="mv-btn-row"><a class="mv-btn mv-btn--outline" href="{{ $sf->link($s['button_url'] ?? '/') }}">{{ $btn }}</a></div>@endif
+            @if (($big = $sf->t($s, 'big_text')) !== '')<p class="mv-big-text"{!! $sf->e('big_text') !!}>{{ $big }}</p>@endif
+            @if (($e = $sf->t($s, 'eyebrow')) !== '')<span class="mv-eyebrow"{!! $sf->e('eyebrow') !!}>{{ $e }}</span>@endif
+            @if (($h = $sf->t($s, 'heading')) !== '')<h2 class="mv-h2"{!! $sf->e('heading') !!}>{{ $h }}</h2>@endif
+            <div class="mv-rte"{!! $sf->e('body') !!}>{!! $sf->rich($sf->t($s, 'body')) !!}</div>
+            @if ($btn !== '')<div class="mv-btn-row"><a class="mv-btn mv-btn--outline" href="{{ $sf->link($s['button_url'] ?? '/') }}"{!! $sf->e('button_label') !!}>{{ $btn }}</a></div>@endif
         </div>
     </div>
 </div>

@@ -9,18 +9,18 @@
             @switch($b['type'])
                 @case('heading')
                     @php($tag = in_array($bs['tag'] ?? 'h2', ['h1', 'h2', 'h3', 'h4', 'p'], true) ? $bs['tag'] : 'h2')
-                    <{{ $tag }} class="mv-block-heading" style="margin:0;font-size:clamp({{ min(28, $sf->num($bs['size'] ?? 40, 12, 160)) }}px, {{ round($sf->num($bs['size'] ?? 40, 12, 160) / 14, 2) }}vw, {{ $sf->num($bs['size'] ?? 40, 12, 160) }}px);{{ ! empty($bs['uppercase']) ? 'text-transform:uppercase;' : '' }}letter-spacing:{{ $sf->num($bs['letter_spacing'] ?? 0, -5, 40) / 100 }}em;font-family:var(--font-heading)">{{ $sf->t($bs, 'text') }}</{{ $tag }}>
+                    <{{ $tag }}{!! $sf->e('text', $b['id']) !!} class="mv-block-heading" style="margin:0;font-size:clamp({{ min(28, $sf->num($bs['size'] ?? 40, 12, 160)) }}px, {{ round($sf->num($bs['size'] ?? 40, 12, 160) / 14, 2) }}vw, {{ $sf->num($bs['size'] ?? 40, 12, 160) }}px);{{ ! empty($bs['uppercase']) ? 'text-transform:uppercase;' : '' }}letter-spacing:{{ $sf->num($bs['letter_spacing'] ?? 0, -5, 40) / 100 }}em;font-family:var(--font-heading)">{{ $sf->t($bs, 'text') }}</{{ $tag }}>
                     @break
                 @case('text')
-                    <div class="mv-rte mv-block-text">{!! $sf->rich($sf->t($bs, 'text')) !!}</div>
+                    <div class="mv-rte mv-block-text"{!! $sf->e('text', $b['id']) !!}>{!! $sf->rich($sf->t($bs, 'text')) !!}</div>
                     @break
                 @case('button')
                     @php($style = in_array($bs['style'] ?? '', ['primary', 'outline', 'link'], true) ? $bs['style'] : 'primary')
-                    <a class="mv-btn {{ $style !== 'primary' ? 'mv-btn--'.$style : '' }}" href="{{ $sf->link($bs['url'] ?? '/shop') }}">{{ $sf->t($bs, 'label') }}</a>
+                    <a class="mv-btn {{ $style !== 'primary' ? 'mv-btn--'.$style : '' }}" href="{{ $sf->link($bs['url'] ?? '/shop') }}"{!! $sf->e('label', $b['id']) !!}>{{ $sf->t($bs, 'label') }}</a>
                     @break
                 @case('image')
                     @php($href = ! empty($bs['link_url']) ? $sf->link($bs['link_url']) : null)
-                    <div class="mv-block-image">@if ($href)<a href="{{ $href }}">@endif @include('storefront.partials.media', ['src' => $sf->media($bs['image'] ?? null), 'alt' => $bs['alt'] ?? '', 'ratio' => $bs['aspect'] ?? 'auto']) @if ($href)</a>@endif</div>
+                    <div class="mv-block-image"{!! $sf->ei('image', $b['id']) !!}>@if ($href)<a href="{{ $href }}">@endif @include('storefront.partials.media', ['src' => $sf->media($bs['image'] ?? null), 'alt' => $bs['alt'] ?? '', 'ratio' => $bs['aspect'] ?? 'auto']) @if ($href)</a>@endif</div>
                     @break
                 @case('video')
                     @php($url = $sf->media($bs['video_url'] ?? null))
@@ -39,7 +39,7 @@
                     <div class="mv-countdown" data-countdown="{{ $bs['ends_at'] ?? '' }}"></div>
                     @break
                 @case('badge')
-                    <span class="mv-pill">{{ $sf->t($bs, 'text') }}</span>
+                    <span class="mv-pill"{!! $sf->e('text', $b['id']) !!}>{{ $sf->t($bs, 'text') }}</span>
                     @break
                 @case('spacer')
                     <div style="height:{{ $sf->num($bs['height'] ?? 24, 0, 200) }}px;width:100%" aria-hidden="true"></div>

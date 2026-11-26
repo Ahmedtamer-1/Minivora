@@ -11,14 +11,14 @@
         </button>
         <a class="mv-logo" href="{{ $sf->url('/') }}">
             @if ($logo)<img src="{{ $logo }}" alt="{{ $sf->store->name }}" style="width:{{ $sf->num($s['logo_width'] ?? 120, 40, 320) }}px">@else{{ $sf->store->name }}@endif
-            @if ($tagline !== '')<span class="mv-logo__tagline">{{ $tagline }}</span>@endif
+            @if ($tagline !== '')<span class="mv-logo__tagline"{!! $sf->e('tagline') !!}>{{ $tagline }}</span>@endif
         </a>
         <nav class="mv-nav {{ ! empty($s['uppercase_menu']) ? 'is-upper' : '' }}" aria-label="{{ $sf->isAr() ? 'القائمة الرئيسية' : 'Main' }}">
             @foreach ($blocks as $b)
                 @php($children = $sf->links($sf->t($b['settings'], 'children')))
-                <div class="mv-nav__item">
+                <div class="mv-nav__item"{!! $sf->eb($b['id']) !!}>
                     <a class="mv-nav__link {{ ! empty($b['settings']['highlight']) ? 'is-highlight' : '' }}" href="{{ $sf->link($b['settings']['url'] ?? '/') }}">
-                        {{ $sf->t($b['settings'], 'label') }}
+                        <span{!! $sf->e('label', $b['id']) !!}>{{ $sf->t($b['settings'], 'label') }}</span>
                         @if ($children)<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>@endif
                     </a>
                     @if ($children)

@@ -14,12 +14,12 @@
     <div class="mv-footer" style="--cols:{{ max(1, min(4, count($blocks))) }}">
         <div>
             <a class="mv-logo" href="{{ $sf->url('/') }}" style="margin-bottom:12px">@if ($logo)<img src="{{ $logo }}" alt="{{ $sf->store->name }}" style="width:120px">@else{{ $sf->store->name }}@endif</a>
-            @if (($t = $sf->t($s, 'tagline')) !== '')<p class="mv-muted" style="max-width:36ch">{{ $t }}</p>@endif
+            @if (($t = $sf->t($s, 'tagline')) !== '')<p class="mv-muted" style="max-width:36ch"{!! $sf->e('tagline') !!}>{{ $t }}</p>@endif
         </div>
         @foreach ($blocks as $b)
             @php($bs = $b['settings'])
-            <div>
-                @if (($h = $sf->t($bs, 'heading')) !== '')<h2>{{ $h }}</h2>@endif
+            <div{!! $sf->eb($b['id']) !!}>
+                @if (($h = $sf->t($bs, 'heading')) !== '')<h2{!! $sf->e('heading', $b['id']) !!}>{{ $h }}</h2>@endif
                 @switch($b['type'])
                     @case('link_list')
                         <ul>@foreach ($sf->links($sf->t($bs, 'links')) as [$label, $url])<li><a href="{{ $url }}">{{ $label }}</a></li>@endforeach</ul>

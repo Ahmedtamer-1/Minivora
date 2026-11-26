@@ -1,6 +1,6 @@
 {{-- Image (or empty placeholder) in a ratio frame. Vars: $src, $alt, $ratio, $class, $eager, $src2 --}}
 @php($ratio = $ratio ?? 'portrait')
-<div class="mv-media mv-ar-{{ $ratio }} {{ $class ?? '' }}">
+<div class="mv-media mv-ar-{{ $ratio }} {{ $class ?? '' }}"{!! $edit ?? '' !!}>
     @if (! empty($src))
         <img src="{{ $src }}" alt="{{ $alt ?? '' }}" @if (empty($eager)) loading="lazy" @else fetchpriority="high" @endif decoding="async">
         @if (! empty($src2))<img class="mv-card__img2" src="{{ $src2 }}" alt="" loading="lazy" decoding="async">@endif

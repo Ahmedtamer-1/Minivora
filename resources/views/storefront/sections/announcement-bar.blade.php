@@ -3,7 +3,7 @@
         @foreach ($blocks as $i => $b)
             @php($text = $sf->t($b['settings'], 'text'))
             <p data-rotator-item class="{{ $i === 0 ? 'is-active' : '' }}" style="margin:0">
-                @if (! empty($b['settings']['link_url']))<a href="{{ $sf->link($b['settings']['link_url']) }}">{{ $text }}</a>@else{{ $text }}@endif
+                @if (! empty($b['settings']['link_url']))<a href="{{ $sf->link($b['settings']['link_url']) }}"{!! $sf->e('text', $b['id']) !!}>{{ $text }}</a>@else<span{!! $sf->e('text', $b['id']) !!}>{{ $text }}</span>@endif
             </p>
         @endforeach
     </div>

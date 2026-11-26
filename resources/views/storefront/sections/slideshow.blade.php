@@ -7,15 +7,15 @@
                 $heading = $sf->t($bs, 'heading');
                 $btn = $sf->t($bs, 'button_label');
             @endphp
-            <div class="mv-hero mv-h-{{ $s['height'] ?? 'large' }} {{ $image ? '' : 'is-empty' }} {{ $i === 0 ? 'is-active' : '' }}" data-rotator-item style="{{ $sf->position((string) ($bs['content_position'] ?? 'bottom-start')) }};{{ $sf->overlay($s['overlay_opacity'] ?? 30) }}">
+            <div{!! $sf->ei('image', $b['id']) !!} class="mv-hero mv-h-{{ $s['height'] ?? 'large' }} {{ $image ? '' : 'is-empty' }} {{ $i === 0 ? 'is-active' : '' }}" data-rotator-item style="{{ $sf->position((string) ($bs['content_position'] ?? 'bottom-start')) }};{{ $sf->overlay($s['overlay_opacity'] ?? 30) }}">
                 @include('storefront.partials.hero-media', ['image' => $image, 'mobile' => $sf->media($bs['mobile_image'] ?? null), 'alt' => $heading, 'eager' => $i === 0 && $index < 2])
                 <div class="mv-hero__content">
                     <div class="mv-hero__inner">
-                        @if (($e = $sf->t($bs, 'eyebrow')) !== '')<span class="mv-eyebrow">{{ $e }}</span>@endif
-                        @if ($heading !== '')<h2 class="mv-hero__title">{{ $heading }}</h2>@endif
-                        @if (($t = $sf->t($bs, 'text')) !== '')<p class="mv-hero__text">{{ $t }}</p>@endif
+                        @if (($e = $sf->t($bs, 'eyebrow')) !== '')<span class="mv-eyebrow"{!! $sf->e('eyebrow', $b['id']) !!}>{{ $e }}</span>@endif
+                        @if ($heading !== '')<h2 class="mv-hero__title"{!! $sf->e('heading', $b['id']) !!}>{{ $heading }}</h2>@endif
+                        @if (($t = $sf->t($bs, 'text')) !== '')<p class="mv-hero__text"{!! $sf->e('text', $b['id']) !!}>{{ $t }}</p>@endif
                         @if (! empty($bs['countdown_to']))<div class="mv-countdown" data-countdown="{{ $bs['countdown_to'] }}"></div>@endif
-                        @if ($btn !== '')<div class="mv-btn-row"><a class="mv-btn {{ $image ? 'mv-btn--light' : '' }}" href="{{ $sf->link($bs['button_url'] ?? '/shop') }}">{{ $btn }}</a></div>@endif
+                        @if ($btn !== '')<div class="mv-btn-row"><a class="mv-btn {{ $image ? 'mv-btn--light' : '' }}" href="{{ $sf->link($bs['button_url'] ?? '/shop') }}"{!! $sf->e('button_label', $b['id']) !!}>{{ $btn }}</a></div>@endif
                     </div>
                 </div>
             </div>
