@@ -21,6 +21,9 @@ const dashboardDuration = new Trend('minivora_dashboard_duration_ms', true);
 const dashboardErrors = new Rate('minivora_dashboard_error_rate');
 
 export const options = {
+    // k6 empties each VU's cookie jar at the start of every iteration by default, which would
+    // drop the owner session after the first pass through the dashboard pages.
+    noCookiesReset: true,
     stages: [
         { duration: '30s', target: Number(__ENV.DASHBOARD_VUS || 15) },
         { duration: '2m', target: Number(__ENV.DASHBOARD_VUS || 15) },
