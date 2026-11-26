@@ -1,0 +1,11 @@
+
+Running 6 tests using 2 workers
+
+  ✓  2 [desktop] › e2e/accessibility-and-checkout.spec.ts:22:9 › Checkout accessibility and structure (AR / rtl) › V-02 V-12 NFR-USE-04 NFR-USE-05 verifies dir="rtl", <= 8 fields, matching labels, and Tab order on /ar/checkout (932ms)
+  ✓  3 [desktop] › e2e/accessibility-and-checkout.spec.ts:22:9 › Checkout accessibility and structure (EN / ltr) › V-02 V-12 NFR-USE-04 NFR-USE-05 verifies dir="ltr", <= 8 fields, matching labels, and Tab order on /en/checkout (862ms)
+  ✓  1 [desktop] › e2e/owner-create-store.spec.ts:4:1 › FR-ONB-03 owner creates a store and reaches its dashboard (3.1s)
+  ✓  4 [mobile] › e2e/accessibility-and-checkout.spec.ts:22:9 › Checkout accessibility and structure (AR / rtl) › V-02 V-12 NFR-USE-04 NFR-USE-05 verifies dir="rtl", <= 8 fields, matching labels, and Tab order on /ar/checkout (914ms)
+  ✓  5 [mobile] › e2e/accessibility-and-checkout.spec.ts:22:9 › Checkout accessibility and structure (EN / ltr) › V-02 V-12 NFR-USE-04 NFR-USE-05 verifies dir="ltr", <= 8 fields, matching labels, and Tab order on /en/checkout (841ms)
+  ✓  6 [mobile] › e2e/owner-create-store.spec.ts:4:1 › FR-ONB-03 owner creates a store and reaches its dashboard (2.9s)
+
+  6 passed (7.4s)

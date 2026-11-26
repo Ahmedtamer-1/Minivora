@@ -1,0 +1,22 @@
+<testsuites id="" name="" tests="6" failures="0" skipped="0" errors="0" time="7.410936">
+<testsuite name="accessibility-and-checkout.spec.ts" timestamp="2026-11-26T14:39:15.141Z" hostname="desktop" tests="2" failures="0" skipped="0" time="1.794" errors="0">
+<testcase name="Checkout accessibility and structure (AR / rtl) › V-02 V-12 NFR-USE-04 NFR-USE-05 verifies dir=&quot;rtl&quot;, &lt;= 8 fields, matching labels, and Tab order on /ar/checkout" classname="accessibility-and-checkout.spec.ts" time="0.932">
+</testcase>
+<testcase name="Checkout accessibility and structure (EN / ltr) › V-02 V-12 NFR-USE-04 NFR-USE-05 verifies dir=&quot;ltr&quot;, &lt;= 8 fields, matching labels, and Tab order on /en/checkout" classname="accessibility-and-checkout.spec.ts" time="0.862">
+</testcase>
+</testsuite>
+<testsuite name="owner-create-store.spec.ts" timestamp="2026-11-26T14:39:15.141Z" hostname="desktop" tests="1" failures="0" skipped="0" time="3.146" errors="0">
+<testcase name="FR-ONB-03 owner creates a store and reaches its dashboard" classname="owner-create-store.spec.ts" time="3.146">
+</testcase>
+</testsuite>
+<testsuite name="accessibility-and-checkout.spec.ts" timestamp="2026-11-26T14:39:15.141Z" hostname="mobile" tests="2" failures="0" skipped="0" time="1.755" errors="0">
+<testcase name="Checkout accessibility and structure (AR / rtl) › V-02 V-12 NFR-USE-04 NFR-USE-05 verifies dir=&quot;rtl&quot;, &lt;= 8 fields, matching labels, and Tab order on /ar/checkout" classname="accessibility-and-checkout.spec.ts" time="0.914">
+</testcase>
+<testcase name="Checkout accessibility and structure (EN / ltr) › V-02 V-12 NFR-USE-04 NFR-USE-05 verifies dir=&quot;ltr&quot;, &lt;= 8 fields, matching labels, and Tab order on /en/checkout" classname="accessibility-and-checkout.spec.ts" time="0.841">
+</testcase>
+</testsuite>
+<testsuite name="owner-create-store.spec.ts" timestamp="2026-11-26T14:39:15.141Z" hostname="mobile" tests="1" failures="0" skipped="0" time="2.933" errors="0">
+<testcase name="FR-ONB-03 owner creates a store and reaches its dashboard" classname="owner-create-store.spec.ts" time="2.933">
+</testcase>
+</testsuite>
+</testsuites>
