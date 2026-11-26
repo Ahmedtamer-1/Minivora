@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { FieldInput, FieldShell, inputCls, isFieldVisible, MediaPicker } from '@/components/builder/field-input';
+import { MediaPanel } from '@/components/builder/media-panel';
 import {
     blockDefaults, blockDefs, blocksOf, deepClone, uid,
     type Block, type CatalogRefs, type EditorSection, type FieldDef, type PageSummary, type SectionDef, type Settings, type Version,
@@ -80,7 +81,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
     const [toast, setToast] = useState<{ tone: 'ok' | 'err'; text: string } | null>(null);
     const [picker, setPicker] = useState<GroupKey | null>(null);
     const [blockPicker, setBlockPicker] = useState<Selection | null>(null);
-    const [panel, setPanel] = useState<'page' | 'theme' | 'versions' | null>(null);
+    const [panel, setPanel] = useState<'page' | 'theme' | 'versions' | 'media' | null>(null);
     const [newPage, setNewPage] = useState(false);
     const [publishing, setPublishing] = useState(false);
     const [frameKey, setFrameKey] = useState(0);
@@ -279,7 +280,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
 
     const select = (sel: Selection | null) => {
         setSelection(sel);
-        setPanel(null);
+        setPanel((p) => (p === 'media' ? p : null));
         setTab('content');
         const s = findSection(sel);
         if (s?.id) postToFrame({ type: 'select', id: String(s.id) });
@@ -385,7 +386,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
                 if (!sel) return;
                 const next = { ...sel, blockId };
                 setSelection(next);
-                setPanel(null);
+                setPanel((p) => (p === 'media' ? p : null));
                 setTab('content');
                 focusField(next, typeof data.field === 'string' ? data.field : undefined);
                 return;
@@ -677,7 +678,7 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
                         <IconBtn label={L('Undo (Ctrl+Z)', 'تراجع')} onClick={undo} size="md"><Undo2 className="h-4 w-4" /></IconBtn>
                         <IconBtn label={L('Redo (Ctrl+Shift+Z)', 'إعادة')} onClick={redo} size="md"><Redo2 className="h-4 w-4" /></IconBtn>
                         <IconBtn label={L('Theme & custom CSS', 'المظهر و CSS')} onClick={() => { setSelection(null); setPanel('theme'); }} size="md" active={panel === 'theme'}><Paintbrush className="h-4 w-4" /></IconBtn>
-                        <a href="/builder/media" title={L('Media library', 'مكتبة الوسائط')} aria-label={L('Media library', 'مكتبة الوسائط')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-secondary hover:text-ink"><ImageIcon className="h-4 w-4" /></a>
+                        <IconBtn label={L('Media library', 'مكتبة الوسائط')} onClick={() => setPanel((p) => (p === 'media' ? null : 'media'))} size="md" active={panel === 'media'}><ImageIcon className="h-4 w-4" /></IconBtn>
                         <IconBtn label={L('Version history', 'سجل الإصدارات')} onClick={() => { setSelection(null); setPanel('versions'); }} size="md" active={panel === 'versions'}><History className="h-4 w-4" /></IconBtn>
                         <a href={liveUrl} target="_blank" rel="noopener" title={L('The published store shoppers see now', 'المتجر المنشور كما يراه العملاء الآن')} className="hidden h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-ink-muted hover:bg-secondary hover:text-ink xl:inline-flex"><ExternalLink className="h-4 w-4" />{L('Live store', 'المتجر المنشور')}</a>
                         <button type="button" onClick={openPreview} disabled={!page} title={L('Open your unpublished draft in a new tab', 'افتح المسودة غير المنشورة في تبويب جديد')} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm font-semibold hover:bg-secondary disabled:opacity-50"><Eye className="h-4 w-4" />{L('Preview', 'معاينة')}</button>
@@ -722,7 +723,25 @@ export default function BuilderEditor({ pages: initialPages, groups, initialPage
 
                     {/* Right: settings */}
                     <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-s border-line bg-surface" aria-label={L('Settings', 'الإعدادات')}>
-                        {selected && selectedDef && selection ? (
+                        {panel === 'media' ? (
+                            <MediaPanel
+                                isAr={isAr}
+                                flash={flash}
+                                onClose={() => setPanel(null)}
+                                targetName={selected && selectedDef ? (selectedBlockDef ? (isAr ? selectedBlockDef.label_ar : selectedBlockDef.label) : label(selected.type)) : null}
+                                targets={(selectedBlockDef?.fields ?? (selected && selectedDef ? selectedDef.fields : []))
+                                    .filter((f) => f.type === 'image' || f.type === 'video')
+                                    .map((f) => ({ key: f.id, label: isAr ? f.label_ar : f.label, kind: f.type as 'image' | 'video' }))
+                                    .concat(selected && !selectedBlockDef ? [{ key: '__style_background_image', label: L('Background image', 'صورة الخلفية'), kind: 'image' as const }] : [])}
+                                onUse={(url, key) => {
+                                    if (!selection) return;
+                                    if (key === '__style_background_image') setStyle(selection, 'background_image', url);
+                                    else if (selection.blockId) setBlock(selection, selection.blockId, key, url);
+                                    else setSetting(selection, key, url);
+                                    flash(L('Picture placed', 'تم وضع الصورة'));
+                                }}
+                            />
+                        ) : selected && selectedDef && selection ? (
                             selectedBlock && selectedBlockDef ? (
                                 <SettingsPanel
                                     title={isAr ? selectedBlockDef.label_ar : selectedBlockDef.label}
