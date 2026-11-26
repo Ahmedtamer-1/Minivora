@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { Trend, Rate } from 'k6/metrics';
-import { appBaseUrl, extractCsrfToken, CONFIG } from './lib/config.js';
+import { appBaseUrl, extractCsrfToken, csrfHeaders, CONFIG } from './lib/config.js';
 
 /**
  * Minivora Authenticated Owner Dashboard & API Load Test — SRS v1.8 NFR-PER-04 (TC-PERF-003)
@@ -47,11 +47,11 @@ function loginOwner() {
     const loginRes = http.post(
         `${app}/login`,
         {
-            _token: csrf,
             email,
             password: CONFIG.ownerPassword,
         },
         {
+            headers: csrfHeaders(csrf),
             tags: { endpoint: 'login_submit' },
             redirects: 5,
         }

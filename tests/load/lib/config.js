@@ -67,6 +67,17 @@ export function extractCsrfToken(res) {
     return '';
 }
 
+/**
+ * The header Laravel expects for a token. The XSRF-TOKEN cookie holds the *encrypted* token,
+ * which only X-XSRF-TOKEN accepts; a plain token (meta tag / hidden input) goes in X-CSRF-TOKEN.
+ * Laravel checks X-CSRF-TOKEN first, so sending the encrypted value there (or as `_token`) is a 419.
+ */
+export function csrfHeaders(csrfToken) {
+    if (!csrfToken) return {};
+    // Laravel-encrypted values are base64 JSON: {"iv":...}
+    return csrfToken.startsWith('eyJ') ? { 'X-XSRF-TOKEN': csrfToken } : { 'X-CSRF-TOKEN': csrfToken };
+}
+
 /** Standard headers for JSON AJAX requests against Laravel storefront/dashboard. */
 export function jsonHeaders(csrfToken, extra = {}) {
     const headers = {
@@ -74,11 +85,7 @@ export function jsonHeaders(csrfToken, extra = {}) {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
     };
-    if (csrfToken) {
-        headers['X-CSRF-TOKEN'] = csrfToken;
-        headers['X-XSRF-TOKEN'] = csrfToken;
-    }
-    return Object.assign(headers, extra);
+    return Object.assign(headers, csrfHeaders(csrfToken), extra);
 }
 
 /**
